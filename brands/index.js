@@ -3,8 +3,8 @@ const defaultConfig = require('./default/manifest.json');
 const configs = {
   default: {
     ...defaultConfig,
-    iconPath: './brands/default/icon.png',
-    splashPath: './brands/default/splash.png',
+    iconPath: './assets/icon.png',
+    splashPath: './assets/splash-icon.png',
   },
 };
 
