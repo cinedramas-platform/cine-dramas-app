@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd:*)",
+      "mcp__jira__searchJiraIssuesUsingJql",
+      "mcp__jira__getJiraIssue",
+      "mcp__jira__getIssueLinkTypes",
+      "mcp__jira__createJiraIssue",
+      "mcp__jira__createIssueLink"
+    ]
+  }
+}
