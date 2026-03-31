@@ -42,5 +42,8 @@ yarn-error.*
 # Testing
 coverage/
 
+# Claude Code local settings
+.claude/settings.local.json
+
 # Supabase local
 supabase/.temp/
