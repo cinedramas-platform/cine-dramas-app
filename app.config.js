@@ -1,4 +1,4 @@
-const clientConfigs = require('./brands/index').default;
+const clientConfigs = require('./brands/index');
 
 const variant = process.env.APP_VARIANT || 'default';
 const brand = clientConfigs[variant] || clientConfigs['default'];
@@ -12,6 +12,7 @@ module.exports = ({ config }) => ({
   icon: brand.iconPath || './assets/icon.png',
   userInterfaceStyle: 'dark',
   newArchEnabled: true,
+  scheme: brand.slug,
   splash: {
     image: brand.splashPath || './assets/splash-icon.png',
     resizeMode: 'contain',
