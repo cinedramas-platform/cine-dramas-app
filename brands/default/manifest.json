@@ -1,0 +1,19 @@
+{
+  "appName": "CineDramas Dev",
+  "slug": "cinedramas-dev",
+  "tenantId": "dev-tenant",
+  "ios": {
+    "bundleId": "com.cinedramas.dev"
+  },
+  "android": {
+    "packageName": "com.cinedramas.dev"
+  },
+  "supabaseUrl": "",
+  "supabaseAnonKey": "",
+  "muxEnvKey": "",
+  "revenuecatApiKey": "",
+  "sentryDsn": "",
+  "sentryProject": "cinedramas-dev",
+  "easProjectId": "",
+  "splashBackgroundColor": "#000000"
+}
