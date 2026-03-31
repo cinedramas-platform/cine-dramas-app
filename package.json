@@ -6,7 +6,13 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "tunnel": "expo start --tunnel",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run"
   },
   "dependencies": {
     "@mux/mux-data-react-native-video": "^0.19.19",
@@ -41,7 +47,7 @@
     "@testing-library/jest-native": "^5.4.3",
     "@testing-library/react-native": "^13.3.3",
     "@types/react": "~19.1.0",
-    "eslint": "^10.1.0",
+    "eslint": "^9.39.4",
     "eslint-config-expo": "^55.0.0",
     "prettier": "^3.8.1",
     "typescript": "~5.9.2",

@@ -1,0 +1,14 @@
+const { defineConfig } = require('eslint/config');
+const expoConfig = require('eslint-config-expo/flat');
+
+module.exports = defineConfig([
+  expoConfig,
+  {
+    rules: {
+      'no-console': 'warn',
+    },
+  },
+  {
+    ignores: ['dist/', 'node_modules/', '.expo/', 'brands/index.js'],
+  },
+]);
