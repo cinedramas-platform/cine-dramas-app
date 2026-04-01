@@ -17,7 +17,6 @@ android/
 *.orig.*
 
 # Environment variables
-.env
 .env.local
 .env.*.local
 
@@ -44,6 +43,9 @@ coverage/
 
 # Claude Code local settings
 .claude/settings.local.json
+
+# MCP auto-generated skills
+.agents/
 
 # Supabase local
 supabase/.temp/
