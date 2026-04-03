@@ -5,13 +5,18 @@
 -- ============================================================
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
+DECLARE
+  _tenant_id text;
 BEGIN
-  INSERT INTO public.users (auth_id, tenant_id, email)
-  VALUES (
-    NEW.id,
-    NEW.raw_app_meta_data->>'tenant_id',
-    NEW.email
-  );
+  _tenant_id := NEW.raw_app_meta_data->>'tenant_id';
+
+  -- Only create public.users row if tenant_id is present.
+  -- Admin-created users without tenant_id can be linked later.
+  IF _tenant_id IS NOT NULL THEN
+    INSERT INTO public.users (auth_id, tenant_id, email)
+    VALUES (NEW.id, _tenant_id, NEW.email);
+  END IF;
+
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
