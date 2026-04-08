@@ -1,0 +1,7 @@
+.claude/
+docs/
+node_modules/
+dist/
+.expo/
+android/
+ios/

@@ -4,12 +4,12 @@ A multi-tenant streaming infrastructure platform — "Shopify for streaming apps
 
 ## Prerequisites
 
-| Tool | Version | Install |
-|------|---------|---------|
-| Node.js | v20.19.4+ (LTS) | https://nodejs.org/ |
-| npm | v10+ (comes with Node) | Included |
-| Git | Latest | https://git-scm.com/ |
-| Expo Go (mobile) | Latest | [iOS App Store](https://apps.apple.com/app/expo-go/id982107779) / [Google Play](https://play.google.com/store/apps/details?id=host.exp.exponent) |
+| Tool             | Version                | Install                                                                                                                                          |
+| ---------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Node.js          | v20.19.4+ (LTS)        | https://nodejs.org/                                                                                                                              |
+| npm              | v10+ (comes with Node) | Included                                                                                                                                         |
+| Git              | Latest                 | https://git-scm.com/                                                                                                                             |
+| Expo Go (mobile) | Latest                 | [iOS App Store](https://apps.apple.com/app/expo-go/id982107779) / [Google Play](https://play.google.com/store/apps/details?id=host.exp.exponent) |
 
 > **Note:** The project uses Expo SDK 54 with React Native 0.81, which requires Node.js >= 20.19.4. Check your version with `node -v`.
 
@@ -52,9 +52,11 @@ This starts the Metro bundler and shows a QR code in the terminal.
 5. The app should load on your device
 
 **If the QR code doesn't connect** (common on corporate/different networks):
+
 ```bash
 npx expo start --tunnel
 ```
+
 This routes through Expo's servers. It will prompt to install `@expo/ngrok` on first use — accept it.
 
 ### Running on simulators/emulators
@@ -154,24 +156,24 @@ cine-dramas-app/
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Mobile | React Native 0.81 + Expo SDK 54 + Expo Router |
-| Video | react-native-video + Mux |
-| Lists | @shopify/flash-list |
-| Styling | NativeWind (Tailwind CSS) |
-| State | Zustand + TanStack React Query |
-| Backend | Supabase (PostgreSQL + Edge Functions + Auth) |
-| Billing | RevenueCat |
-| Monitoring | Sentry + Mux Data |
+| Layer      | Technology                                    |
+| ---------- | --------------------------------------------- |
+| Mobile     | React Native 0.81 + Expo SDK 54 + Expo Router |
+| Video      | react-native-video + Mux                      |
+| Lists      | @shopify/flash-list                           |
+| Styling    | NativeWind (Tailwind CSS)                     |
+| State      | Zustand + TanStack React Query                |
+| Backend    | Supabase (PostgreSQL + Edge Functions + Auth) |
+| Billing    | RevenueCat                                    |
+| Monitoring | Sentry + Mux Data                             |
 
 ## Git Workflow
 
-| Branch | Purpose |
-|--------|---------|
-| `main` | Stable releases, documentation |
-| `staging` | Pre-production testing |
-| `dev` | Active development |
+| Branch    | Purpose                        |
+| --------- | ------------------------------ |
+| `main`    | Stable releases, documentation |
+| `staging` | Pre-production testing         |
+| `dev`     | Active development             |
 
 ## Useful Commands
 

@@ -38,16 +38,16 @@ The app runs on Android emulator via `npx expo start`.
 
 8 tables, all with `tenant_id` for multi-tenant isolation:
 
-| Table | Purpose |
-|-------|---------|
-| `tenants` | Tenant config: theme, feature flags, legal URLs, Mux/RevenueCat keys |
-| `users` | App users, linked to `auth.users` via `auth_id` |
-| `series` | Video series (title, category, tags, featured flag) |
-| `seasons` | Seasons within a series |
-| `episodes` | Individual episodes with Mux asset references |
-| `watch_progress` | Per-user playback position tracking |
-| `entitlements` | Subscription/access grants per user |
-| `webhook_events` | Idempotent log of Mux/RevenueCat webhook deliveries |
+| Table            | Purpose                                                              |
+| ---------------- | -------------------------------------------------------------------- |
+| `tenants`        | Tenant config: theme, feature flags, legal URLs, Mux/RevenueCat keys |
+| `users`          | App users, linked to `auth.users` via `auth_id`                      |
+| `series`         | Video series (title, category, tags, featured flag)                  |
+| `seasons`        | Seasons within a series                                              |
+| `episodes`       | Individual episodes with Mux asset references                        |
+| `watch_progress` | Per-user playback position tracking                                  |
+| `entitlements`   | Subscription/access grants per user                                  |
+| `webhook_events` | Idempotent log of Mux/RevenueCat webhook deliveries                  |
 
 #### Row-Level Security (RLS)
 
@@ -117,14 +117,14 @@ User signs up with email + password
 
 ## What's Still Remaining (Phase 1)
 
-| Task | Status | What's Needed |
-|------|--------|---------------|
-| T1.04 -- Mux Account + Test Asset | To Do | Create Mux account, upload test video, get playback ID |
-| T1.05 -- RevenueCat Project | To Do | Create project, configure test subscriptions |
-| T1.06 -- Sentry Project | To Do | Create project, get DSN |
-| T1.07 -- GitHub CI | In Progress | Add CI workflow, branch protection rules |
-| T1.08 -- EAS Build System | To Do | Configure eas.json, build profiles, brand manifests |
-| T1.09 -- E2E Connectivity | To Do | Verify app connects to Supabase + plays Mux video |
+| Task                              | Status      | What's Needed                                          |
+| --------------------------------- | ----------- | ------------------------------------------------------ |
+| T1.04 -- Mux Account + Test Asset | To Do       | Create Mux account, upload test video, get playback ID |
+| T1.05 -- RevenueCat Project       | To Do       | Create project, configure test subscriptions           |
+| T1.06 -- Sentry Project           | To Do       | Create project, get DSN                                |
+| T1.07 -- GitHub CI                | In Progress | Add CI workflow, branch protection rules               |
+| T1.08 -- EAS Build System         | To Do       | Configure eas.json, build profiles, brand manifests    |
+| T1.09 -- E2E Connectivity         | To Do       | Verify app connects to Supabase + plays Mux video      |
 
 ### Other Open Items
 
