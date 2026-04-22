@@ -5,6 +5,7 @@ const brand = clientConfigs[variant] || clientConfigs['default'];
 
 module.exports = ({ config }) => ({
   ...config,
+  owner: 'cinedramas-app',
   name: brand.appName,
   slug: brand.slug,
   version: '1.0.0',
