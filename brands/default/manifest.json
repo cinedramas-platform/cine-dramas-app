@@ -8,9 +8,9 @@
   "android": {
     "packageName": "com.cinedramas.dev"
   },
-  "supabaseUrl": "",
-  "supabaseAnonKey": "",
-  "muxEnvKey": "",
+  "supabaseUrl": "https://kkjjbjrebeoekindsihw.supabase.co",
+  "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtrampianJlYmVvZWtpbmRzaWh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNjg4NDAsImV4cCI6MjA5MDY0NDg0MH0.i6s9I8IULUc6jLlTXLmGSmWMDBkDN0CsmMt5uG5I_2s",
+  "muxEnvKey": "o7pj7ihce49bfrjldm0geeiri",
   "revenuecatApiKey": "",
   "sentryDsn": "",
   "sentryProject": "cinedramas-dev",
