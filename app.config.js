@@ -41,5 +41,5 @@ module.exports = ({ config }) => ({
     tenantId: brand.tenantId,
     brandId: variant,
   },
-  plugins: ['expo-router', 'expo-secure-store'],
+  plugins: ['expo-router', 'expo-secure-store', 'react-native-video'],
 });
