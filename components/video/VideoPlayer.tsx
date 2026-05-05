@@ -104,7 +104,7 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(function
   }
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} pointerEvents="box-none">
       <MuxVideo
         ref={videoRef}
         source={{ uri }}
@@ -121,7 +121,7 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(function
         muxOptions={muxOptions}
       />
       {(state === 'loading' || state === 'buffering') && (
-        <View style={styles.overlay}>
+        <View style={styles.overlay} pointerEvents="none">
           <ActivityIndicator size="large" color="#fff" />
         </View>
       )}
