@@ -1,7 +1,9 @@
 import { memo, useCallback, useRef, useState } from 'react';
 import { Dimensions, StyleSheet, Text, View } from 'react-native';
 import { FlashList, type ViewToken } from '@shopify/flash-list';
-import { VideoPlayer } from '@/components/video/VideoPlayer';
+import { VideoPlayer, type VideoPlayerRef } from '@/components/video/VideoPlayer';
+import { PlayerOverlay } from '@/components/video/PlayerOverlay';
+import type { OnProgressData } from 'react-native-video';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const PRELOAD_WINDOW = 1;
@@ -26,6 +28,22 @@ type FeedItemProps = {
 };
 
 const FeedItem = memo<FeedItemProps>(function FeedItem({ episode, isActive, isLoaded }) {
+  const playerRef = useRef<VideoPlayerRef>(null);
+  const [paused, setPaused] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+
+  const effectivePaused = !isActive || paused;
+
+  const handleProgress = useCallback((data: OnProgressData) => {
+    setCurrentTime(data.currentTime);
+    setDuration(data.seekableDuration);
+  }, []);
+
+  const handleTogglePlay = useCallback(() => {
+    setPaused((p) => !p);
+  }, []);
+
   if (!isLoaded) {
     return <View style={styles.item} />;
   }
@@ -33,12 +51,24 @@ const FeedItem = memo<FeedItemProps>(function FeedItem({ episode, isActive, isLo
   return (
     <View style={styles.item}>
       <VideoPlayer
+        ref={playerRef}
         playbackId={episode.playbackId}
         token={episode.token}
-        paused={!isActive}
+        paused={effectivePaused}
+        onProgress={handleProgress}
         videoTitle={episode.title}
         videoId={episode.id}
       />
+      {isActive && (
+        <PlayerOverlay
+          title={episode.title}
+          seriesName={episode.seriesName}
+          currentTime={currentTime}
+          duration={duration}
+          isPlaying={!effectivePaused}
+          onTogglePlay={handleTogglePlay}
+        />
+      )}
     </View>
   );
 });
