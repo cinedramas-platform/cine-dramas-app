@@ -1,10 +1,13 @@
 import { View, Text, StyleSheet } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
 
-export default function HomeScreen() {
+export default function PlayerScreen() {
+  const { episodeId } = useLocalSearchParams<{ episodeId: string }>();
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>CineDramas</Text>
-      <Text style={styles.subtitle}>Your streaming platform</Text>
+      <Text style={styles.title}>Player</Text>
+      <Text style={styles.subtitle}>Episode: {episodeId}</Text>
     </View>
   );
 }
@@ -18,7 +21,7 @@ const styles = StyleSheet.create({
   },
   title: {
     color: '#fff',
-    fontSize: 32,
+    fontSize: 24,
     fontWeight: 'bold',
   },
   subtitle: {
