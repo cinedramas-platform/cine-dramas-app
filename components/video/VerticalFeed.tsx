@@ -1,5 +1,5 @@
 import { memo, useCallback, useRef, useState } from 'react';
-import { Dimensions, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, type LayoutChangeEvent, StyleSheet, Text, View } from 'react-native';
 import { FlashList, type ViewToken } from '@shopify/flash-list';
 import { VideoPlayer, type VideoPlayerRef } from '@/components/video/VideoPlayer';
 import { PlayerOverlay } from '@/components/video/PlayerOverlay';
@@ -25,13 +25,20 @@ type FeedItemProps = {
   episode: FeedEpisode;
   isActive: boolean;
   isLoaded: boolean;
+  itemHeight: number;
 };
 
-const FeedItem = memo<FeedItemProps>(function FeedItem({ episode, isActive, isLoaded }) {
+const FeedItem = memo<FeedItemProps>(function FeedItem({
+  episode,
+  isActive,
+  isLoaded,
+  itemHeight,
+}) {
   const playerRef = useRef<VideoPlayerRef>(null);
   const [paused, setPaused] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [playbackRate, setPlaybackRate] = useState(1);
 
   const effectivePaused = !isActive || paused;
 
@@ -44,17 +51,26 @@ const FeedItem = memo<FeedItemProps>(function FeedItem({ episode, isActive, isLo
     setPaused((p) => !p);
   }, []);
 
+  const handleSeek = useCallback((time: number) => {
+    playerRef.current?.seek(time);
+  }, []);
+
+  const handleSpeedChange = useCallback((speed: number) => {
+    setPlaybackRate(speed);
+  }, []);
+
   if (!isLoaded) {
-    return <View style={styles.item} />;
+    return <View style={[styles.item, { height: itemHeight }]} />;
   }
 
   return (
-    <View style={styles.item}>
+    <View style={[styles.item, { height: itemHeight }]}>
       <VideoPlayer
         ref={playerRef}
         playbackId={episode.playbackId}
         token={episode.token}
         paused={effectivePaused}
+        rate={playbackRate}
         onProgress={handleProgress}
         videoTitle={episode.title}
         videoId={episode.id}
@@ -67,6 +83,8 @@ const FeedItem = memo<FeedItemProps>(function FeedItem({ episode, isActive, isLo
           duration={duration}
           isPlaying={!effectivePaused}
           onTogglePlay={handleTogglePlay}
+          onSeek={handleSeek}
+          onSpeedChange={handleSpeedChange}
         />
       )}
     </View>
@@ -79,8 +97,13 @@ const viewabilityConfig = {
 
 export function VerticalFeed({ episodes, onEpisodeChange }: VerticalFeedProps) {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [containerHeight, setContainerHeight] = useState(SCREEN_HEIGHT);
   const onEpisodeChangeRef = useRef(onEpisodeChange);
   onEpisodeChangeRef.current = onEpisodeChange;
+
+  const handleLayout = useCallback((e: LayoutChangeEvent) => {
+    setContainerHeight(e.nativeEvent.layout.height);
+  }, []);
 
   const onViewableItemsChanged = useCallback(
     ({ viewableItems }: { viewableItems: ViewToken<FeedEpisode>[] }) => {
@@ -101,9 +124,10 @@ export function VerticalFeed({ episodes, onEpisodeChange }: VerticalFeedProps) {
         episode={item}
         isActive={index === activeIndex}
         isLoaded={Math.abs(index - activeIndex) <= PRELOAD_WINDOW}
+        itemHeight={containerHeight}
       />
     ),
-    [activeIndex],
+    [activeIndex, containerHeight],
   );
 
   const keyExtractor = useCallback((item: FeedEpisode) => item.id, []);
@@ -117,24 +141,28 @@ export function VerticalFeed({ episodes, onEpisodeChange }: VerticalFeedProps) {
   }
 
   return (
-    <FlashList
-      data={episodes}
-      renderItem={renderItem}
-      keyExtractor={keyExtractor}
-      pagingEnabled
-      decelerationRate="fast"
-      showsVerticalScrollIndicator={false}
-      onViewableItemsChanged={onViewableItemsChanged}
-      viewabilityConfig={viewabilityConfig}
-      drawDistance={SCREEN_HEIGHT * 3}
-      extraData={activeIndex}
-    />
+    <View style={styles.feed} onLayout={handleLayout}>
+      <FlashList
+        data={episodes}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        pagingEnabled
+        decelerationRate="fast"
+        showsVerticalScrollIndicator={false}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
+        drawDistance={containerHeight * 3}
+        extraData={activeIndex}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  feed: {
+    flex: 1,
+  },
   item: {
-    height: SCREEN_HEIGHT,
     backgroundColor: '#000',
   },
   empty: {

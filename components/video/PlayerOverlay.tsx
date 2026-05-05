@@ -1,15 +1,21 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
   withSequence,
   withDelay,
+  runOnJS,
 } from 'react-native-reanimated';
 
 const AUTO_HIDE_MS = 3000;
 const FADE_MS = 250;
+const SEEK_PER_PX = 0.15;
+
+const SPEED_OPTIONS = [0.5, 1, 1.5, 2] as const;
+type PlaybackSpeed = (typeof SPEED_OPTIONS)[number];
 
 export type PlayerOverlayProps = {
   title?: string;
@@ -21,6 +27,7 @@ export type PlayerOverlayProps = {
   onSeek?: (time: number) => void;
   onLike?: () => void;
   onShowInfo?: () => void;
+  onSpeedChange?: (speed: number) => void;
 };
 
 export function PlayerOverlay({
@@ -30,15 +37,21 @@ export function PlayerOverlay({
   duration,
   isPlaying,
   onTogglePlay,
+  onSeek,
   onLike,
   onShowInfo,
+  onSpeedChange,
 }: PlayerOverlayProps) {
   const overlayOpacity = useSharedValue(1);
   const likeScale = useSharedValue(0);
   const likeOpacity = useSharedValue(0);
+  const seekIndicatorOpacity = useSharedValue(0);
   const visibleRef = useRef(true);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const lastTapRef = useRef(0);
+  const [seekOffset, setSeekOffset] = useState(0);
+  const [showSpeedMenu, setShowSpeedMenu] = useState(false);
+  const [currentSpeed, setCurrentSpeed] = useState<PlaybackSpeed>(1);
+  const seekStartTimeRef = useRef(0);
 
   const scheduleHide = useCallback(() => {
     if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
@@ -82,16 +95,11 @@ export function PlayerOverlay({
     onLike?.();
   }, [likeScale, likeOpacity, onLike]);
 
-  const handlePress = useCallback(() => {
-    const now = Date.now();
-    const delta = now - lastTapRef.current;
-    lastTapRef.current = now;
-
-    if (delta < 300) {
-      triggerLike();
+  const toggleOverlay = useCallback(() => {
+    if (showSpeedMenu) {
+      setShowSpeedMenu(false);
       return;
     }
-
     if (visibleRef.current) {
       overlayOpacity.value = withTiming(0, { duration: FADE_MS });
       visibleRef.current = false;
@@ -99,7 +107,78 @@ export function PlayerOverlay({
     } else {
       showOverlay();
     }
-  }, [overlayOpacity, showOverlay, triggerLike]);
+  }, [overlayOpacity, showOverlay, showSpeedMenu]);
+
+  const handleLongPress = useCallback(() => {
+    setShowSpeedMenu(true);
+    showOverlay();
+  }, [showOverlay]);
+
+  const handleSeekStart = useCallback(() => {
+    seekStartTimeRef.current = currentTime;
+    seekIndicatorOpacity.value = withTiming(1, { duration: 100 });
+  }, [currentTime, seekIndicatorOpacity]);
+
+  const handleSeekUpdate = useCallback((translationX: number) => {
+    const offset = translationX * SEEK_PER_PX;
+    setSeekOffset(offset);
+  }, []);
+
+  const handleSeekEnd = useCallback(
+    (translationX: number) => {
+      const offset = translationX * SEEK_PER_PX;
+      const target = Math.max(0, Math.min(duration, seekStartTimeRef.current + offset));
+      onSeek?.(target);
+      setSeekOffset(0);
+      seekIndicatorOpacity.value = withTiming(0, { duration: 200 });
+    },
+    [duration, onSeek, seekIndicatorOpacity],
+  );
+
+  const handleSpeedSelect = useCallback(
+    (speed: PlaybackSpeed) => {
+      setCurrentSpeed(speed);
+      setShowSpeedMenu(false);
+      onSpeedChange?.(speed);
+      scheduleHide();
+    },
+    [onSpeedChange, scheduleHide],
+  );
+
+  const singleTap = Gesture.Tap()
+    .maxDuration(250)
+    .onEnd(() => {
+      runOnJS(toggleOverlay)();
+    });
+
+  const doubleTap = Gesture.Tap()
+    .numberOfTaps(2)
+    .maxDuration(250)
+    .onEnd(() => {
+      runOnJS(triggerLike)();
+    });
+
+  const longPress = Gesture.LongPress()
+    .minDuration(500)
+    .onStart(() => {
+      runOnJS(handleLongPress)();
+    });
+
+  const horizontalPan = Gesture.Pan()
+    .activeOffsetX([-15, 15])
+    .failOffsetY([-10, 10])
+    .onStart(() => {
+      runOnJS(handleSeekStart)();
+    })
+    .onUpdate((e) => {
+      runOnJS(handleSeekUpdate)(e.translationX);
+    })
+    .onEnd((e) => {
+      runOnJS(handleSeekEnd)(e.translationX);
+    });
+
+  const tapGestures = Gesture.Exclusive(doubleTap, singleTap);
+  const allGestures = Gesture.Race(horizontalPan, longPress, tapGestures);
 
   const overlayStyle = useAnimatedStyle(() => ({
     opacity: overlayOpacity.value,
@@ -110,43 +189,84 @@ export function PlayerOverlay({
     opacity: likeOpacity.value,
   }));
 
+  const seekIndicatorStyle = useAnimatedStyle(() => ({
+    opacity: seekIndicatorOpacity.value,
+  }));
+
   const progress = duration > 0 ? currentTime / duration : 0;
   const formatTime = (seconds: number) => {
+    const m = Math.floor(Math.abs(seconds) / 60);
+    const s = Math.floor(Math.abs(seconds) % 60);
+    const sign = seconds < 0 ? '-' : '+';
+    return `${sign}${m}:${s.toString().padStart(2, '0')}`;
+  };
+  const formatPosition = (seconds: number) => {
     const m = Math.floor(seconds / 60);
     const s = Math.floor(seconds % 60);
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
   return (
-    <Pressable style={styles.touchArea} onPress={handlePress}>
-      <Animated.View style={[styles.container, overlayStyle]} pointerEvents="box-none">
-        <View style={styles.top}>
-          {seriesName ? <Text style={styles.seriesName}>{seriesName}</Text> : null}
-          {title ? <Text style={styles.title}>{title}</Text> : null}
-        </View>
-
-        <View style={styles.center}>
-          <Pressable style={styles.playButton} onPress={onTogglePlay}>
-            <Text style={styles.playIcon}>{isPlaying ? '❚❚' : '▶'}</Text>
-          </Pressable>
-        </View>
-
-        <View style={styles.bottom}>
-          <View style={styles.progressContainer}>
-            <View style={styles.progressTrack}>
-              <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
-            </View>
-            <Text style={styles.timeText}>
-              {formatTime(currentTime)} / {formatTime(duration)}
-            </Text>
+    <GestureDetector gesture={allGestures}>
+      <Animated.View style={styles.touchArea}>
+        <Animated.View style={[styles.container, overlayStyle]} pointerEvents="box-none">
+          <View style={styles.top}>
+            {seriesName ? <Text style={styles.seriesName}>{seriesName}</Text> : null}
+            {title ? <Text style={styles.title}>{title}</Text> : null}
           </View>
-        </View>
-      </Animated.View>
 
-      <Animated.View style={[styles.likeContainer, likeStyle]} pointerEvents="none">
-        <Text style={styles.likeHeart}>♥</Text>
+          <View style={styles.center}>
+            <Pressable style={styles.playButton} onPress={onTogglePlay}>
+              <Text style={styles.playIcon}>{isPlaying ? '❚❚' : '▶'}</Text>
+            </Pressable>
+          </View>
+
+          <View style={styles.bottom}>
+            {currentSpeed !== 1 && <Text style={styles.speedBadge}>{currentSpeed}x</Text>}
+            <View style={styles.progressContainer}>
+              <View style={styles.progressTrack}>
+                <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
+              </View>
+              <Text style={styles.timeText}>
+                {formatPosition(currentTime)} / {formatPosition(duration)}
+              </Text>
+            </View>
+          </View>
+        </Animated.View>
+
+        {showSpeedMenu && (
+          <View style={styles.speedMenu}>
+            {SPEED_OPTIONS.map((speed) => (
+              <Pressable
+                key={speed}
+                style={[styles.speedOption, speed === currentSpeed && styles.speedOptionActive]}
+                onPress={() => handleSpeedSelect(speed)}
+              >
+                <Text
+                  style={[
+                    styles.speedOptionText,
+                    speed === currentSpeed && styles.speedOptionTextActive,
+                  ]}
+                >
+                  {speed}x
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        )}
+
+        <Animated.View style={[styles.seekIndicator, seekIndicatorStyle]} pointerEvents="none">
+          <Text style={styles.seekText}>{formatTime(seekOffset)}</Text>
+          <Text style={styles.seekTargetText}>
+            {formatPosition(Math.max(0, Math.min(duration, seekStartTimeRef.current + seekOffset)))}
+          </Text>
+        </Animated.View>
+
+        <Animated.View style={[styles.likeContainer, likeStyle]} pointerEvents="none">
+          <Text style={styles.likeHeart}>♥</Text>
+        </Animated.View>
       </Animated.View>
-    </Pressable>
+    </GestureDetector>
   );
 }
 
@@ -210,6 +330,64 @@ const styles = StyleSheet.create({
   timeText: {
     color: 'rgba(255,255,255,0.7)',
     fontSize: 12,
+  },
+  speedBadge: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '600',
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+    marginBottom: 12,
+    overflow: 'hidden',
+  },
+  speedMenu: {
+    position: 'absolute',
+    bottom: 100,
+    alignSelf: 'center',
+    flexDirection: 'row',
+    backgroundColor: 'rgba(0,0,0,0.8)',
+    borderRadius: 12,
+    padding: 4,
+    gap: 4,
+  },
+  speedOption: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  speedOptionActive: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+  },
+  speedOptionText: {
+    color: 'rgba(255,255,255,0.6)',
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  speedOptionTextActive: {
+    color: '#fff',
+  },
+  seekIndicator: {
+    position: 'absolute',
+    top: '45%',
+    alignSelf: 'center',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    borderRadius: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  seekText: {
+    color: '#fff',
+    fontSize: 22,
+    fontWeight: '700',
+  },
+  seekTargetText: {
+    color: 'rgba(255,255,255,0.6)',
+    fontSize: 13,
+    marginTop: 2,
   },
   likeContainer: {
     position: 'absolute',

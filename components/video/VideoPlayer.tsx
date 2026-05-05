@@ -18,6 +18,7 @@ export type VideoPlayerProps = {
   playbackId: string;
   token?: string;
   paused?: boolean;
+  rate?: number;
   onProgress?: (data: OnProgressData) => void;
   onEnd?: () => void;
   onLoad?: (data: OnLoadData) => void;
@@ -31,7 +32,18 @@ type PlayerState = 'loading' | 'ready' | 'error' | 'buffering';
 const muxEnvKey = Constants.expoConfig?.extra?.muxEnvKey || '';
 
 export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(function VideoPlayer(
-  { playbackId, token, paused = false, onProgress, onEnd, onLoad, onReady, videoTitle, videoId },
+  {
+    playbackId,
+    token,
+    paused = false,
+    rate = 1,
+    onProgress,
+    onEnd,
+    onLoad,
+    onReady,
+    videoTitle,
+    videoId,
+  },
   ref,
 ) {
   const videoRef = useRef<VideoRef>(null);
@@ -111,6 +123,7 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(function
         style={styles.video}
         resizeMode="contain"
         paused={paused}
+        rate={rate}
         onLoad={handleLoad}
         onReadyForDisplay={handleReadyForDisplay}
         onBuffer={handleBuffer}
