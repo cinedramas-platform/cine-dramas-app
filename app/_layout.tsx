@@ -2,17 +2,19 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { QueryProvider } from '@/providers/QueryProvider';
+import { ThemeProvider, useTheme } from '@/providers/ThemeProvider';
 import { useProtectedRoute } from '@/hooks/useProtectedRoute';
 
 function NavigationLayout() {
   useProtectedRoute();
+  const theme = useTheme();
 
   return (
     <Stack
       screenOptions={{
-        headerStyle: { backgroundColor: '#000' },
-        headerTintColor: '#fff',
-        contentStyle: { backgroundColor: '#000' },
+        headerStyle: { backgroundColor: theme.secondary },
+        headerTintColor: theme.text,
+        contentStyle: { backgroundColor: theme.background },
       }}
     >
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -29,8 +31,10 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <QueryProvider>
-        <StatusBar style="light" />
-        <NavigationLayout />
+        <ThemeProvider>
+          <StatusBar style="light" />
+          <NavigationLayout />
+        </ThemeProvider>
       </QueryProvider>
     </GestureHandlerRootView>
   );
