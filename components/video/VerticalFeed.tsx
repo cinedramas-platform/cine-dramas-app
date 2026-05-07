@@ -1,8 +1,10 @@
-import { memo, useCallback, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { Dimensions, type LayoutChangeEvent, StyleSheet, Text, View } from 'react-native';
 import { FlashList, type ViewToken } from '@shopify/flash-list';
 import { VideoPlayer, type VideoPlayerRef } from '@/components/video/VideoPlayer';
 import { PlayerOverlay } from '@/components/video/PlayerOverlay';
+import { useSaveProgress, useWatchProgress } from '@/hooks/useWatchProgress';
+import { usePlayerStore } from '@/stores/playerStore';
 import type { OnProgressData } from 'react-native-video';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -39,17 +41,60 @@ const FeedItem = memo<FeedItemProps>(function FeedItem({
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [playbackRate, setPlaybackRate] = useState(1);
+  const hasSoughtRef = useRef(false);
+  const wasActiveRef = useRef(false);
+
+  const { saveProgress, flush } = useSaveProgress(episode.id);
+  const { data: savedProgress } = useWatchProgress(isActive ? episode.id : null);
 
   const effectivePaused = !isActive || paused;
 
-  const handleProgress = useCallback((data: OnProgressData) => {
-    setCurrentTime(data.currentTime);
-    setDuration(data.seekableDuration);
-  }, []);
+  useEffect(() => {
+    if (wasActiveRef.current && !isActive) flush();
+    wasActiveRef.current = isActive;
+  }, [isActive, flush]);
+
+  useEffect(() => {
+    if (
+      isActive &&
+      savedProgress &&
+      !hasSoughtRef.current &&
+      savedProgress.position_seconds > 0 &&
+      !savedProgress.completed
+    ) {
+      playerRef.current?.seek(savedProgress.position_seconds);
+      hasSoughtRef.current = true;
+    }
+  }, [isActive, savedProgress]);
+
+  useEffect(() => {
+    hasSoughtRef.current = false;
+  }, [episode.id]);
+
+  useEffect(() => {
+    if (isActive) {
+      usePlayerStore.getState().setEpisode(episode.id);
+      usePlayerStore.getState().setIsPlaying(!paused);
+    }
+  }, [isActive, episode.id, paused]);
+
+  const handleProgress = useCallback(
+    (data: OnProgressData) => {
+      setCurrentTime(data.currentTime);
+      setDuration(data.seekableDuration);
+      if (isActive) {
+        saveProgress(data.currentTime, data.seekableDuration);
+        usePlayerStore.getState().setPosition(data.currentTime);
+        usePlayerStore.getState().setDuration(data.seekableDuration);
+      }
+    },
+    [isActive, saveProgress],
+  );
 
   const handleTogglePlay = useCallback(() => {
+    if (!paused) flush();
     setPaused((p) => !p);
-  }, []);
+  }, [paused, flush]);
 
   const handleSeek = useCallback((time: number) => {
     playerRef.current?.seek(time);

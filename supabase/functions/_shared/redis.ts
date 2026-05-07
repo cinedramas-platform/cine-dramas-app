@@ -37,3 +37,19 @@ export async function cacheSet(
     // Cache write failure is non-fatal
   }
 }
+
+export async function rateLimitCheck(
+  key: string,
+  maxRequests: number,
+  windowSeconds: number,
+): Promise<boolean> {
+  try {
+    const count = (await redisCommand(['INCR', key])) as number | null;
+    if (count === 1) {
+      await redisCommand(['EXPIRE', key, windowSeconds]);
+    }
+    return (count ?? 1) <= maxRequests;
+  } catch {
+    return true;
+  }
+}
