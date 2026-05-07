@@ -1,13 +1,30 @@
+import { useEffect } from 'react';
+import { ActivityIndicator, View } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { QueryProvider } from '@/providers/QueryProvider';
 import { ThemeProvider, useTheme } from '@/providers/ThemeProvider';
 import { useProtectedRoute } from '@/hooks/useProtectedRoute';
+import { useAuthStore } from '@/stores/authStore';
 
 function NavigationLayout() {
+  const { isLoading, hydrate } = useAuthStore();
+
+  useEffect(() => {
+    hydrate();
+  }, [hydrate]);
+
   useProtectedRoute();
   const theme = useTheme();
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#000' }}>
+        <ActivityIndicator size="large" color="#fff" />
+      </View>
+    );
+  }
 
   return (
     <Stack
