@@ -22,6 +22,9 @@ module.exports = ({ config }) => ({
   ios: {
     bundleIdentifier: brand.ios.bundleId,
     supportsTablet: false,
+    infoPlist: {
+      ITSAppUsesNonExemptEncryption: false,
+    },
   },
   android: {
     package: brand.android.packageName,
@@ -41,5 +44,5 @@ module.exports = ({ config }) => ({
     tenantId: brand.tenantId,
     brandId: variant,
   },
-  plugins: ['expo-router', 'expo-secure-store', 'react-native-video'],
+  plugins: ['expo-router', 'expo-secure-store', 'react-native-video', 'expo-font'],
 });

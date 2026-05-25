@@ -9,6 +9,9 @@ import Animated, {
   withDelay,
   runOnJS,
 } from 'react-native-reanimated';
+import { Colors, Fonts } from '@/constants/theme';
+import { ChevronIcon, MoreIcon, HeartIcon, CommentIcon, BookmarkIcon, ShareIcon, SparkleIcon, CoinIcon } from '@/components/ui/Icon';
+import { Eyebrow } from '@/components/ui/Eyebrow';
 
 const AUTO_HIDE_MS = 3000;
 const FADE_MS = 250;
@@ -20,6 +23,8 @@ type PlaybackSpeed = (typeof SPEED_OPTIONS)[number];
 export type PlayerOverlayProps = {
   title?: string;
   seriesName?: string;
+  episodeNumber?: number;
+  chapterTitle?: string;
   currentTime: number;
   duration: number;
   isPlaying: boolean;
@@ -28,11 +33,14 @@ export type PlayerOverlayProps = {
   onLike?: () => void;
   onShowInfo?: () => void;
   onSpeedChange?: (speed: number) => void;
+  onBack?: () => void;
 };
 
 export function PlayerOverlay({
   title,
   seriesName,
+  episodeNumber,
+  chapterTitle,
   currentTime,
   duration,
   isPlaying,
@@ -41,6 +49,7 @@ export function PlayerOverlay({
   onLike,
   onShowInfo,
   onSpeedChange,
+  onBack,
 }: PlayerOverlayProps) {
   const overlayOpacity = useSharedValue(1);
   const likeScale = useSharedValue(0);
@@ -206,34 +215,78 @@ export function PlayerOverlay({
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
+  const epLabel = episodeNumber ? `EP ${String(episodeNumber).padStart(2, '0')} / ${Math.ceil(duration / 60)}` : '';
+  const chapterLabel = chapterTitle ? `  ·  ${chapterTitle.toUpperCase()}` : '';
+
   return (
     <GestureDetector gesture={allGestures}>
       <Animated.View style={styles.touchArea}>
-        <Animated.View style={[styles.container, overlayStyle]} pointerEvents="box-none">
-          <View style={styles.top}>
-            {seriesName ? <Text style={styles.seriesName}>{seriesName}</Text> : null}
-            {title ? <Text style={styles.title}>{title}</Text> : null}
-          </View>
+        {/* Letterbox bars */}
+        <View style={[styles.letterbox, { top: 0 }]} />
+        <View style={[styles.letterbox, { bottom: 0 }]} />
 
-          <View style={styles.center}>
-            <Pressable style={styles.playButton} onPress={onTogglePlay}>
-              <Text style={styles.playIcon}>{isPlaying ? '❚❚' : '▶'}</Text>
+        <Animated.View style={[styles.container, overlayStyle]} pointerEvents="box-none">
+          {/* Top chrome */}
+          <View style={styles.top}>
+            <Pressable style={styles.topButton} onPress={onBack}>
+              <ChevronIcon size={14} color="#fff" direction="left" />
+            </Pressable>
+            <View style={{ alignItems: 'center', gap: 0 }}>
+              <Eyebrow color={Colors.accent} style={{ letterSpacing: 2.4 }}>
+                {seriesName?.toUpperCase() ?? 'NOW PLAYING'}
+              </Eyebrow>
+              <Text style={styles.epMeta}>
+                {epLabel}{chapterLabel}
+              </Text>
+            </View>
+            <Pressable style={styles.topButton}>
+              <MoreIcon size={14} color="#fff" />
             </Pressable>
           </View>
 
+          {/* Right-side action stack */}
+          <View style={styles.actionStack}>
+            <ActionButton icon={<HeartIcon size={22} color="#fff" />} label="98.4K" />
+            <ActionButton icon={<CommentIcon size={22} color="#fff" />} label="1.2K" />
+            <ActionButton icon={<BookmarkIcon size={22} color="#fff" />} />
+            <ActionButton icon={<ShareIcon size={22} color="#fff" />} />
+          </View>
+
+          {/* Bottom editorial title block */}
           <View style={styles.bottom}>
-            {currentSpeed !== 1 && <Text style={styles.speedBadge}>{currentSpeed}x</Text>}
-            <View style={styles.progressContainer}>
-              <View style={styles.progressTrack}>
-                <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
-              </View>
-              <Text style={styles.timeText}>
-                {formatPosition(currentTime)} / {formatPosition(duration)}
-              </Text>
+            <Eyebrow color={Colors.accent}>
+              {chapterTitle ? `CHAPTER — ${chapterTitle.toUpperCase()}` : 'NOW PLAYING'}
+            </Eyebrow>
+            <Text style={styles.bottomTitle}>
+              {seriesName ?? title}{' '}
+              {episodeNumber && (
+                <Text style={{ color: Colors.ink3, fontFamily: Fonts.displayItalic }}>
+                  · EP {String(episodeNumber).padStart(2, '0')}
+                </Text>
+              )}
+            </Text>
+          </View>
+
+          {/* Progress bar — thin gold line */}
+          <View style={styles.progressWrap}>
+            <View style={styles.progressTrack}>
+              <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
             </View>
           </View>
         </Animated.View>
 
+        {/* Double-tap unlock prompt */}
+        <View style={styles.unlockPrompt}>
+          <View style={styles.unlockIcon}>
+            <SparkleIcon size={12} color={Colors.accent} />
+          </View>
+          <View style={{ gap: 1 }}>
+            <Text style={styles.unlockTitle}>Double-tap to unlock</Text>
+            <Text style={styles.unlockSub}>Next episode · 80 coins</Text>
+          </View>
+        </View>
+
+        {/* Speed menu */}
         {showSpeedMenu && (
           <View style={styles.speedMenu}>
             {SPEED_OPTIONS.map((speed) => (
@@ -242,12 +295,7 @@ export function PlayerOverlay({
                 style={[styles.speedOption, speed === currentSpeed && styles.speedOptionActive]}
                 onPress={() => handleSpeedSelect(speed)}
               >
-                <Text
-                  style={[
-                    styles.speedOptionText,
-                    speed === currentSpeed && styles.speedOptionTextActive,
-                  ]}
-                >
+                <Text style={[styles.speedOptionText, speed === currentSpeed && styles.speedOptionTextActive]}>
                   {speed}x
                 </Text>
               </Pressable>
@@ -255,6 +303,7 @@ export function PlayerOverlay({
           </View>
         )}
 
+        {/* Seek indicator */}
         <Animated.View style={[styles.seekIndicator, seekIndicatorStyle]} pointerEvents="none">
           <Text style={styles.seekText}>{formatTime(seekOffset)}</Text>
           <Text style={styles.seekTargetText}>
@@ -262,11 +311,21 @@ export function PlayerOverlay({
           </Text>
         </Animated.View>
 
+        {/* Like heart */}
         <Animated.View style={[styles.likeContainer, likeStyle]} pointerEvents="none">
-          <Text style={styles.likeHeart}>♥</Text>
+          <HeartIcon size={80} color={Colors.accent} fill={Colors.accent} />
         </Animated.View>
       </Animated.View>
     </GestureDetector>
+  );
+}
+
+function ActionButton({ icon, label }: { icon: React.ReactNode; label?: string }) {
+  return (
+    <View style={{ alignItems: 'center', gap: 2 }}>
+      <View style={styles.actionBubble}>{icon}</View>
+      {label ? <Text style={styles.actionLabel}>{label}</Text> : null}
+    </View>
   );
 }
 
@@ -278,80 +337,136 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'space-between',
   },
+  letterbox: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: 50,
+    backgroundColor: '#000',
+    zIndex: 8,
+  },
   top: {
-    paddingTop: 60,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 14,
     paddingHorizontal: 16,
+    zIndex: 10,
   },
-  seriesName: {
+  topButton: {
+    width: 30,
+    height: 30,
+    borderRadius: 30,
+    backgroundColor: 'rgba(255,255,255,0.10)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  epMeta: {
+    fontFamily: Fonts.mono,
+    fontSize: 9,
+    color: 'rgba(255,255,255,0.55)',
+    letterSpacing: 1,
+  },
+  actionStack: {
+    position: 'absolute',
+    right: 14,
+    bottom: 80,
+    gap: 18,
+    alignItems: 'center',
+    zIndex: 6,
+  },
+  actionBubble: {
+    width: 38,
+    height: 38,
+    borderRadius: 38,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    borderWidth: 0.5,
+    borderColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionLabel: {
+    fontFamily: Fonts.sans500,
+    fontSize: 9,
     color: 'rgba(255,255,255,0.7)',
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  title: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '700',
-    marginTop: 4,
-  },
-  center: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  playButton: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  playIcon: {
-    fontSize: 28,
-    color: '#fff',
   },
   bottom: {
-    paddingBottom: 40,
-    paddingHorizontal: 16,
+    paddingHorizontal: 22,
+    paddingBottom: 86,
+    gap: 6,
+    zIndex: 5,
   },
-  progressContainer: {
-    gap: 8,
+  bottomTitle: {
+    fontFamily: Fonts.display,
+    fontSize: 22,
+    lineHeight: 24,
+    color: '#fff',
+    letterSpacing: -0.1,
+  },
+  progressWrap: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 56,
+    height: 2,
+    backgroundColor: 'rgba(255,255,255,0.1)',
   },
   progressTrack: {
-    height: 3,
-    backgroundColor: 'rgba(255,255,255,0.3)',
-    borderRadius: 1.5,
-    overflow: 'hidden',
+    height: '100%',
+    width: '100%',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#fff',
-    borderRadius: 1.5,
+    backgroundColor: Colors.accent,
   },
-  timeText: {
-    color: 'rgba(255,255,255,0.7)',
-    fontSize: 12,
+  unlockPrompt: {
+    position: 'absolute',
+    bottom: 70,
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 10,
+    paddingLeft: 12,
+    paddingRight: 16,
+    borderRadius: 100,
+    backgroundColor: 'rgba(20,17,14,0.85)',
+    borderWidth: 1,
+    borderColor: 'rgba(232,197,112,0.3)',
+    zIndex: 9,
   },
-  speedBadge: {
-    color: '#fff',
-    fontSize: 13,
-    fontWeight: '600',
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    alignSelf: 'flex-start',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 4,
-    marginBottom: 12,
-    overflow: 'hidden',
+  unlockIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 24,
+    backgroundColor: Colors.accentTint,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  unlockTitle: {
+    fontFamily: Fonts.sans600,
+    fontSize: 10,
+    color: Colors.accent,
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+  },
+  unlockSub: {
+    fontFamily: Fonts.sans,
+    fontSize: 11,
+    color: 'rgba(250,246,238,0.7)',
   },
   speedMenu: {
     position: 'absolute',
-    bottom: 100,
+    bottom: 140,
     alignSelf: 'center',
     flexDirection: 'row',
-    backgroundColor: 'rgba(0,0,0,0.8)',
+    backgroundColor: 'rgba(0,0,0,0.85)',
     borderRadius: 12,
     padding: 4,
     gap: 4,
+    borderWidth: 1,
+    borderColor: Colors.hairline,
+    zIndex: 10,
   },
   speedOption: {
     paddingHorizontal: 16,
@@ -359,32 +474,35 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   speedOptionActive: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(232,197,112,0.2)',
   },
   speedOptionText: {
+    fontFamily: Fonts.sans600,
     color: 'rgba(255,255,255,0.6)',
     fontSize: 15,
-    fontWeight: '600',
   },
   speedOptionTextActive: {
-    color: '#fff',
+    color: Colors.accent,
   },
   seekIndicator: {
     position: 'absolute',
     top: '45%',
     alignSelf: 'center',
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: 'rgba(0,0,0,0.8)',
     borderRadius: 10,
     paddingHorizontal: 20,
     paddingVertical: 12,
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.hairline,
   },
   seekText: {
+    fontFamily: Fonts.mono500,
     color: '#fff',
     fontSize: 22,
-    fontWeight: '700',
   },
   seekTargetText: {
+    fontFamily: Fonts.mono,
     color: 'rgba(255,255,255,0.6)',
     fontSize: 13,
     marginTop: 2,
@@ -395,9 +513,5 @@ const styles = StyleSheet.create({
     left: '50%',
     marginLeft: -40,
     marginTop: -40,
-  },
-  likeHeart: {
-    fontSize: 80,
-    color: '#ff2d55',
   },
 });
