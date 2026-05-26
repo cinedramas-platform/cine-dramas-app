@@ -31,6 +31,20 @@ export default function SeriesDetailScreen() {
     [router],
   );
 
+  const handleUnlockEpisode = useCallback(
+    (ep: Episode) => router.push({
+      pathname: '/unlock',
+      params: {
+        episodeId: ep.id,
+        seriesTitle: series?.title ?? '',
+        episodeNumber: String(ep.order),
+        episodeTitle: ep.title ?? 'Untitled',
+        playbackId: series?.thumbnail_playback_id ?? '',
+      },
+    }),
+    [router, series],
+  );
+
   if (isLoading) {
     return (
       <View style={{ flex: 1, backgroundColor: Colors.bg, justifyContent: 'center', alignItems: 'center' }}>
@@ -189,7 +203,7 @@ export default function SeriesDetailScreen() {
 
       {/* Slide-to-unlock prompt */}
       {nextLockedEp && (
-        <View style={{ paddingHorizontal: 22, paddingTop: 14, paddingBottom: 8 }}>
+        <Pressable onPress={() => handleUnlockEpisode(nextLockedEp)} style={{ paddingHorizontal: 22, paddingTop: 14, paddingBottom: 8 }}>
           <View
             style={{
               padding: 12,
@@ -270,7 +284,7 @@ export default function SeriesDetailScreen() {
               </Text>
             </View>
           </View>
-        </View>
+        </Pressable>
       )}
 
       {/* Season selector + Episode grid */}
@@ -295,7 +309,7 @@ export default function SeriesDetailScreen() {
             return (
               <Pressable
                 key={ep.id}
-                onPress={() => isPlayable && handlePlayEpisode(ep.id)}
+                onPress={() => locked ? handleUnlockEpisode(ep) : isPlayable && handlePlayEpisode(ep.id)}
                 style={{ width: GRID_ITEM_W, aspectRatio: 9 / 14, borderRadius: 6, overflow: 'hidden', position: 'relative' }}
               >
                 <Poster

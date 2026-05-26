@@ -98,3 +98,15 @@ export function FilterIcon({ size = 18, color = '#fff' }: P) {
 export function VoiceIcon({ size = 18, color = '#fff' }: P) {
   return <Ionicons name="mic-outline" size={size} color={color} />;
 }
+
+export function NotificationIcon({ size = 20, color = '#fff' }: P) {
+  return <Ionicons name="notifications-outline" size={size} color={color} />;
+}
+
+export function SettingsIcon({ size = 20, color = '#fff' }: P) {
+  return <Ionicons name="settings-outline" size={size} color={color} />;
+}
+
+export function TargetIcon({ size = 18, color = '#fff' }: P) {
+  return <MaterialCommunityIcons name="target" size={size} color={color} />;
+}

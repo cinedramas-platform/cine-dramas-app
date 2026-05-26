@@ -2,7 +2,7 @@
 
 Source: Master Architecture Blueprint, Section 12
 
-## T2.01: Build VideoPlayer Component
+## T2.01: Build VideoPlayer Component ✅
 **Ticket:** [CD-16](https://cinedramas.atlassian.net/browse/CD-16)
 **Owner:** Frontend | **Deps:** T1.09
 - Create `components/video/VideoPlayer.tsx` wrapping react-native-video
@@ -11,7 +11,7 @@ Source: Master Architecture Blueprint, Section 12
 - Play/pause/seek via ref. Loading/error/buffering states.
 - Integrate `@mux/mux-data-react-native-video`
 
-## T2.02: Build PreloadManager
+## T2.02: Build PreloadManager ✅
 **Ticket:** [CD-17](https://cinedramas.atlassian.net/browse/CD-17)
 **Owner:** Frontend | **Deps:** T2.01
 - `components/video/PreloadManager.ts`
@@ -19,7 +19,7 @@ Source: Master Architecture Blueprint, Section 12
 - Pool: current, N+1, N-1 episodes. Only one actively playing.
 - Target: < 500ms time-to-first-frame on swipe
 
-## T2.03: Build VerticalFeed
+## T2.03: Build VerticalFeed ✅
 **Ticket:** [CD-18](https://cinedramas.atlassian.net/browse/CD-18)
 **Owner:** Frontend | **Deps:** T2.01, T2.02
 - `components/video/VerticalFeed.tsx` using FlashList vertical paging
@@ -27,20 +27,20 @@ Source: Master Architecture Blueprint, Section 12
 - Snap-to-item. On visible change: play current, pause others, update PreloadManager.
 - Target: 60 FPS. Use React.memo on items.
 
-## T2.04: Build PlayerOverlay
+## T2.04: Build PlayerOverlay ✅
 **Ticket:** [CD-19](https://cinedramas.atlassian.net/browse/CD-19)
 **Owner:** Frontend | **Deps:** T2.01
 - Episode title, series name, progress bar, play/pause
 - Auto-hide after 3s (Reanimated fade). Show on tap.
 - Double-tap like, swipe up for info sheet.
 
-## T2.05: Implement Gesture Controls
+## T2.05: Implement Gesture Controls ✅
 **Ticket:** [CD-20](https://cinedramas.atlassian.net/browse/CD-20)
 **Owner:** Frontend | **Deps:** T2.03, T2.04
 - Single tap: toggle overlay. Double tap: like animation. Long press: speed options.
 - Horizontal pan: seek. Ensure no conflict with vertical scroll.
 
-## T2.06: Set Up Expo Router Navigation
+## T2.06: Set Up Expo Router Navigation ✅
 **Ticket:** [CD-21](https://cinedramas.atlassian.net/browse/CD-21)
 **Owner:** Frontend | **Deps:** T1.01
 - Root layout: `app/_layout.tsx` (auth check, ThemeProvider, QueryClientProvider)
@@ -81,7 +81,7 @@ Source: Master Architecture Blueprint, Section 12
 **Owner:** Frontend | **Deps:** T2.06, T2.10
 - Debounced input (300ms). Results as cards/rows. No results + loading + error states.
 
-## T2.12: Implement Supabase Auth Integration
+## T2.12: Implement Supabase Auth Integration ✅
 **Ticket:** [CD-27](https://cinedramas.atlassian.net/browse/CD-27)
 **Owner:** Frontend | **Deps:** T1.03, T2.06
 - `services/auth.ts`: signIn, signUp, signOut, refreshSession
@@ -89,17 +89,19 @@ Source: Master Architecture Blueprint, Section 12
 - Login/register screens. Store tokens in expo-secure-store.
 - Session hydration in root layout. Protected route wrapper.
 
-## T2.13: Build Profile Screen
+## T2.13: Build Profile Screen ✅
 **Ticket:** [CD-28](https://cinedramas.atlassian.net/browse/CD-28)
 **Owner:** Frontend | **Deps:** T2.12
-- User info, subscription status, restore purchases, version, legal links, logout.
+- Editorial "member dossier" with avatar, stats block, taste portrait, watch history, settings list.
+- Sign out wired. Coins pill navigates to coins screen.
 
-## T2.14: Build Onboarding Screen
+## T2.14: Build Onboarding Screen ✅
 **Ticket:** [CD-29](https://cinedramas.atlassian.net/browse/CD-29)
 **Owner:** Frontend | **Deps:** T2.06
-- 3 slides with Reanimated transitions. Skip/Next. AsyncStorage flag.
+- 3-step flow: cover page, mood selection grid, notification permission.
+- First-launch detection via AsyncStorage. Marks onboarded before auth redirect.
 
-## T2.15: Build Watch Progress System
+## T2.15: Build Watch Progress System ✅
 **Ticket:** [CD-30](https://cinedramas.atlassian.net/browse/CD-30)
 **Owner:** Fullstack | **Deps:** T2.01, T2.12, T1.02
 - Edge function: GET progress, PUT with rate limit (6/min/user via Redis UPSERT)
@@ -107,7 +109,7 @@ Source: Master Architecture Blueprint, Section 12
 - `stores/playerStore.ts`: current episode, position, isPlaying
 - ContinueWatchingRail with progress bars. Resume from last position.
 
-## T2.16: Build Playback Token Service
+## T2.16: Build Playback Token Service ✅
 **Ticket:** [CD-31](https://cinedramas.atlassian.net/browse/CD-31)
 **Owner:** Backend | **Deps:** T1.04, T1.02
 - Edge function: validate JWT, check entitlements, get mux_playback_id
@@ -115,12 +117,13 @@ Source: Master Architecture Blueprint, Section 12
 - Return: { stream_url, thumbnail_url, expires_at }
 - Use `jose` library. Signing key in env vars.
 
-## T2.17: Build Entitlements System
+## T2.17: Build Entitlements System 🚫 BLOCKED
 **Ticket:** [CD-32](https://cinedramas.atlassian.net/browse/CD-32)
 **Owner:** Fullstack | **Deps:** T1.05, T2.12, T1.02
 - `services/revenuecat.ts`: init SDK, getCustomerInfo, getOfferings, purchase, restore
 - `hooks/useEntitlements.ts`: hasPremium, isLoading, offerings
 - Edge function: GET entitlements, RevenueCat webhook handler (verify, idempotency, UPSERT)
+- **Status:** Code complete on branch `feature/cd-32-entitlements`. RevenueCat postponed for MVP.
 
 ## T2.18: Build Paywall Screen
 **Ticket:** [CD-33](https://cinedramas.atlassian.net/browse/CD-33)

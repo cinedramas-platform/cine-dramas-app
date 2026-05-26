@@ -56,6 +56,8 @@ function NavigationLayout() {
       <Stack.Screen name="auth" options={{ headerShown: false }} />
       <Stack.Screen name="onboarding" options={{ headerShown: false }} />
       <Stack.Screen name="paywall" options={{ headerShown: false, presentation: 'modal' }} />
+      <Stack.Screen name="coins" options={{ headerShown: false }} />
+      <Stack.Screen name="unlock" options={{ headerShown: false, presentation: 'modal' }} />
     </Stack>
   );
 }

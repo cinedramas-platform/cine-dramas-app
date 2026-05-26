@@ -5,16 +5,20 @@ import {
   TextInput,
   Pressable,
   ActivityIndicator,
-  StyleSheet,
   KeyboardAvoidingView,
   ScrollView,
   Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Colors, Fonts, Radius } from '@/constants/theme';
+import { Eyebrow } from '@/components/ui/Eyebrow';
+import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/stores/authStore';
 
 export default function RegisterScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { signUp, isLoading, error, clearError } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -44,131 +48,167 @@ export default function RegisterScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={{ flex: 1, backgroundColor: Colors.bg }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView
-        contentContainerStyle={styles.form}
+        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingTop: insets.top }}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.title}>Create Account</Text>
-        <Text style={styles.subtitle}>Sign up for CineDramas</Text>
+        {/* Top spacer + eyebrow */}
+        <View style={{ paddingTop: 50, paddingBottom: 32 }}>
+          <Eyebrow color={Colors.accent} style={{ textAlign: 'center', letterSpacing: 3 }}>
+            JOIN THE CLUB
+          </Eyebrow>
+          <Text style={{
+            fontFamily: Fonts.display, fontSize: 42, color: Colors.ink,
+            textAlign: 'center', letterSpacing: -0.5, marginTop: 8,
+          }}>
+            Create account
+          </Text>
+          <Text style={{
+            fontFamily: Fonts.displayItalic, fontSize: 16, color: Colors.ink3,
+            textAlign: 'center', marginTop: 6,
+          }}>
+            Your next obsession awaits.
+          </Text>
+        </View>
 
-        {displayError && <Text style={styles.error}>{displayError}</Text>}
+        {/* Error */}
+        {displayError && (
+          <View style={{
+            padding: 12, borderRadius: Radius.md, marginBottom: 16,
+            backgroundColor: 'rgba(255,68,68,0.08)', borderWidth: 1, borderColor: 'rgba(255,68,68,0.25)',
+          }}>
+            <Text style={{ fontFamily: Fonts.sans, fontSize: 13, color: '#ff6b6b', textAlign: 'center' }}>
+              {displayError}
+            </Text>
+          </View>
+        )}
 
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          placeholderTextColor="#666"
-          autoCapitalize="none"
-          autoComplete="email"
-          keyboardType="email-address"
-          value={email}
-          onChangeText={(t) => { setEmail(t); clearError(); setLocalError(''); }}
-          editable={!isLoading}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          placeholderTextColor="#666"
-          secureTextEntry
-          autoComplete="new-password"
-          value={password}
-          onChangeText={(t) => { setPassword(t); clearError(); setLocalError(''); }}
-          editable={!isLoading}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Confirm Password"
-          placeholderTextColor="#666"
-          secureTextEntry
-          value={confirmPassword}
-          onChangeText={(t) => { setConfirmPassword(t); setLocalError(''); }}
-          editable={!isLoading}
-          onSubmitEditing={handleSignUp}
-        />
+        {/* Fields */}
+        <View style={{ gap: 12 }}>
+          <View>
+            <Eyebrow style={{ marginBottom: 6, marginLeft: 2 }}>EMAIL</Eyebrow>
+            <TextInput
+              style={{
+                backgroundColor: Colors.surface,
+                color: Colors.ink,
+                borderRadius: Radius.md,
+                paddingHorizontal: 16,
+                paddingVertical: 14,
+                fontFamily: Fonts.sans,
+                fontSize: 15,
+                borderWidth: 1,
+                borderColor: Colors.hairline,
+              }}
+              placeholder="you@example.com"
+              placeholderTextColor={Colors.ink4}
+              autoCapitalize="none"
+              autoComplete="email"
+              keyboardType="email-address"
+              value={email}
+              onChangeText={(t) => { setEmail(t); clearError(); setLocalError(''); }}
+              editable={!isLoading}
+            />
+          </View>
 
-        <Pressable
-          style={[styles.button, isLoading && styles.buttonDisabled]}
-          onPress={handleSignUp}
-          disabled={isLoading}
-        >
+          <View>
+            <Eyebrow style={{ marginBottom: 6, marginLeft: 2 }}>PASSWORD</Eyebrow>
+            <TextInput
+              style={{
+                backgroundColor: Colors.surface,
+                color: Colors.ink,
+                borderRadius: Radius.md,
+                paddingHorizontal: 16,
+                paddingVertical: 14,
+                fontFamily: Fonts.sans,
+                fontSize: 15,
+                borderWidth: 1,
+                borderColor: Colors.hairline,
+              }}
+              placeholder="At least 6 characters"
+              placeholderTextColor={Colors.ink4}
+              secureTextEntry
+              autoComplete="new-password"
+              value={password}
+              onChangeText={(t) => { setPassword(t); clearError(); setLocalError(''); }}
+              editable={!isLoading}
+            />
+          </View>
+
+          <View>
+            <Eyebrow style={{ marginBottom: 6, marginLeft: 2 }}>CONFIRM PASSWORD</Eyebrow>
+            <TextInput
+              style={{
+                backgroundColor: Colors.surface,
+                color: Colors.ink,
+                borderRadius: Radius.md,
+                paddingHorizontal: 16,
+                paddingVertical: 14,
+                fontFamily: Fonts.sans,
+                fontSize: 15,
+                borderWidth: 1,
+                borderColor: Colors.hairline,
+              }}
+              placeholder="Repeat password"
+              placeholderTextColor={Colors.ink4}
+              secureTextEntry
+              value={confirmPassword}
+              onChangeText={(t) => { setConfirmPassword(t); setLocalError(''); }}
+              editable={!isLoading}
+              onSubmitEditing={handleSignUp}
+            />
+          </View>
+        </View>
+
+        {/* CTA */}
+        <View style={{ marginTop: 28 }}>
           {isLoading ? (
-            <ActivityIndicator color="#000" />
+            <View style={{
+              height: 52, borderRadius: Radius.pill, backgroundColor: Colors.accent,
+              alignItems: 'center', justifyContent: 'center', opacity: 0.7,
+            }}>
+              <ActivityIndicator color={Colors.black} />
+            </View>
           ) : (
-            <Text style={styles.buttonText}>Create Account</Text>
+            <Button label="Create Account" variant="accent" block height={52} onPress={handleSignUp} />
           )}
+        </View>
+
+        {/* Fine print */}
+        <Text style={{
+          fontFamily: Fonts.sans, fontSize: 10, color: Colors.ink4,
+          textAlign: 'center', lineHeight: 15, marginTop: 14, paddingHorizontal: 12,
+        }}>
+          By creating an account you agree to our Terms of Service and Privacy Policy.
+        </Text>
+
+        {/* Divider */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 24, gap: 14 }}>
+          <View style={{ flex: 1, height: 1, backgroundColor: Colors.hairline }} />
+          <Text style={{ fontFamily: Fonts.sans, fontSize: 11, color: Colors.ink4 }}>OR</Text>
+          <View style={{ flex: 1, height: 1, backgroundColor: Colors.hairline }} />
+        </View>
+
+        {/* Login link */}
+        <Pressable
+          onPress={() => router.push('/auth/login')}
+          style={{ marginTop: 20, alignItems: 'center' }}
+        >
+          <Text style={{ fontFamily: Fonts.sans, fontSize: 13, color: Colors.ink3 }}>
+            Already have an account?{' '}
+            <Text style={{ fontFamily: Fonts.sans600, color: Colors.accent }}>Sign in</Text>
+          </Text>
         </Pressable>
 
-        <Pressable style={styles.link} onPress={() => router.push('/auth/login')}>
-          <Text style={styles.linkText}>Already have an account? Sign in</Text>
-        </Pressable>
+        {/* Bottom branding */}
+        <View style={{ flex: 1, justifyContent: 'flex-end', paddingBottom: insets.bottom + 20, paddingTop: 40 }}>
+          <Text style={{ fontFamily: Fonts.displayItalic, fontSize: 13, color: Colors.ink4, textAlign: 'center' }}>
+            CineDramas — the way short stories should be
+          </Text>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#000',
-  },
-  form: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-  },
-  title: {
-    color: '#fff',
-    fontSize: 28,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  subtitle: {
-    color: '#888',
-    fontSize: 16,
-    marginTop: 8,
-    textAlign: 'center',
-    marginBottom: 32,
-  },
-  error: {
-    color: '#ff4444',
-    fontSize: 14,
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  input: {
-    backgroundColor: '#1a1a1a',
-    color: '#fff',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#333',
-  },
-  button: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  buttonText: {
-    color: '#000',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  link: {
-    marginTop: 24,
-    alignItems: 'center',
-  },
-  linkText: {
-    color: '#4a9eff',
-    fontSize: 14,
-  },
-});
