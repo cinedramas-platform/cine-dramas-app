@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { View, Text, Pressable, ActivityIndicator, ScrollView, RefreshControl, Dimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
+import { LinearGradient } from '@/components/ui/LinearGradient';
 import { Colors, Fonts, Radius } from '@/constants/theme';
 import { Eyebrow } from '@/components/ui/Eyebrow';
 import { Poster } from '@/components/ui/Poster';

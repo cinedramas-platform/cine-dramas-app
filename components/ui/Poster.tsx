@@ -1,5 +1,5 @@
 import { View, Text, type ViewStyle } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { LinearGradient } from '@/components/ui/LinearGradient';
 import { Image } from 'expo-image';
 import { Colors, Fonts } from '@/constants/theme';
 import { getMuxThumbnailUrl } from '@/services/mux';

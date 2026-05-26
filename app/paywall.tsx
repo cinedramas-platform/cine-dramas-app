@@ -1,7 +1,7 @@
 import { View, Text, Pressable, ScrollView, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
+import { LinearGradient } from '@/components/ui/LinearGradient';
 import { Colors, Fonts, Radius } from '@/constants/theme';
 import { Eyebrow } from '@/components/ui/Eyebrow';
 import { CineStill } from '@/components/ui/CineStill';
