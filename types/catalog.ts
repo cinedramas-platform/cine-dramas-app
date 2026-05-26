@@ -3,6 +3,7 @@ export interface Series {
   title: string;
   description: string | null;
   thumbnail_playback_id: string | null;
+  poster_url: string | null;
   category: string;
   tags: string[];
   is_featured: boolean;

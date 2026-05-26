@@ -30,7 +30,7 @@ Deno.serve(async (req) => {
   let query = supabase
     .from('series')
     .select(
-      'id, title, description, thumbnail_playback_id, category, tags, is_featured, sort_order, created_at',
+      'id, title, description, thumbnail_playback_id, poster_url, category, tags, is_featured, sort_order, created_at',
       { count: 'exact' },
     )
     .eq('status', 'published')

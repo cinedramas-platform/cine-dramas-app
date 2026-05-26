@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
   );
 
   const seriesFields =
-    'id, title, description, thumbnail_playback_id, category, tags, is_featured, sort_order';
+    'id, title, description, thumbnail_playback_id, poster_url, category, tags, is_featured, sort_order';
 
   const [tenantResult, featuredResult, allSeriesResult] = await Promise.all([
     supabase.from('tenants').select('home_rails_order').single(),

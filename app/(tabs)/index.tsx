@@ -94,6 +94,7 @@ export default function HomeScreen() {
       {hero && (
         <Pressable onPress={() => goToSeries(hero.id)} style={{ paddingHorizontal: 16, paddingBottom: 22 }}>
           <CineStill
+            imageUrl={hero.poster_url ?? undefined}
             playbackId={hero.thumbnail_playback_id ?? undefined}
             width={SCREEN_W - 32}
             height={460}
@@ -193,6 +194,7 @@ export default function HomeScreen() {
               <Pressable key={s.id} onPress={() => goToSeries(s.id)} style={{ flex: 1, gap: 6 }}>
                 <Poster
                   title={s.title}
+                  imageUrl={s.poster_url ?? undefined}
                   playbackId={s.thumbnail_playback_id ?? undefined}
                   genre={s.category}
                   width={(SCREEN_W - 42) / 2}
@@ -238,6 +240,7 @@ export default function HomeScreen() {
                 0{i + 1}
               </Text>
               <Poster
+                imageUrl={s.poster_url ?? undefined}
                 playbackId={s.thumbnail_playback_id ?? undefined}
                 width={56}
                 height={80}
@@ -278,6 +281,7 @@ export default function HomeScreen() {
                   <Poster
                     title={s.title}
                     genre={s.category}
+                    imageUrl={s.poster_url ?? undefined}
                     playbackId={s.thumbnail_playback_id ?? undefined}
                     width={108}
                     height={162}

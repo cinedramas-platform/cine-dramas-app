@@ -5,6 +5,7 @@ import { getMuxThumbnailUrl } from '@/services/mux';
 
 type Props = {
   playbackId?: string;
+  imageUrl?: string;
   palette?: [string, string, string];
   width: number;
   height: number;
@@ -14,11 +15,13 @@ type Props = {
   children?: React.ReactNode;
 };
 
-export function CineStill({ playbackId, palette, width, height, noFade, borderRadius = 0, style, children }: Props) {
+export function CineStill({ playbackId, imageUrl, palette, width, height, noFade, borderRadius = 0, style, children }: Props) {
   const [a = '#111', b = '#222', c = '#333'] = palette ?? [];
-  const thumbnailUri = playbackId
-    ? getMuxThumbnailUrl(playbackId, { width: Math.round(width * 2), height: Math.round(height * 2), fitMode: 'smartcrop' })
-    : undefined;
+  const thumbnailUri = imageUrl
+    ? imageUrl
+    : playbackId
+      ? getMuxThumbnailUrl(playbackId, { width: Math.round(width * 2), height: Math.round(height * 2), fitMode: 'smartcrop' })
+      : undefined;
 
   return (
     <View style={[{ position: 'relative', width, height, overflow: 'hidden', borderRadius }, style]}>

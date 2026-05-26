@@ -115,6 +115,7 @@ export default function SeriesDetailScreen() {
       {/* Hero */}
       <View style={{ paddingHorizontal: 20, paddingTop: insets.top + 54, paddingBottom: 14 }}>
         <CineStill
+          imageUrl={series.poster_url ?? undefined}
           playbackId={series.thumbnail_playback_id ?? undefined}
           width={SCREEN_W - 40}
           height={440}

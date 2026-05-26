@@ -30,7 +30,7 @@ Deno.serve(async (req) => {
   const { data, error } = await supabase
     .from('series')
     .select(`
-      id, title, description, thumbnail_playback_id, category, tags,
+      id, title, description, thumbnail_playback_id, poster_url, category, tags,
       is_featured, sort_order, created_at,
       seasons (
         id, number, title, created_at,

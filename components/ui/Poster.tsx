@@ -9,6 +9,7 @@ type Props = {
   genre?: string;
   episodeCount?: number;
   playbackId?: string;
+  imageUrl?: string;
   palette?: [string, string, string];
   width?: number;
   height?: number;
@@ -25,6 +26,7 @@ export function Poster({
   genre,
   episodeCount,
   playbackId,
+  imageUrl,
   palette,
   width = 120,
   height = 180,
@@ -36,9 +38,11 @@ export function Poster({
   style,
 }: Props) {
   const [a = '#111', b = '#222', c = '#333'] = palette ?? [];
-  const thumbnailUri = playbackId
-    ? getMuxThumbnailUrl(playbackId, { width: Math.round(width * 2), height: Math.round(height * 2), fitMode: 'smartcrop' })
-    : undefined;
+  const thumbnailUri = imageUrl
+    ? imageUrl
+    : playbackId
+      ? getMuxThumbnailUrl(playbackId, { width: Math.round(width * 2), height: Math.round(height * 2), fitMode: 'smartcrop' })
+      : undefined;
 
   return (
     <View
