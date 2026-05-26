@@ -4,6 +4,10 @@ export interface WatchProgress {
   position_seconds: number;
   completed: boolean;
   updated_at: string;
+  episode_title?: string | null;
+  episode_mux_playback_id?: string | null;
+  episode_thumbnail_time?: number;
+  episode_duration_seconds?: number | null;
 }
 
 export interface WatchProgressResponse {

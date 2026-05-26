@@ -41,9 +41,9 @@ export default function HomeScreen() {
   const railsOrder = Object.keys(categories);
 
   return (
+    <View style={{ flex: 1, backgroundColor: Colors.bg, paddingTop: insets.top }}>
     <ScrollView
-      style={{ flex: 1, backgroundColor: Colors.bg }}
-      contentContainerStyle={{ paddingTop: insets.top }}
+      style={{ flex: 1 }}
       refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={Colors.accent} />}
     >
       {/* Top Bar */}
@@ -292,5 +292,6 @@ export default function HomeScreen() {
 
       <View style={{ height: 20 }} />
     </ScrollView>
+    </View>
   );
 }

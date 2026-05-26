@@ -50,13 +50,29 @@ Deno.serve(async (req) => {
 
     const { data, error } = await supabase
       .from('watch_progress')
-      .select('id, episode_id, position_seconds, completed, updated_at')
+      .select('id, episode_id, position_seconds, completed, updated_at, episodes(title, mux_playback_id, thumbnail_time, duration_seconds)')
       .eq('completed', false)
       .order('updated_at', { ascending: false })
       .limit(20);
 
     if (error) return errorResponse(error.message, 500);
-    return jsonResponse({ progress: data ?? [] });
+
+    const flattened = (data ?? []).map((row: Record<string, unknown>) => {
+      const ep = row.episodes as Record<string, unknown> | null;
+      return {
+        id: row.id,
+        episode_id: row.episode_id,
+        position_seconds: row.position_seconds,
+        completed: row.completed,
+        updated_at: row.updated_at,
+        episode_title: ep?.title ?? null,
+        episode_mux_playback_id: ep?.mux_playback_id ?? null,
+        episode_thumbnail_time: ep?.thumbnail_time ?? 0,
+        episode_duration_seconds: ep?.duration_seconds ?? null,
+      };
+    });
+
+    return jsonResponse({ progress: flattened });
   }
 
   // PUT — upsert progress with rate limiting
