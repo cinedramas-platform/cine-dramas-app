@@ -69,12 +69,13 @@ export default function SeriesDetailScreen() {
   const nextLockedEp = episodes.find((e) => !e.is_free);
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: Colors.bg }}>
+    <View style={{ flex: 1, backgroundColor: Colors.bg, paddingTop: insets.top }}>
+    <ScrollView style={{ flex: 1 }}>
       {/* Masthead */}
       <View
         style={{
           position: 'absolute',
-          top: insets.top + 10,
+          top: 10,
           left: 0,
           right: 0,
           zIndex: 10,
@@ -113,7 +114,7 @@ export default function SeriesDetailScreen() {
       </View>
 
       {/* Hero */}
-      <View style={{ paddingHorizontal: 20, paddingTop: insets.top + 54, paddingBottom: 14 }}>
+      <View style={{ paddingHorizontal: 20, paddingTop: 54, paddingBottom: 14 }}>
         <CineStill
           imageUrl={series.poster_url ?? undefined}
           playbackId={series.thumbnail_playback_id ?? undefined}
@@ -366,5 +367,6 @@ export default function SeriesDetailScreen() {
 
       <View style={{ height: 40 }} />
     </ScrollView>
+    </View>
   );
 }
