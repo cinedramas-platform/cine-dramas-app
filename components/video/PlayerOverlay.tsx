@@ -10,7 +10,7 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import { Colors, Fonts } from '@/constants/theme';
-import { ChevronIcon, MoreIcon, HeartIcon, CommentIcon, BookmarkIcon, ShareIcon, SparkleIcon, CoinIcon } from '@/components/ui/Icon';
+import { ChevronIcon, MoreIcon, HeartIcon, CommentIcon, BookmarkIcon, ShareIcon, PlayIcon, PauseIcon, SparkleIcon } from '@/components/ui/Icon';
 import { Eyebrow } from '@/components/ui/Eyebrow';
 
 const AUTO_HIDE_MS = 3000;
@@ -34,6 +34,7 @@ export type PlayerOverlayProps = {
   onShowInfo?: () => void;
   onSpeedChange?: (speed: number) => void;
   onBack?: () => void;
+  onUnlockNext?: () => void;
 };
 
 export function PlayerOverlay({
@@ -50,6 +51,7 @@ export function PlayerOverlay({
   onShowInfo,
   onSpeedChange,
   onBack,
+  onUnlockNext,
 }: PlayerOverlayProps) {
   const overlayOpacity = useSharedValue(1);
   const likeScale = useSharedValue(0);
@@ -252,6 +254,11 @@ export function PlayerOverlay({
             <ActionButton icon={<ShareIcon size={22} color="#fff" />} />
           </View>
 
+          {/* Center play/pause */}
+          <Pressable style={styles.centerPlayPause} onPress={onTogglePlay}>
+            {isPlaying ? <PauseIcon size={28} color="#fff" /> : <PlayIcon size={28} color="#fff" />}
+          </Pressable>
+
           {/* Bottom editorial title block */}
           <View style={styles.bottom}>
             <Eyebrow color={Colors.accent}>
@@ -267,6 +274,19 @@ export function PlayerOverlay({
             </Text>
           </View>
 
+          {/* Unlock prompt — inside overlay so it fades with controls */}
+          {onUnlockNext && (
+            <Pressable style={styles.unlockPrompt} onPress={onUnlockNext}>
+              <View style={styles.unlockIcon}>
+                <SparkleIcon size={12} color={Colors.accent} />
+              </View>
+              <View style={{ gap: 1 }}>
+                <Text style={styles.unlockTitle}>DOUBLE-TAP TO UNLOCK</Text>
+                <Text style={styles.unlockSub}>Next episode · 80 coins</Text>
+              </View>
+            </Pressable>
+          )}
+
           {/* Progress bar — thin gold line */}
           <View style={styles.progressWrap}>
             <View style={styles.progressTrack}>
@@ -274,17 +294,6 @@ export function PlayerOverlay({
             </View>
           </View>
         </Animated.View>
-
-        {/* Double-tap unlock prompt */}
-        <View style={styles.unlockPrompt}>
-          <View style={styles.unlockIcon}>
-            <SparkleIcon size={12} color={Colors.accent} />
-          </View>
-          <View style={{ gap: 1 }}>
-            <Text style={styles.unlockTitle}>Double-tap to unlock</Text>
-            <Text style={styles.unlockSub}>Next episode · 80 coins</Text>
-          </View>
-        </View>
 
         {/* Speed menu */}
         {showSpeedMenu && (
@@ -419,6 +428,22 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: Colors.accent,
   },
+  centerPlayPause: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    marginLeft: -28,
+    marginTop: -28,
+    width: 56,
+    height: 56,
+    borderRadius: 56,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderWidth: 0.5,
+    borderColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 7,
+  },
   unlockPrompt: {
     position: 'absolute',
     bottom: 70,
@@ -439,7 +464,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 24,
-    backgroundColor: Colors.accentTint,
+    backgroundColor: 'rgba(232,197,112,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -448,7 +473,6 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: Colors.accent,
     letterSpacing: 1.4,
-    textTransform: 'uppercase',
   },
   unlockSub: {
     fontFamily: Fonts.sans,
