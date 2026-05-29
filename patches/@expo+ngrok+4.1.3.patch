@@ -1,0 +1,40 @@
+diff --git a/node_modules/@expo/ngrok/index.js b/node_modules/@expo/ngrok/index.js
+index c9e5f8d..720ca6d 100644
+--- a/node_modules/@expo/ngrok/index.js
++++ b/node_modules/@expo/ngrok/index.js
+@@ -26,10 +26,34 @@ async function connect(opts) {
+ 
+ async function connectRetry(opts, retryCount = 0) {
+   opts.name = String(opts.name || uuid.v4());
++  // ngrok v3 agent API rejects session/agent-level fields inside the tunnel
++  // definition (authtoken/configPath/port/region/etc). Strip them; auth and
++  // config are already applied at the session level via getProcess/setAuthtoken.
++  const {
++    authtoken,
++    configPath,
++    port,
++    region,
++    host,
++    binPath,
++    onLogEvent,
++    onStatusChange,
++    ...tunnelOpts
++  } = opts;
+   try {
+-    const response = await ngrokClient.startTunnel(opts);
++    const response = await ngrokClient.startTunnel(tunnelOpts);
+     return response.public_url;
+   } catch (err) {
++    // ngrok v3: re-adding a tunnel whose name already exists in the running
++    // agent session throws "already exists" (v2 silently reused it). Expo's
++    // connect/reconnect loop hits this — return the existing tunnel's URL.
++    const errText = JSON.stringify((err && (err.body || err.message)) || "");
++    if (/already exists/.test(errText)) {
++      try {
++        const detail = await ngrokClient.tunnelDetail(tunnelOpts.name);
++        if (detail && detail.public_url) return detail.public_url;
++      } catch (lookupErr) {}
++    }
+     if (!isRetriable(err) || retryCount >= 100) {
+       throw err;
+     }
