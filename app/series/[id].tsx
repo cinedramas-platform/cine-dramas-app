@@ -10,6 +10,7 @@ import { CineStill } from '@/components/ui/CineStill';
 import { Button } from '@/components/ui/Button';
 import { ChevronIcon, ShareIcon, PlayIcon, LockIcon, CoinIcon, SparkleIcon } from '@/components/ui/Icon';
 import { useSeriesDetail } from '@/hooks/useCatalog';
+import { useWallet } from '@/hooks/useWallet';
 import type { Episode } from '@/types/catalog';
 
 const { width: SCREEN_W } = Dimensions.get('window');
@@ -23,12 +24,20 @@ export default function SeriesDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { data: series, isLoading, error } = useSeriesDetail(id);
+  const { data: wallet } = useWallet();
   const [selectedSeasonIndex, setSelectedSeasonIndex] = useState(0);
   const [activeTab, setActiveTab] = useState(0);
 
+  const unlockedIds = wallet?.unlocked_episode_ids ?? [];
+  const isVip = wallet?.is_vip ?? false;
+  const isLocked = useCallback(
+    (ep: Episode) => !ep.is_free && ep.coin_cost > 0 && !isVip && !unlockedIds.includes(ep.id),
+    [isVip, unlockedIds],
+  );
+
   const handlePlayEpisode = useCallback(
-    (episodeId: string) => router.push(`/player/${episodeId}`),
-    [router],
+    (episodeId: string) => router.push({ pathname: `/player/${episodeId}`, params: { seriesId: id } }),
+    [router, id],
   );
 
   const handleUnlockEpisode = useCallback(
@@ -36,9 +45,11 @@ export default function SeriesDetailScreen() {
       pathname: '/unlock',
       params: {
         episodeId: ep.id,
+        seriesId: series?.id ?? '',
         seriesTitle: series?.title ?? '',
         episodeNumber: String(ep.order),
         episodeTitle: ep.title ?? 'Untitled',
+        coinCost: String(ep.coin_cost),
         playbackId: series?.thumbnail_playback_id ?? '',
       },
     }),
@@ -66,7 +77,7 @@ export default function SeriesDetailScreen() {
   const episodes = activeSeason?.episodes ?? [];
   const totalEpisodes = seasons.reduce((sum, s) => sum + (s.episodes?.length ?? 0), 0);
   const firstPlayableEp = episodes.find((e) => e.mux_playback_id && e.mux_asset_status === 'ready');
-  const nextLockedEp = episodes.find((e) => !e.is_free);
+  const nextLockedEp = episodes.find((e) => isLocked(e));
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.bg, paddingTop: insets.top }}>
@@ -236,7 +247,7 @@ export default function SeriesDetailScreen() {
                 }}
               >
                 <CoinIcon size={11} />
-                <Text style={{ fontFamily: Fonts.sans600, fontSize: 11, color: Colors.coin }}>80</Text>
+                <Text style={{ fontFamily: Fonts.sans600, fontSize: 11, color: Colors.coin }}>{nextLockedEp.coin_cost}</Text>
               </View>
             </View>
             {/* Slider rail */}
@@ -307,7 +318,7 @@ export default function SeriesDetailScreen() {
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: GRID_GAP }}>
           {episodes.map((ep: Episode) => {
             const isPlayable = ep.mux_playback_id && ep.mux_asset_status === 'ready';
-            const locked = !ep.is_free;
+            const locked = isLocked(ep);
             return (
               <Pressable
                 key={ep.id}

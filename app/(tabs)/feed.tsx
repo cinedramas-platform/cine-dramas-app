@@ -31,7 +31,7 @@ export default function FeedScreen() {
             key={s.id ?? i}
             onPress={() => {
               const firstEp = s.seasons?.[0]?.episodes?.[0];
-              if (firstEp) router.push(`/player/${firstEp.id}`);
+              if (firstEp) router.push({ pathname: `/player/${firstEp.id}`, params: { seriesId: s.id } });
             }}
             style={{
               flexDirection: 'row',

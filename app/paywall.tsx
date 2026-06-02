@@ -8,6 +8,7 @@ import { CineStill } from '@/components/ui/CineStill';
 import { Button } from '@/components/ui/Button';
 import { VipIcon, CloseIcon, SparkleIcon, CoinIcon, CheckIcon, PlayIcon } from '@/components/ui/Icon';
 import { useFeatured } from '@/hooks/useCatalog';
+import { useGrantCoins } from '@/hooks/useWallet';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 
@@ -16,6 +17,7 @@ export default function PaywallScreen() {
   const insets = useSafeAreaInsets();
   const { data: featured } = useFeatured();
   const heroSeries = featured?.featured?.[0];
+  const grantCoins = useGrantCoins();
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: Colors.bg }} bounces={false}>
@@ -136,8 +138,15 @@ export default function PaywallScreen() {
             ))}
           </View>
 
-          {/* Coins card */}
-          <View
+          {/* Coins card — mock purchase until RevenueCat IAP lands */}
+          <Pressable
+            disabled={grantCoins.isPending}
+            onPress={() =>
+              grantCoins.mutate(
+                { kind: 'purchase', pack: 'pack_500' },
+                { onSuccess: () => router.back() },
+              )
+            }
             style={{
               flex: 1,
               padding: 14,
@@ -147,7 +156,7 @@ export default function PaywallScreen() {
               borderColor: Colors.hairline,
             }}
           >
-            <Eyebrow style={{ marginBottom: 8 }}>PAY AS YOU GO</Eyebrow>
+            <Eyebrow style={{ marginBottom: 8 }}>{grantCoins.isPending ? 'ADDING…' : 'PAY AS YOU GO'}</Eyebrow>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 6 }}>
               <CoinIcon size={20} />
               <Text style={{ fontFamily: Fonts.display, fontSize: 28, color: Colors.ink }}>500</Text>
@@ -161,7 +170,7 @@ export default function PaywallScreen() {
                 <Text style={{ fontFamily: Fonts.sans, fontSize: 11, color: Colors.ink2 }}>{f}</Text>
               </View>
             ))}
-          </View>
+          </Pressable>
         </View>
       </View>
 
@@ -195,6 +204,7 @@ export default function PaywallScreen() {
 
       {/* CTA */}
       <View style={{ paddingHorizontal: 22, paddingTop: 4, paddingBottom: 20, gap: 8 }}>
+        {/* TODO(revenuecat): wire VIP subscription to RevenueCat IAP (deferred post-MVP). */}
         <Button
           label="Start VIP — $1.99 first week"
           variant="accent"

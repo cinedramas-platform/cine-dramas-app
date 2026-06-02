@@ -17,6 +17,8 @@ export type VideoPlayerRef = {
 export type VideoPlayerProps = {
   playbackId: string;
   token?: string;
+  /** Full signed stream URL (from playback-token). Overrides playbackId/token when set. */
+  streamUrl?: string;
   paused?: boolean;
   rate?: number;
   onProgress?: (data: OnProgressData) => void;
@@ -35,6 +37,7 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(function
   {
     playbackId,
     token,
+    streamUrl,
     paused = false,
     rate = 1,
     onProgress,
@@ -58,9 +61,10 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(function
   }));
 
   const uri = useMemo(() => {
+    if (streamUrl) return streamUrl;
     const base = `https://stream.mux.com/${playbackId}.m3u8`;
     return token ? `${base}?token=${token}` : base;
-  }, [playbackId, token]);
+  }, [streamUrl, playbackId, token]);
 
   const muxOptions = useMemo(
     () => ({

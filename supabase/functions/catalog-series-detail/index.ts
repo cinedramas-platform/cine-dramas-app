@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
         id, number, title, created_at,
         episodes (
           id, title, description, mux_playback_id, mux_asset_status,
-          duration_seconds, order, is_free, thumbnail_time, created_at
+          duration_seconds, order, is_free, coin_cost, thumbnail_time, created_at
         )
       )
     `)

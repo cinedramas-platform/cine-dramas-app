@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
 
   const { data: episode, error: episodeError } = await supabase
     .from('episodes')
-    .select('id, tenant_id, mux_playback_id, mux_asset_status, is_free')
+    .select('id, tenant_id, mux_playback_id, mux_signed_playback_id, mux_asset_status, is_free, coin_cost')
     .eq('id', episodeId)
     .single();
 
@@ -57,24 +57,41 @@ Deno.serve(async (req) => {
     return errorResponse('Episode not available for playback', 404);
   }
 
-  if (!episode.is_free) {
-    const { data: entitlement } = await supabase
-      .from('entitlements')
-      .select('tier, expires_at')
-      .single();
+  const isFree = episode.is_free || episode.coin_cost === 0;
+  if (!isFree) {
+    // Access if the user has a coin-unlocked grant for this episode...
+    const { data: unlock } = await supabase
+      .from('episode_unlocks')
+      .select('id')
+      .eq('episode_id', episode.id)
+      .maybeSingle();
 
-    const hasAccess =
-      entitlement &&
-      entitlement.tier !== 'free' &&
-      (!entitlement.expires_at ||
-        new Date(entitlement.expires_at) > new Date());
+    let hasAccess = !!unlock;
+
+    // ...or an active VIP/premium entitlement (unlimited unlocks).
+    if (!hasAccess) {
+      const { data: entitlement } = await supabase
+        .from('entitlements')
+        .select('tier, expires_at')
+        .maybeSingle();
+
+      hasAccess =
+        !!entitlement &&
+        entitlement.tier !== 'free' &&
+        (!entitlement.expires_at ||
+          new Date(entitlement.expires_at) > new Date());
+    }
 
     if (!hasAccess) {
-      return errorResponse('Premium subscription required', 403);
+      return errorResponse('Episode locked', 403);
     }
   }
 
-  const cacheKey = `mux_token:${episode.mux_playback_id}:${user.id}`;
+  // Sign the SIGNED playback id (gated video). Fall back to the public id for
+  // assets that don't have a signed id yet.
+  const playbackId = episode.mux_signed_playback_id || episode.mux_playback_id;
+
+  const cacheKey = `mux_token:${playbackId}:${user.id}`;
   const cached = await cacheGet(cacheKey);
   if (cached) {
     return jsonResponse(JSON.parse(cached));
@@ -107,16 +124,16 @@ Deno.serve(async (req) => {
   const keyBase64 = tenant.mux_signing_private_key;
 
   const videoToken = await signMuxJwt(
-    episode.mux_playback_id, 'v', keyId, keyBase64, expiresAt,
+    playbackId, 'v', keyId, keyBase64, expiresAt,
   );
 
   const thumbnailToken = await signMuxJwt(
-    episode.mux_playback_id, 't', keyId, keyBase64, expiresAt,
+    playbackId, 't', keyId, keyBase64, expiresAt,
   );
 
   const responseData = {
-    stream_url: `https://stream.mux.com/${episode.mux_playback_id}.m3u8?token=${videoToken}`,
-    thumbnail_url: `https://image.mux.com/${episode.mux_playback_id}/thumbnail.webp?token=${thumbnailToken}`,
+    stream_url: `https://stream.mux.com/${playbackId}.m3u8?token=${videoToken}`,
+    thumbnail_url: `https://image.mux.com/${playbackId}/thumbnail.webp?token=${thumbnailToken}`,
     expires_at: expiresAt.toISOString(),
   };
 

@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS public.series (
   title                   TEXT        NOT NULL,
   description             TEXT,
   thumbnail_playback_id   TEXT,
+  poster_url              TEXT,
   category                TEXT        NOT NULL,
   tags                    TEXT[]      DEFAULT '{}',
   is_featured             BOOLEAN     NOT NULL DEFAULT false,

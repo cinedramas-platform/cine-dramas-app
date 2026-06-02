@@ -28,6 +28,7 @@ export interface Episode {
   duration_seconds: number | null;
   order: number;
   is_free: boolean;
+  coin_cost: number;
   thumbnail_time: number;
   created_at: string;
 }

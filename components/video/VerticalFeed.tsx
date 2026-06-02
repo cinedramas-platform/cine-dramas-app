@@ -1,10 +1,14 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { Dimensions, type LayoutChangeEvent, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Dimensions, type LayoutChangeEvent, Pressable, StyleSheet, Text, View } from 'react-native';
 import { FlashList, type ViewToken } from '@shopify/flash-list';
+import { useRouter } from 'expo-router';
 import { VideoPlayer, type VideoPlayerRef } from '@/components/video/VideoPlayer';
 import { PlayerOverlay } from '@/components/video/PlayerOverlay';
 import { useSaveProgress, useWatchProgress } from '@/hooks/useWatchProgress';
+import { usePlaybackToken } from '@/hooks/usePlayback';
 import { usePlayerStore } from '@/stores/playerStore';
+import { Colors, Fonts } from '@/constants/theme';
+import { CoinIcon, LockIcon } from '@/components/ui/Icon';
 import type { OnProgressData } from 'react-native-video';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -16,6 +20,9 @@ export type FeedEpisode = {
   token?: string;
   title?: string;
   seriesName?: string;
+  seriesId?: string;
+  episodeNumber?: number;
+  coinCost?: number;
 };
 
 export type VerticalFeedProps = {
@@ -44,8 +51,15 @@ const FeedItem = memo<FeedItemProps>(function FeedItem({
   const hasSoughtRef = useRef(false);
   const wasActiveRef = useRef(false);
 
+  const router = useRouter();
   const { saveProgress, flush } = useSaveProgress(episode.id);
   const { data: savedProgress } = useWatchProgress(isActive ? episode.id : null);
+  // Signed stream URL. A 403 (locked/unpaid) lands in `tokenError`.
+  const {
+    data: playback,
+    isLoading: tokenLoading,
+    error: tokenError,
+  } = usePlaybackToken(isLoaded ? episode.id : null);
 
   const effectivePaused = !isActive || paused;
 
@@ -108,12 +122,55 @@ const FeedItem = memo<FeedItemProps>(function FeedItem({
     return <View style={[styles.item, { height: itemHeight }]} />;
   }
 
+  // Locked / unpaid — playback-token returned an error (403). Show the unlock CTA
+  // instead of mounting the video.
+  if (tokenError) {
+    return (
+      <View style={[styles.item, styles.center, { height: itemHeight }]}>
+        <LockIcon size={28} color={Colors.coin} />
+        <Text style={styles.lockedSeries}>{episode.seriesName ?? ''}</Text>
+        <Text style={styles.lockedTitle}>{episode.title ?? 'Locked episode'}</Text>
+        <Pressable
+          style={styles.unlockBtn}
+          onPress={() =>
+            router.push({
+              pathname: '/unlock',
+              params: {
+                episodeId: episode.id,
+                seriesId: episode.seriesId ?? '',
+                seriesTitle: episode.seriesName ?? '',
+                episodeNumber: String(episode.episodeNumber ?? ''),
+                episodeTitle: episode.title ?? '',
+                coinCost: String(episode.coinCost ?? ''),
+                playbackId: episode.playbackId,
+              },
+            })
+          }
+        >
+          <CoinIcon size={15} />
+          <Text style={styles.unlockBtnText}>
+            Unlock{episode.coinCost ? ` · ${episode.coinCost}` : ''}
+          </Text>
+        </Pressable>
+      </View>
+    );
+  }
+
+  // Awaiting signed URL.
+  if (tokenLoading || !playback) {
+    return (
+      <View style={[styles.item, styles.center, { height: itemHeight }]}>
+        <ActivityIndicator size="large" color="#fff" />
+      </View>
+    );
+  }
+
   return (
     <View style={[styles.item, { height: itemHeight }]}>
       <VideoPlayer
         ref={playerRef}
         playbackId={episode.playbackId}
-        token={episode.token}
+        streamUrl={playback.stream_url}
         paused={effectivePaused}
         rate={playbackRate}
         onProgress={handleProgress}
@@ -209,6 +266,42 @@ const styles = StyleSheet.create({
   },
   item: {
     backgroundColor: '#000',
+  },
+  center: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 32,
+  },
+  lockedSeries: {
+    color: Colors.ink3,
+    fontFamily: Fonts.sans600,
+    fontSize: 11,
+    letterSpacing: 1.6,
+    textTransform: 'uppercase',
+    marginTop: 6,
+  },
+  lockedTitle: {
+    color: '#fff',
+    fontFamily: Fonts.display,
+    fontSize: 22,
+    textAlign: 'center',
+  },
+  unlockBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 22,
+    borderRadius: 100,
+    backgroundColor: Colors.accent,
+  },
+  unlockBtnText: {
+    color: Colors.black,
+    fontFamily: Fonts.sans700,
+    fontSize: 13,
+    letterSpacing: 0.4,
   },
   empty: {
     flex: 1,

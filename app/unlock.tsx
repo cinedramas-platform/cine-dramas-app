@@ -7,6 +7,7 @@ import { Colors, Fonts } from '@/constants/theme';
 import { Eyebrow } from '@/components/ui/Eyebrow';
 import { CineStill } from '@/components/ui/CineStill';
 import { CloseIcon, CoinIcon, TargetIcon } from '@/components/ui/Icon';
+import { useWallet, useUnlockEpisode, useGrantCoins } from '@/hooks/useWallet';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 const HOLD_DURATION = 1500;
@@ -16,17 +17,28 @@ export default function UnlockScreen() {
   const insets = useSafeAreaInsets();
   const {
     episodeId,
+    seriesId,
     seriesTitle = 'The Estate',
     episodeNumber = '06',
     episodeTitle = 'The Confession.',
+    coinCost,
     playbackId,
   } = useLocalSearchParams<{
     episodeId?: string;
+    seriesId?: string;
     seriesTitle?: string;
     episodeNumber?: string;
     episodeTitle?: string;
+    coinCost?: string;
     playbackId?: string;
   }>();
+
+  const { data: wallet } = useWallet();
+  const unlock = useUnlockEpisode();
+  const grantCoins = useGrantCoins();
+
+  const cost = Number(coinCost) || 0;
+  const balance = wallet?.total ?? 0;
 
   const fillAnim = useRef(new Animated.Value(0)).current;
   const animRef = useRef<Animated.CompositeAnimation | null>(null);
@@ -38,13 +50,27 @@ export default function UnlockScreen() {
       useNativeDriver: false,
     });
     animRef.current.start(({ finished }) => {
-      if (finished && episodeId) {
-        router.replace(`/player/${episodeId}`);
-      } else if (finished) {
+      if (!finished) return;
+      if (!episodeId) {
         router.back();
+        return;
       }
+      unlock.mutate(
+        { episodeId, seriesId },
+        {
+          onSuccess: () =>
+            router.replace({ pathname: `/player/${episodeId}`, params: { seriesId: seriesId ?? '' } }),
+          onError: (err) => {
+            // 402 insufficient funds -> send to The Vault to top up.
+            if (err.message === 'insufficient_funds') {
+              router.replace('/coins');
+            }
+            fillAnim.setValue(0);
+          },
+        },
+      );
     });
-  }, [fillAnim, router]);
+  }, [fillAnim, router, episodeId, seriesId, unlock]);
 
   const handlePressOut = useCallback(() => {
     animRef.current?.stop();
@@ -124,14 +150,16 @@ export default function UnlockScreen() {
             <Eyebrow color={Colors.accent}>UNLOCK</Eyebrow>
             <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
               <CoinIcon size={18} />
-              <Text style={{ fontFamily: Fonts.display, fontSize: 26, color: Colors.ink }}>80</Text>
+              <Text style={{ fontFamily: Fonts.display, fontSize: 26, color: Colors.ink }}>{cost}</Text>
             </View>
           </View>
           <View style={{ alignItems: 'flex-end', gap: 2 }}>
             <Eyebrow color={Colors.ink3}>BALANCE</Eyebrow>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
               <CoinIcon size={12} />
-              <Text style={{ fontFamily: Fonts.display, fontSize: 18, color: Colors.ink }}>1,240</Text>
+              <Text style={{ fontFamily: Fonts.display, fontSize: 18, color: balance < cost ? Colors.coin : Colors.ink }}>
+                {balance.toLocaleString()}
+              </Text>
             </View>
           </View>
         </View>
@@ -163,7 +191,7 @@ export default function UnlockScreen() {
                 fontFamily: Fonts.sans700, fontSize: 14, color: Colors.black,
                 letterSpacing: 0.6,
               }}>
-                HOLD TO UNLOCK
+                {unlock.isPending ? 'UNLOCKING…' : 'HOLD TO UNLOCK'}
               </Text>
             </View>
           </View>
@@ -171,7 +199,9 @@ export default function UnlockScreen() {
 
         {/* Alternative paths */}
         <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 14 }}>
-          <Text style={{ fontFamily: Fonts.sans500, fontSize: 11, color: Colors.accent }}>Watch ad +10</Text>
+          <Pressable onPress={() => grantCoins.mutate({ kind: 'ad_reward' })} disabled={grantCoins.isPending}>
+            <Text style={{ fontFamily: Fonts.sans500, fontSize: 11, color: Colors.accent }}>Watch ad +10</Text>
+          </Pressable>
           <Text style={{ fontSize: 11, color: Colors.ink4 }}>·</Text>
           <Pressable onPress={() => router.push('/coins')}>
             <Text style={{ fontFamily: Fonts.sans500, fontSize: 11, color: Colors.accent }}>Buy more coins</Text>

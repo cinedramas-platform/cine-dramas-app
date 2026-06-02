@@ -1,0 +1,5 @@
+-- Reconciliation stub.
+-- This migration was applied directly to the remote database (version 20260403171702)
+-- but its source was never committed to this repo. This empty file exists only so the
+-- local migration history matches remote and `supabase db push` can proceed.
+-- The schema it produced already lives on remote; do not add DDL here.

@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/Button';
 import { CoinIcon, PlayIcon, ChevronIcon } from '@/components/ui/Icon';
 import { useFeatured } from '@/hooks/useCatalog';
 import { useContinueWatching } from '@/hooks/useWatchProgress';
+import { useWallet } from '@/hooks/useWallet';
 import type { Series } from '@/types/catalog';
 import type { WatchProgress } from '@/types/progress';
 
@@ -21,6 +22,7 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { data: featured, isLoading, refetch, isRefetching } = useFeatured();
   const { data: continueWatching } = useContinueWatching();
+  const { data: wallet } = useWallet();
 
   const goToSeries = useCallback((id: string) => router.push(`/series/${id}`), [router]);
   const goToPlayer = useCallback((episodeId: string) => router.push(`/player/${episodeId}`), [router]);
@@ -57,7 +59,8 @@ export default function HomeScreen() {
           </Text>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <View
+          <Pressable
+            onPress={() => router.push('/coins')}
             style={{
               flexDirection: 'row',
               alignItems: 'center',
@@ -72,21 +75,25 @@ export default function HomeScreen() {
             }}
           >
             <CoinIcon size={13} />
-            <Text style={{ fontFamily: Fonts.sans600, fontSize: 11, color: Colors.coin }}>1,240</Text>
-          </View>
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              paddingVertical: 4,
-              paddingHorizontal: 9,
-              borderRadius: 100,
-              backgroundColor: Colors.accent,
-            }}
-          >
-            <Text style={{ fontFamily: Fonts.displayItalic, fontSize: 14, color: Colors.black, marginRight: -1 }}>V</Text>
-            <Text style={{ fontFamily: Fonts.sans700, fontSize: 10, letterSpacing: 1.4, color: Colors.black }}>IP</Text>
-          </View>
+            <Text style={{ fontFamily: Fonts.sans600, fontSize: 11, color: Colors.coin }}>
+              {(wallet?.total ?? 0).toLocaleString()}
+            </Text>
+          </Pressable>
+          {wallet?.is_vip && (
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingVertical: 4,
+                paddingHorizontal: 9,
+                borderRadius: 100,
+                backgroundColor: Colors.accent,
+              }}
+            >
+              <Text style={{ fontFamily: Fonts.displayItalic, fontSize: 14, color: Colors.black, marginRight: -1 }}>V</Text>
+              <Text style={{ fontFamily: Fonts.sans700, fontSize: 10, letterSpacing: 1.4, color: Colors.black }}>IP</Text>
+            </View>
+          )}
         </View>
       </View>
 
