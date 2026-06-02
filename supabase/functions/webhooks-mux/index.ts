@@ -196,7 +196,18 @@ async function processAssetReady(
   episodeId: string,
   data: MuxWebhookEvent['data'],
 ): Promise<void> {
-  const playbackId = data.playback_ids?.[0]?.id;
+  const playbackIds = data.playback_ids ?? [];
+  // Public id → thumbnails/images. Signed id → gated video streaming.
+  const publicId =
+    playbackIds.find((p) => p.policy === 'public')?.id ?? playbackIds[0]?.id;
+  let signedId = playbackIds.find((p) => p.policy === 'signed')?.id;
+
+  // No signed playback id yet — create one so the episode can be gated
+  // (playback-token signs this id; without it new content would stream freely).
+  if (!signedId) {
+    signedId = await createSignedPlaybackId(data.id);
+  }
+
   const duration =
     typeof data.duration === 'number' ? Math.round(data.duration) : null;
 
@@ -204,7 +215,8 @@ async function processAssetReady(
     mux_asset_status: 'ready',
     updated_at: new Date().toISOString(),
   };
-  if (playbackId) update.mux_playback_id = playbackId;
+  if (publicId) update.mux_playback_id = publicId;
+  if (signedId) update.mux_signed_playback_id = signedId;
   if (duration !== null) update.duration_seconds = duration;
 
   const { error } = await supabase
@@ -213,6 +225,36 @@ async function processAssetReady(
     .eq('id', episodeId);
 
   if (error) throw new Error(`Failed to update episode: ${error.message}`);
+}
+
+// Creates a signed playback id on the Mux asset via the Mux API.
+async function createSignedPlaybackId(assetId: string): Promise<string> {
+  const tokenId = Deno.env.get('MUX_TOKEN_ID');
+  const tokenSecret = Deno.env.get('MUX_TOKEN_SECRET');
+  if (!tokenId || !tokenSecret) {
+    throw new Error('Mux API credentials not configured (MUX_TOKEN_ID/SECRET)');
+  }
+
+  const auth = btoa(`${tokenId}:${tokenSecret}`);
+  const res = await fetch(
+    `https://api.mux.com/video/v1/assets/${assetId}/playback-ids`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Basic ${auth}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ policy: 'signed' }),
+    },
+  );
+
+  if (!res.ok) {
+    throw new Error(
+      `Mux create signed playback id failed: ${res.status} ${await res.text()}`,
+    );
+  }
+
+  return (await res.json()).data.id as string;
 }
 
 async function processAssetErrored(
