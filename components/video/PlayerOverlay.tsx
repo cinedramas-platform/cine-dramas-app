@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -53,6 +54,7 @@ export function PlayerOverlay({
   onBack,
   onUnlockNext,
 }: PlayerOverlayProps) {
+  const insets = useSafeAreaInsets();
   const overlayOpacity = useSharedValue(1);
   const likeScale = useSharedValue(0);
   const likeOpacity = useSharedValue(0);
@@ -229,7 +231,7 @@ export function PlayerOverlay({
 
         <Animated.View style={[styles.container, overlayStyle]} pointerEvents="box-none">
           {/* Top chrome */}
-          <View style={styles.top}>
+          <View style={[styles.top, { paddingTop: insets.top + 12 }]}>
             <Pressable style={styles.topButton} onPress={onBack}>
               <ChevronIcon size={14} color="#fff" direction="left" />
             </Pressable>
@@ -345,6 +347,8 @@ const styles = StyleSheet.create({
   container: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'space-between',
+    // Above the letterbox bars (zIndex 8) so the top chrome / back button isn't occluded.
+    zIndex: 9,
   },
   letterbox: {
     position: 'absolute',
