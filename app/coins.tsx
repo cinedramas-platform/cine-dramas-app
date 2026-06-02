@@ -1,5 +1,6 @@
+import { useCallback } from 'react';
 import { View, Text, Pressable, ScrollView } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Fonts } from '@/constants/theme';
 import { Eyebrow } from '@/components/ui/Eyebrow';
@@ -30,10 +31,17 @@ function formatDate(iso: string): string {
 export default function CoinsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { data: wallet } = useWallet();
-  const { data: ledger } = useCoinLedger();
+  const { data: wallet, refetch: refetchWallet } = useWallet();
+  const { data: ledger, refetch: refetchLedger } = useCoinLedger();
   const grantCoins = useGrantCoins();
   const dailyCheckin = useDailyCheckin();
+
+  useFocusEffect(
+    useCallback(() => {
+      refetchWallet();
+      refetchLedger();
+    }, [refetchWallet, refetchLedger]),
+  );
 
   const transactions = ledger?.transactions ?? [];
 

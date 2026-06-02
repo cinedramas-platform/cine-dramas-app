@@ -20,6 +20,7 @@ export type VideoPlayerProps = {
   /** Full signed stream URL (from playback-token). Overrides playbackId/token when set. */
   streamUrl?: string;
   paused?: boolean;
+  muted?: boolean;
   rate?: number;
   onProgress?: (data: OnProgressData) => void;
   onEnd?: () => void;
@@ -39,6 +40,7 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(function
     token,
     streamUrl,
     paused = false,
+    muted = false,
     rate = 1,
     onProgress,
     onEnd,
@@ -127,6 +129,9 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(function
         style={styles.video}
         resizeMode="contain"
         paused={paused}
+        muted={muted}
+        playInBackground={false}
+        playWhenInactive={false}
         rate={rate}
         onLoad={handleLoad}
         onReadyForDisplay={handleReadyForDisplay}

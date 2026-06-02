@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { View, Text, Pressable, ActivityIndicator, ScrollView, RefreshControl, Dimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { LinearGradient } from '@/components/ui/LinearGradient';
 import { Colors, Fonts, Radius } from '@/constants/theme';
 import { Eyebrow } from '@/components/ui/Eyebrow';
@@ -22,7 +22,10 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { data: featured, isLoading, refetch, isRefetching } = useFeatured();
   const { data: continueWatching } = useContinueWatching();
-  const { data: wallet } = useWallet();
+  const { data: wallet, refetch: refetchWallet } = useWallet();
+
+  // Keep the coin badge fresh — coins may be spent/earned on other screens.
+  useFocusEffect(useCallback(() => { refetchWallet(); }, [refetchWallet]));
 
   const goToSeries = useCallback((id: string) => router.push(`/series/${id}`), [router]);
   const goToPlayer = useCallback((episodeId: string) => router.push(`/player/${episodeId}`), [router]);

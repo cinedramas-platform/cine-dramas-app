@@ -8,7 +8,7 @@ import { useSaveProgress, useWatchProgress } from '@/hooks/useWatchProgress';
 import { usePlaybackToken } from '@/hooks/usePlayback';
 import { usePlayerStore } from '@/stores/playerStore';
 import { Colors, Fonts } from '@/constants/theme';
-import { CoinIcon, LockIcon } from '@/components/ui/Icon';
+import { CoinIcon, LockIcon, ChevronIcon } from '@/components/ui/Icon';
 import type { OnProgressData } from 'react-native-video';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -127,6 +127,9 @@ const FeedItem = memo<FeedItemProps>(function FeedItem({
   if (tokenError) {
     return (
       <View style={[styles.item, styles.center, { height: itemHeight }]}>
+        <Pressable style={styles.backButton} onPress={() => router.back()} hitSlop={10}>
+          <ChevronIcon size={16} color="#fff" direction="left" />
+        </Pressable>
         <LockIcon size={28} color={Colors.coin} />
         <Text style={styles.lockedSeries}>{episode.seriesName ?? ''}</Text>
         <Text style={styles.lockedTitle}>{episode.title ?? 'Locked episode'}</Text>
@@ -160,6 +163,9 @@ const FeedItem = memo<FeedItemProps>(function FeedItem({
   if (tokenLoading || !playback) {
     return (
       <View style={[styles.item, styles.center, { height: itemHeight }]}>
+        <Pressable style={styles.backButton} onPress={() => router.back()} hitSlop={10}>
+          <ChevronIcon size={16} color="#fff" direction="left" />
+        </Pressable>
         <ActivityIndicator size="large" color="#fff" />
       </View>
     );
@@ -172,6 +178,7 @@ const FeedItem = memo<FeedItemProps>(function FeedItem({
         playbackId={episode.playbackId}
         streamUrl={playback.stream_url}
         paused={effectivePaused}
+        muted={effectivePaused}
         rate={playbackRate}
         onProgress={handleProgress}
         videoTitle={episode.title}
@@ -181,12 +188,14 @@ const FeedItem = memo<FeedItemProps>(function FeedItem({
         <PlayerOverlay
           title={episode.title}
           seriesName={episode.seriesName}
+          episodeNumber={episode.episodeNumber}
           currentTime={currentTime}
           duration={duration}
           isPlaying={!effectivePaused}
           onTogglePlay={handleTogglePlay}
           onSeek={handleSeek}
           onSpeedChange={handleSpeedChange}
+          onBack={() => router.back()}
         />
       )}
     </View>
@@ -272,6 +281,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     paddingHorizontal: 32,
+  },
+  backButton: {
+    position: 'absolute',
+    top: 50,
+    left: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 36,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 20,
   },
   lockedSeries: {
     color: Colors.ink3,
