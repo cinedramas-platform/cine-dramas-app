@@ -1,0 +1,66 @@
+name: Release
+
+# Tag a release (e.g. v1.2.0) to build every brand variant through EAS and
+# submit the production builds to the stores.
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-matrix:
+    name: EAS Build (all brand variants)
+    runs-on: ubuntu-latest
+    # Gate releases behind a protected environment so a maintainer approves
+    # before any store-bound build runs.
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.4
+          cache: npm
+
+      - run: npm ci
+
+      # Fail fast before burning EAS build minutes on a misconfigured brand.
+      - name: Validate brands
+        run: npm run validate:brands
+
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Build all variants
+        run: bash scripts/build-all.sh production all
+
+  submit:
+    name: EAS Submit (all brand variants)
+    runs-on: ubuntu-latest
+    needs: build-matrix
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.4
+          cache: npm
+
+      - run: npm ci
+
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      # Submits the latest finished build for each production profile.
+      - name: Submit default
+        run: eas submit --non-interactive --platform all --profile production --latest
+
+      - name: Submit clientA
+        run: eas submit --non-interactive --platform all --profile clientA-production --latest

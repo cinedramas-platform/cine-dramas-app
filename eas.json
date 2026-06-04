@@ -7,21 +7,50 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
+      "channel": "development",
       "env": {
         "APP_VARIANT": "default"
       }
     },
     "preview": {
       "distribution": "internal",
+      "channel": "preview",
       "env": {
         "APP_VARIANT": "default"
       }
     },
     "production": {
       "autoIncrement": true,
+      "channel": "production",
       "env": {
         "APP_VARIANT": "default"
       }
+    },
+
+    "clientA-development": {
+      "extends": "development",
+      "channel": "clientA-development",
+      "env": {
+        "APP_VARIANT": "clientA"
+      }
+    },
+    "clientA-preview": {
+      "extends": "preview",
+      "channel": "clientA-preview",
+      "env": {
+        "APP_VARIANT": "clientA"
+      }
+    },
+    "clientA-production": {
+      "extends": "production",
+      "channel": "clientA-production",
+      "env": {
+        "APP_VARIANT": "clientA"
+      }
     }
+  },
+  "submit": {
+    "production": {},
+    "clientA-production": {}
   }
 }
