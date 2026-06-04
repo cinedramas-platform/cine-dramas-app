@@ -21,16 +21,26 @@ import {
 } from '@expo-google-fonts/geist-mono';
 import { QueryProvider } from '@/providers/QueryProvider';
 import { ThemeProvider } from '@/providers/ThemeProvider';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { useProtectedRoute } from '@/hooks/useProtectedRoute';
 import { useAuthStore } from '@/stores/authStore';
 import { Colors } from '@/constants/theme';
+import { initSentry, setUserContext, Sentry } from '@/lib/sentry';
+
+// Initialise crash reporting before anything renders. No-ops without a DSN.
+initSentry();
 
 function NavigationLayout() {
-  const { isLoading, hydrate } = useAuthStore();
+  const { isLoading, hydrate, user } = useAuthStore();
 
   useEffect(() => {
     hydrate();
   }, [hydrate]);
+
+  // Keep Sentry's user/tenant tags in sync with the auth session.
+  useEffect(() => {
+    setUserContext(user ? { id: user.id, tenantId: user.tenantId } : null);
+  }, [user]);
 
   useProtectedRoute();
 
@@ -62,7 +72,7 @@ function NavigationLayout() {
   );
 }
 
-export default function RootLayout() {
+function RootLayout() {
   const [fontsLoaded] = useFonts({
     InstrumentSerif_400Regular,
     InstrumentSerif_400Regular_Italic,
@@ -84,13 +94,19 @@ export default function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <QueryProvider>
-        <ThemeProvider>
-          <StatusBar style="light" />
-          <NavigationLayout />
-        </ThemeProvider>
-      </QueryProvider>
-    </GestureHandlerRootView>
+    <ErrorBoundary>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <QueryProvider>
+          <ThemeProvider>
+            <StatusBar style="light" />
+            <NavigationLayout />
+          </ThemeProvider>
+        </QueryProvider>
+      </GestureHandlerRootView>
+    </ErrorBoundary>
   );
 }
+
+// Sentry.wrap adds navigation + render performance instrumentation.
+// Transparent passthrough when Sentry is disabled.
+export default Sentry.wrap(RootLayout);

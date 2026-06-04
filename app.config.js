@@ -44,5 +44,19 @@ module.exports = ({ config }) => ({
     tenantId: brand.tenantId,
     brandId: variant,
   },
-  plugins: ['expo-router', 'expo-secure-store', 'react-native-video', 'expo-font'],
+  plugins: [
+    'expo-router',
+    'expo-secure-store',
+    'react-native-video',
+    'expo-font',
+    [
+      '@sentry/react-native/expo',
+      {
+        // Source-map upload only runs in CI when SENTRY_AUTH_TOKEN is set.
+        organization: process.env.SENTRY_ORG,
+        project: brand.sentryProject,
+        url: 'https://sentry.io/',
+      },
+    ],
+  ],
 });
