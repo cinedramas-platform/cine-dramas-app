@@ -1,10 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
 import { handleCorsPreflightRequest } from '../_shared/cors.ts';
 import { jsonResponse, errorResponse } from '../_shared/response.ts';
+import { serve } from '../_shared/logger.ts';
 
 // GET /wallet — balances + VIP status + unlocked episodes + streak.
 // Powers home header, unlock screen, and The Vault.
-Deno.serve(async (req) => {
+serve('wallet', async (req, log) => {
   const corsResponse = handleCorsPreflightRequest(req);
   if (corsResponse) return corsResponse;
 
@@ -30,6 +31,7 @@ Deno.serve(async (req) => {
   if (authError || !user) {
     return errorResponse('Invalid or expired token', 401);
   }
+  log.setUser(user.id, (user.app_metadata?.tenant_id as string) ?? null);
 
   // All three reads are RLS-scoped to the caller.
   const [walletRes, entitlementRes, unlocksRes] = await Promise.all([
@@ -46,8 +48,14 @@ Deno.serve(async (req) => {
       .select('episode_id'),
   ]);
 
-  if (walletRes.error) return errorResponse(walletRes.error.message, 500);
-  if (unlocksRes.error) return errorResponse(unlocksRes.error.message, 500);
+  if (walletRes.error) {
+    log.error('wallet read failed', { error: walletRes.error.message });
+    return errorResponse(walletRes.error.message, 500);
+  }
+  if (unlocksRes.error) {
+    log.error('unlocks read failed', { error: unlocksRes.error.message });
+    return errorResponse(unlocksRes.error.message, 500);
+  }
 
   const wallet = walletRes.data;
   const entitlement = entitlementRes.data;

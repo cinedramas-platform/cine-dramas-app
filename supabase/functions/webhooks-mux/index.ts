@@ -1,9 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 import { jsonResponse, errorResponse } from '../_shared/response.ts';
+import { serve } from '../_shared/logger.ts';
 
 const TIMESTAMP_TOLERANCE_SEC = 300;
 
-Deno.serve(async (req) => {
+serve('webhooks-mux', async (req, log) => {
   if (req.method !== 'POST') {
     return errorResponse('Method not allowed', 405);
   }
@@ -26,6 +27,7 @@ Deno.serve(async (req) => {
     webhookSecret,
   );
   if (!signatureValid) {
+    log.warn('mux webhook signature verification failed');
     return errorResponse('Invalid signature', 401);
   }
 
@@ -54,6 +56,7 @@ Deno.serve(async (req) => {
     .maybeSingle();
 
   if (existing) {
+    log.info('mux webhook duplicate event ignored', { event_type: eventType });
     return jsonResponse({ status: 'already_processed' });
   }
 
@@ -112,6 +115,15 @@ Deno.serve(async (req) => {
     processed_at: new Date().toISOString(),
     error_message: errorMessage,
   });
+
+  if (errorMessage) {
+    log.error('mux webhook processing failed', {
+      event_type: eventType,
+      error: errorMessage,
+    });
+  } else {
+    log.info('mux webhook processed', { event_type: eventType });
+  }
 
   return jsonResponse({ status: errorMessage ? 'error' : 'processed' });
 });

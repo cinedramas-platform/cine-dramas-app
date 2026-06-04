@@ -2,11 +2,12 @@ import { createClient } from '@supabase/supabase-js';
 import { handleCorsPreflightRequest } from '../_shared/cors.ts';
 import { jsonResponse, errorResponse } from '../_shared/response.ts';
 import { rateLimitCheck } from '../_shared/redis.ts';
+import { serve } from '../_shared/logger.ts';
 
 const RATE_LIMIT_MAX = 6;
 const RATE_LIMIT_WINDOW = 60;
 
-Deno.serve(async (req) => {
+serve('user-progress', async (req, log) => {
   const corsResponse = handleCorsPreflightRequest(req);
   if (corsResponse) return corsResponse;
 
@@ -32,6 +33,7 @@ Deno.serve(async (req) => {
   if (authError || !user) {
     return errorResponse('Invalid or expired token', 401);
   }
+  log.setUser(user.id, (user.app_metadata?.tenant_id as string) ?? null);
 
   const url = new URL(req.url);
   const episodeId = url.searchParams.get('episodeId');
@@ -86,6 +88,7 @@ Deno.serve(async (req) => {
     RATE_LIMIT_WINDOW,
   );
   if (!allowed) {
+    log.warn('rate limited', { episodeId });
     return errorResponse('Too many requests', 429);
   }
 
@@ -111,6 +114,7 @@ Deno.serve(async (req) => {
     .single();
 
   if (userError || !dbUser) {
+    log.info('progress rejected: user profile not found', { episodeId });
     return errorResponse('User profile not found', 404);
   }
 

@@ -26,6 +26,7 @@ import { useProtectedRoute } from '@/hooks/useProtectedRoute';
 import { useAuthStore } from '@/stores/authStore';
 import { Colors } from '@/constants/theme';
 import { initSentry, setUserContext, Sentry } from '@/lib/sentry';
+import { setLogContext } from '@/lib/logger';
 
 // Initialise crash reporting before anything renders. No-ops without a DSN.
 initSentry();
@@ -40,6 +41,7 @@ function NavigationLayout() {
   // Keep Sentry's user/tenant tags in sync with the auth session.
   useEffect(() => {
     setUserContext(user ? { id: user.id, tenantId: user.tenantId } : null);
+    setLogContext(user ? { userId: user.id, tenantId: user.tenantId } : {});
   }, [user]);
 
   useProtectedRoute();

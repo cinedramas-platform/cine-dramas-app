@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { handleCorsPreflightRequest } from '../_shared/cors.ts';
 import { jsonResponse, errorResponse } from '../_shared/response.ts';
 import { rateLimitCheck } from '../_shared/redis.ts';
+import { serve } from '../_shared/logger.ts';
 
 const RATE_LIMIT_MAX = 20;
 const RATE_LIMIT_WINDOW = 60;
@@ -20,7 +21,7 @@ const COIN_PACKS: Record<string, { coins: number; label: string }> = {
 const AD_REWARD_BONUS = 10;
 
 // POST /coins-grant  body: { kind: 'purchase' | 'ad_reward', pack?: string }
-Deno.serve(async (req) => {
+serve('coins-grant', async (req, log) => {
   const corsResponse = handleCorsPreflightRequest(req);
   if (corsResponse) return corsResponse;
 
@@ -46,6 +47,7 @@ Deno.serve(async (req) => {
   if (authError || !user) {
     return errorResponse('Invalid or expired token', 401);
   }
+  log.setUser(user.id, (user.app_metadata?.tenant_id as string) ?? null);
 
   let body: { kind?: unknown; pack?: unknown };
   try {
@@ -60,6 +62,7 @@ Deno.serve(async (req) => {
     RATE_LIMIT_WINDOW,
   );
   if (!allowed) {
+    log.warn('rate limited');
     return errorResponse('Too many requests', 429);
   }
 
@@ -95,8 +98,10 @@ Deno.serve(async (req) => {
     if ((error.message ?? '').includes('USER_NOT_FOUND')) {
       return errorResponse('User profile not found', 404);
     }
+    log.error('grant RPC failed', { kind, error: error.message });
     return errorResponse(error.message ?? 'Grant failed', 500);
   }
 
+  log.info('coins granted', { kind, amount, bonus });
   return jsonResponse(data);
 });

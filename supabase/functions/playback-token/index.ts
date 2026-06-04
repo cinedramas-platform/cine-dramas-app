@@ -3,11 +3,12 @@ import { handleCorsPreflightRequest } from '../_shared/cors.ts';
 import { jsonResponse, errorResponse } from '../_shared/response.ts';
 import { cacheGet, cacheSet } from '../_shared/redis.ts';
 import { signMuxJwt } from '../_shared/mux-jwt.ts';
+import { serve } from '../_shared/logger.ts';
 
 const TOKEN_EXPIRY_HOURS = 6;
 const CACHE_TTL_HOURS = 5;
 
-Deno.serve(async (req) => {
+serve('playback-token', async (req, log) => {
   const corsResponse = handleCorsPreflightRequest(req);
   if (corsResponse) return corsResponse;
 
@@ -39,6 +40,7 @@ Deno.serve(async (req) => {
   if (authError || !user) {
     return errorResponse('Invalid or expired token', 401);
   }
+  log.setUser(user.id, (user.app_metadata?.tenant_id as string) ?? null);
 
   const { data: episode, error: episodeError } = await supabase
     .from('episodes')
@@ -83,6 +85,7 @@ Deno.serve(async (req) => {
     }
 
     if (!hasAccess) {
+      log.info('playback denied: episode locked', { episodeId });
       return errorResponse('Episode locked', 403);
     }
   }
@@ -113,6 +116,7 @@ Deno.serve(async (req) => {
     !tenant?.mux_signing_key_id ||
     !tenant?.mux_signing_private_key
   ) {
+    log.error('playback signing not configured', { episodeId });
     return errorResponse('Playback signing not configured', 500);
   }
 

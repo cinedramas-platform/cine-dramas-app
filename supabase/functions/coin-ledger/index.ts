@@ -1,12 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
 import { handleCorsPreflightRequest } from '../_shared/cors.ts';
 import { jsonResponse, errorResponse } from '../_shared/response.ts';
+import { serve } from '../_shared/logger.ts';
 
 const DEFAULT_LIMIT = 30;
 const MAX_LIMIT = 100;
 
 // GET /coin-ledger?limit=30 — recent transactions for The Vault.
-Deno.serve(async (req) => {
+serve('coin-ledger', async (req, log) => {
   const corsResponse = handleCorsPreflightRequest(req);
   if (corsResponse) return corsResponse;
 
@@ -32,6 +33,7 @@ Deno.serve(async (req) => {
   if (authError || !user) {
     return errorResponse('Invalid or expired token', 401);
   }
+  log.setUser(user.id, (user.app_metadata?.tenant_id as string) ?? null);
 
   const url = new URL(req.url);
   const limit = Math.min(
@@ -45,7 +47,10 @@ Deno.serve(async (req) => {
     .order('created_at', { ascending: false })
     .limit(limit);
 
-  if (error) return errorResponse(error.message, 500);
+  if (error) {
+    log.error('ledger read failed', { error: error.message });
+    return errorResponse(error.message, 500);
+  }
 
   return jsonResponse({ transactions: data ?? [] });
 });
