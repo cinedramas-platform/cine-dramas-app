@@ -31,6 +31,9 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
+      - name: Validate brands
+        run: npm run validate:brands
+
       - name: Format check
         run: npm run format:check
 

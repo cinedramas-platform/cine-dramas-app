@@ -1,0 +1,102 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cinedramas.com/schemas/brand-manifest.json",
+  "title": "CineDramas Brand Manifest",
+  "description": "Per-brand build + runtime configuration. One manifest per brand under brands/<variant>/manifest.json.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "appName",
+    "slug",
+    "tenantId",
+    "ios",
+    "android",
+    "supabaseUrl",
+    "supabaseAnonKey",
+    "muxEnvKey",
+    "sentryProject",
+    "easProjectId",
+    "splashBackgroundColor"
+  ],
+  "properties": {
+    "appName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 30,
+      "description": "Display name shown under the app icon (store + home screen)."
+    },
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$",
+      "description": "Expo slug + deep-link scheme. Lowercase, digits, hyphens."
+    },
+    "tenantId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Tenant this build serves. Must match a row in the tenants table."
+    },
+    "ios": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["bundleId"],
+      "properties": {
+        "bundleId": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9.-]+$",
+          "description": "Reverse-DNS iOS bundle identifier, e.g. com.cinedramas.dev."
+        }
+      }
+    },
+    "android": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["packageName"],
+      "properties": {
+        "packageName": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._]+$",
+          "description": "Android application id, e.g. com.cinedramas.dev."
+        }
+      }
+    },
+    "supabaseUrl": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https://",
+      "description": "Supabase project URL for this brand's environment."
+    },
+    "supabaseAnonKey": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Supabase anon (publishable) key. Safe to ship in the client."
+    },
+    "muxEnvKey": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Mux Data environment key (public)."
+    },
+    "revenuecatApiKey": {
+      "type": "string",
+      "description": "RevenueCat public SDK key. May be empty until billing is enabled."
+    },
+    "sentryDsn": {
+      "type": "string",
+      "description": "Sentry DSN. May be empty to disable crash reporting for this brand."
+    },
+    "sentryProject": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Sentry project slug for source-map upload at build time."
+    },
+    "easProjectId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "description": "EAS project UUID."
+    },
+    "splashBackgroundColor": {
+      "type": "string",
+      "pattern": "^#([0-9a-fA-F]{6})$",
+      "description": "Splash + adaptive-icon background, 6-digit hex."
+    }
+  }
+}

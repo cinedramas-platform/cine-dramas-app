@@ -1,0 +1,19 @@
+{
+  "appName": "Northlight",
+  "slug": "northlight",
+  "tenantId": "clienta-tenant",
+  "ios": {
+    "bundleId": "com.cinedramas.northlight"
+  },
+  "android": {
+    "packageName": "com.cinedramas.northlight"
+  },
+  "supabaseUrl": "https://kkjjbjrebeoekindsihw.supabase.co",
+  "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtrampianJlYmVvZWtpbmRzaWh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNjg4NDAsImV4cCI6MjA5MDY0NDg0MH0.i6s9I8IULUc6jLlTXLmGSmWMDBkDN0CsmMt5uG5I_2s",
+  "muxEnvKey": "o7pj7ihce49bfrjldm0geeiri",
+  "revenuecatApiKey": "",
+  "sentryDsn": "",
+  "sentryProject": "cinedramas-northlight",
+  "easProjectId": "68cf8f53-4256-48fd-8c6d-3fb0be03a505",
+  "splashBackgroundColor": "#0B1A2A"
+}
