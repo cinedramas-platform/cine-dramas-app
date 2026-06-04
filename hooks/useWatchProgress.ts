@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useRef } from 'react';
 import { AppState, type AppStateStatus } from 'react-native';
 import { invokeFunction, invokeFunctionMutation } from '@/services/api';
+import { enqueueProgress } from '@/lib/progressQueue';
 import type {
   WatchProgressResponse,
   ContinueWatchingResponse,
@@ -51,7 +52,8 @@ export function useSaveProgress(episodeId: string | null) {
           progress: { episode_id: eId, ...data },
         });
       } catch {
-        // Silent — next debounce interval will retry
+        // Offline / server error — queue it so it survives and replays on reconnect.
+        void enqueueProgress(eId, payload);
       }
     },
     [queryClient],

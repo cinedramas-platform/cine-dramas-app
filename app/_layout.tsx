@@ -27,9 +27,12 @@ import { useAuthStore } from '@/stores/authStore';
 import { Colors } from '@/constants/theme';
 import { initSentry, setUserContext, Sentry } from '@/lib/sentry';
 import { setLogContext } from '@/lib/logger';
+import { setupNetworkMonitor } from '@/lib/network';
 
 // Initialise crash reporting before anything renders. No-ops without a DSN.
 initSentry();
+// Bridge connectivity into React Query + replay queued writes on reconnect.
+setupNetworkMonitor();
 
 function NavigationLayout() {
   const { isLoading, hydrate, user } = useAuthStore();
