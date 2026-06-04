@@ -8,6 +8,7 @@
 //
 //   npm run validate:brands
 import { readFileSync, existsSync } from 'node:fs';
+import { Buffer } from 'node:buffer';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, resolve } from 'node:path';

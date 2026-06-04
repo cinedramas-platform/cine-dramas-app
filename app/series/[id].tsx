@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { View, Text, Pressable, ActivityIndicator, ScrollView, Dimensions } from 'react-native';
+import { View, Text, Pressable, ScrollView, Dimensions } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from '@/components/ui/LinearGradient';
@@ -9,6 +9,7 @@ import { Poster } from '@/components/ui/Poster';
 import { CineStill } from '@/components/ui/CineStill';
 import { Button } from '@/components/ui/Button';
 import { ChevronIcon, ShareIcon, PlayIcon, LockIcon, CoinIcon, SparkleIcon } from '@/components/ui/Icon';
+import { Skeleton, SkeletonEpisodeRow } from '@/components/ui/Skeleton';
 import { useSeriesDetail } from '@/hooks/useCatalog';
 import { useWallet } from '@/hooks/useWallet';
 import type { Episode } from '@/types/catalog';
@@ -58,8 +59,16 @@ export default function SeriesDetailScreen() {
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, backgroundColor: Colors.bg, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color={Colors.accent} />
+      <View style={{ flex: 1, backgroundColor: Colors.bg, paddingTop: insets.top }}>
+        <Skeleton width="100%" height={SCREEN_W * 0.62} radius={0} />
+        <View style={{ padding: GRID_PAD, gap: 12 }}>
+          <Skeleton width="60%" height={24} />
+          <Skeleton width="90%" height={12} />
+          <Skeleton width="80%" height={12} />
+        </View>
+        {Array.from({ length: 5 }).map((_, i) => (
+          <SkeletonEpisodeRow key={i} />
+        ))}
       </View>
     );
   }
@@ -179,7 +188,7 @@ export default function SeriesDetailScreen() {
       {series.description && (
         <View style={{ paddingHorizontal: 22, paddingTop: 16, paddingBottom: 8 }}>
           <Text style={{ fontFamily: Fonts.displayItalic, fontSize: 18, color: Colors.ink, lineHeight: 24 }}>
-            "{series.description}"
+            &ldquo;{series.description}&rdquo;
           </Text>
         </View>
       )}

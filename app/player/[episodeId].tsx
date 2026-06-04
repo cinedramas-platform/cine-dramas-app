@@ -1,8 +1,7 @@
 import { useMemo } from 'react';
-import { View, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
-import { Colors } from '@/constants/theme';
 import { useSeriesDetail } from '@/hooks/useCatalog';
+import { SkeletonPlayer } from '@/components/ui/Skeleton';
 import { VerticalFeed, type FeedEpisode } from '@/components/video/VerticalFeed';
 
 export default function PlayerScreen() {
@@ -34,11 +33,7 @@ export default function PlayerScreen() {
   }, [seriesId, series, episodeId]);
 
   if (seriesId && isLoading) {
-    return (
-      <View style={{ flex: 1, backgroundColor: '#000', justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color={Colors.accent} />
-      </View>
-    );
+    return <SkeletonPlayer />;
   }
 
   return <VerticalFeed episodes={episodes} />;

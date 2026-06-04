@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { View, Text, Pressable, ActivityIndicator, ScrollView, RefreshControl, Dimensions } from 'react-native';
+import { View, Text, Pressable, ScrollView, RefreshControl, Dimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { LinearGradient } from '@/components/ui/LinearGradient';
@@ -9,6 +9,7 @@ import { Poster } from '@/components/ui/Poster';
 import { CineStill } from '@/components/ui/CineStill';
 import { Button } from '@/components/ui/Button';
 import { CoinIcon, PlayIcon, ChevronIcon } from '@/components/ui/Icon';
+import { SkeletonRail } from '@/components/ui/Skeleton';
 import { useFeatured } from '@/hooks/useCatalog';
 import { useContinueWatching } from '@/hooks/useWatchProgress';
 import { useWallet } from '@/hooks/useWallet';
@@ -32,8 +33,10 @@ export default function HomeScreen() {
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.bg }}>
-        <ActivityIndicator size="large" color={Colors.accent} />
+      <View style={{ flex: 1, backgroundColor: Colors.bg, paddingTop: insets.top + 56 }}>
+        <SkeletonRail count={3} cardWidth={SCREEN_W * 0.7} />
+        <SkeletonRail />
+        <SkeletonRail />
       </View>
     );
   }
