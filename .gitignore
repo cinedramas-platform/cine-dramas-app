@@ -41,11 +41,8 @@ yarn-error.*
 # Testing
 coverage/
 
-# Claude Code local settings
+# Claude Code local settings (personal permission overrides — keep local)
 .claude/settings.local.json
-
-# MCP auto-generated skills
-.agents/
 
 # Supabase local
 supabase/.temp/
