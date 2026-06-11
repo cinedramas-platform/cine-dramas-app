@@ -9,24 +9,26 @@
       "distribution": "internal",
       "channel": "development",
       "env": {
-        "APP_VARIANT": "default"
+        "APP_VARIANT": "default",
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
       }
     },
     "preview": {
       "distribution": "internal",
       "channel": "preview",
       "env": {
-        "APP_VARIANT": "default"
+        "APP_VARIANT": "default",
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
       }
     },
     "production": {
       "autoIncrement": true,
       "channel": "production",
       "env": {
-        "APP_VARIANT": "default"
+        "APP_VARIANT": "default",
+        "SENTRY_DISABLE_AUTO_UPLOAD": "true"
       }
     },
-
     "clientA-development": {
       "extends": "development",
       "channel": "clienta-development",
