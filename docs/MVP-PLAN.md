@@ -1,6 +1,7 @@
 # CineDramas — MVP Plan & Handoff
 
-Last updated: 2026-06-11. Authoritative status + priorities for reaching MVP.
+Last updated: 2026-06-11 (evening — P0/P1/P2/P3 executed, see §7).
+Authoritative status + priorities for reaching MVP.
 Read [CONTEXT.md](../CONTEXT.md) (glossary) and `docs/adr/0001..0003` first.
 
 > **This doc is a handoff.** Implementation happens in a separate session. Everything
@@ -102,3 +103,31 @@ Then drive the relevant `/`-commands in the harness. Sequence for this app's iss
 `/critique` (find) → `/typeset` (font + cut-off text) → `/layout` (alignment) →
 `/polish` (final pass) → `/harden` (text overflow / i18n safety so text stops
 clipping). Empty/locked states via `/onboard` if time allows.
+
+## 7. Execution log — 2026-06-11
+
+All P0–P3 items executed on `dev` (commits `683e58a..`):
+
+- **P0.1 resume — fixed.** Seek now waits for video `onLoad`; previously it fired
+  before the player mounted/loaded and was silently dropped (`VerticalFeed.tsx`).
+- **P0.2 paywall — fixed.** Insufficient-funds unlock now routes to `/paywall`
+  (was `/coins`, so it never surfaced). VIP CTA has a mock "coming soon" action.
+- **P0.3 auth — verified + documented** in `docs/auth-flow.md`. No rebuild needed.
+- **P1 UI — done.** Display font is now Playfair Display (Instrument Serif clipped
+  on Android at tight line heights); every `lineHeight < fontSize` case fixed;
+  screen padding standardized to 20; profile shows real wallet data; brand
+  name/tagline come from the manifest via `lib/brand.ts`.
+- **P2 EAS — done.** `eas.json` channels fixed (uppercase was invalid). The original
+  EAS project wasn't accessible from this Expo account → re-initialized as
+  `vassil_iliev/cinedramas-dev`; Android preview build launched. README rewritten
+  (no Expo Go; EAS internal-distribution flow documented).
+- **P3 content — done.** 8 series / 20 episodes / 6 categories live
+  (`supabase/demo-content.sql`, applied). New series reuse existing Mux assets with
+  time-offset thumbnail posters. Every mood tile resolves.
+- **Infra:** Supabase project was found **INACTIVE** (free-tier pause) — restored;
+  daily keep-alive workflow added (`.github/workflows/keepalive.yml`).
+- **CI:** lint/format scoped to first-party code; all gates green.
+- **Demo account:** `demo@cineself.com` / `CineDemo2026!` (tenant `dev-tenant`).
+
+Remaining before a client demo: install the EAS preview build on a device and run
+the loop once by hand (feed → play → resume → locked → unlock → check-in).
