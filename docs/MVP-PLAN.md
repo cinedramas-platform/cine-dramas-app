@@ -131,3 +131,18 @@ All P0–P3 items executed on `dev` (commits `683e58a..`):
 
 Remaining before a client demo: install the EAS preview build on a device and run
 the loop once by hand (feed → play → resume → locked → unlock → check-in).
+
+### Build + ops addendum (same day, later)
+
+- **Build #1 failed** in `:app:createBundleReleaseJsAndAssets_SentryUpload…`:
+  sentry-cli exits with "An organization ID or slug is required" because
+  SENTRY_ORG / SENTRY_AUTH_TOKEN aren't configured on EAS. Fix:
+  `SENTRY_DISABLE_AUTO_UPLOAD=true` in every `eas.json` profile (runtime crash
+  reporting unaffected; only source-map upload skipped). Build #2 relaunched.
+- **Keep-alive is live**: workflow on `main` (scheduler only reads the default
+  branch) + `dev`; manual dispatch verified green. Repo secret `SUPABASE_ANON_KEY`
+  set. GitHub token needed a one-time `gh auth refresh -s workflow`.
+- **Debugging EAS logs**: the `logFiles` URLs are brotli-compressed
+  (`Content-Encoding: br`) — decompress before grepping.
+- **Fast inner loop**: the previously installed dev client still works with
+  today's JS (font package is JS-only) — `npx expo start --dev-client`, same Wi-Fi.

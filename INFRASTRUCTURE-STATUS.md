@@ -5,6 +5,16 @@
 > SDK 54). For current status, priorities, and the reconciled product framing, see
 > [docs/MVP-PLAN.md](docs/MVP-PLAN.md), [CONTEXT.md](CONTEXT.md), and `docs/adr/`.
 > The tenancy model and schema described below still hold.
+>
+> **Infra addendum (2026-06-11):**
+> - EAS builds now run under the `vassil_iliev/cinedramas-dev` Expo project
+>   (`8be3485f-…`, see `brands/default/manifest.json`) — the original
+>   `cinedramas-app` org project is not accessible from the active Expo account.
+> - EAS profiles set `SENTRY_DISABLE_AUTO_UPLOAD=true`; without it the release
+>   gradle build fails in the Sentry source-map upload task (no SENTRY_ORG/token
+>   configured). Re-enable via EAS secrets when Sentry org is set up.
+> - Supabase free tier auto-pauses after ~1 week idle (project was found INACTIVE
+>   2026-06-11). `.github/workflows/keepalive.yml` pings daily to prevent this.
 
 Last updated: 2026-04-03
 
@@ -12,7 +22,7 @@ Last updated: 2026-04-03
 
 ### 1. Expo Mobile App (T1.01 -- Done)
 
-- **Framework:** React Native + Expo SDK 53 + Expo Router (file-based routing)
+- **Framework:** React Native + Expo SDK 54 + Expo Router (file-based routing)
 - **Styling:** NativeWind (Tailwind CSS for React Native)
 - **State:** Zustand (client state) + TanStack React Query (server state)
 - **Video:** react-native-video v7 (will connect to Mux HLS streams)
