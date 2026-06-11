@@ -1,5 +1,14 @@
 # CineDramas - Claude Code Project Context
 
+> **Current framing (2026-06-11):** CineDramas is a **white-label short-drama
+> platform** (ReelShort/DramaBox-style): we sell Producers their own branded
+> short-drama app, monetized by a **coin economy** (vertical feed → unlock episodes
+> with coins). The "streaming infrastructure / Shopify for streaming" language below
+> is the original framing — the tenancy model (Silhouette/Hub) still holds, but the
+> coin-economy consumer product is the core now. Source of truth:
+> [`CONTEXT.md`](../CONTEXT.md), [`docs/MVP-PLAN.md`](../docs/MVP-PLAN.md),
+> `docs/adr/`.
+
 ## What Is CineDramas
 
 A **multi-tenant streaming infrastructure platform** — "Shopify for streaming apps." Enables creators, studios, and media brands to launch branded mobile streaming apps from a single shared codebase.

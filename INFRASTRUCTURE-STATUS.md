@@ -1,5 +1,11 @@
 # CineDramas Infrastructure Status
 
+> **⚠️ Partially superseded (2026-06-11).** This snapshot predates the coin-economy
+> product direction and is stale in places (e.g. it says Expo SDK 53; the app is on
+> SDK 54). For current status, priorities, and the reconciled product framing, see
+> [docs/MVP-PLAN.md](docs/MVP-PLAN.md), [CONTEXT.md](CONTEXT.md), and `docs/adr/`.
+> The tenancy model and schema described below still hold.
+
 Last updated: 2026-04-03
 
 ## What We Have

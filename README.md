@@ -39,25 +39,26 @@ npx expo start
 
 This starts the Metro bundler and shows a QR code in the terminal.
 
-### Running on a physical device (Expo Go)
+### Running on a physical device
 
-1. Install **Expo Go** on your phone:
-   - [iOS App Store](https://apps.apple.com/app/expo-go/id982107779)
-   - [Google Play Store](https://play.google.com/store/apps/details?id=host.exp.exponent)
-2. Start the dev server: `npx expo start`
-3. **Important:** Press `s` in the terminal to switch to **Expo Go** mode (it defaults to development build)
-4. Scan the QR code:
-   - **iOS:** Open the Camera app and point at the QR code — it will prompt to open in Expo Go
-   - **Android:** Open Expo Go and tap "Scan QR Code"
-5. The app should load on your device
+> **This app cannot run in Expo Go.** It uses native modules (`react-native-video`,
+> Mux, Reanimated, SecureStore, Sentry) that Expo Go does not bundle — Expo Go will
+> load then crash on the video player. You need a **development build**. See
+> [ADR 0002](docs/adr/0002-eas-build-and-update-deployment.md).
 
-**If the QR code doesn't connect** (common on corporate/different networks):
+**Primary path — dev build + over-the-air updates (no tunnel needed):**
 
-```bash
-npx expo start --tunnel
-```
+1. Build a development client once with EAS, install it on your phone.
+2. Push JS changes over-the-air: `eas update` (no Metro server, no QR, no ngrok).
+3. Rebuild the dev client only when native dependencies change.
 
-This routes through Expo's servers. It will prompt to install `@expo/ngrok` on first use — accept it.
+**Fast inner loop (friendly network only):** `npx expo start --dev-client`, then open
+the URL from your installed dev build over LAN.
+
+**Tunnel is a fallback, not the primary path.** `npx expo start --tunnel` relies on a
+vendored ngrok patch (`scripts/apply-ngrok-v3.js`) and is fragile on corporate
+networks. Prefer EAS Update. For client distribution, ship an **EAS preview build**
+(internal) — see [docs/MVP-PLAN.md](docs/MVP-PLAN.md) §2/§5.
 
 ### Running on simulators/emulators
 
