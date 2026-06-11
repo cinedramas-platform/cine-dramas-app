@@ -20,11 +20,9 @@ serve('user-progress', async (req, log) => {
     return errorResponse('Missing authorization header', 401);
   }
 
-  const supabase = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_ANON_KEY')!,
-    { global: { headers: { Authorization: authHeader } } },
-  );
+  const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
+    global: { headers: { Authorization: authHeader } },
+  });
 
   const {
     data: { user },
@@ -52,7 +50,9 @@ serve('user-progress', async (req, log) => {
 
     const { data, error } = await supabase
       .from('watch_progress')
-      .select('id, episode_id, position_seconds, completed, updated_at, episodes(title, mux_playback_id, thumbnail_time, duration_seconds)')
+      .select(
+        'id, episode_id, position_seconds, completed, updated_at, episodes(title, mux_playback_id, thumbnail_time, duration_seconds)',
+      )
       .eq('completed', false)
       .order('updated_at', { ascending: false })
       .limit(20);

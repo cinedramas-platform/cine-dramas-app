@@ -14,7 +14,9 @@ const MUX_ID = process.env.MUX_TOKEN_ID;
 const MUX_SECRET = process.env.MUX_TOKEN_SECRET;
 
 if (!SUPABASE_URL || !SERVICE_KEY || !MUX_ID || !MUX_SECRET) {
-  console.error('Missing env: need EXPO_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, MUX_TOKEN_ID, MUX_TOKEN_SECRET');
+  console.error(
+    'Missing env: need EXPO_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, MUX_TOKEN_ID, MUX_TOKEN_SECRET',
+  );
   process.exit(1);
 }
 
@@ -33,7 +35,8 @@ async function muxCreateSignedPlaybackId(assetId) {
     headers: { Authorization: muxAuth, 'Content-Type': 'application/json' },
     body: JSON.stringify({ policy: 'signed' }),
   });
-  if (!res.ok) throw new Error(`Mux POST playback-ids ${assetId} -> ${res.status} ${await res.text()}`);
+  if (!res.ok)
+    throw new Error(`Mux POST playback-ids ${assetId} -> ${res.status} ${await res.text()}`);
   return (await res.json()).data.id;
 }
 
@@ -52,7 +55,8 @@ async function main() {
 
   if (error) throw error;
 
-  let created = 0, skipped = 0;
+  let created = 0,
+    skipped = 0;
   for (const ep of episodes) {
     if (ep.mux_signed_playback_id) {
       skipped++;

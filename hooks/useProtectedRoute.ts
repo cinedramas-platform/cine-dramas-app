@@ -24,7 +24,9 @@ export function useProtectedRoute() {
     AsyncStorage.getItem(ONBOARDED_KEY).then((val) => {
       setHasOnboarded(val === '1');
     });
-    return () => { _onOnboardedChange = null; };
+    return () => {
+      _onOnboardedChange = null;
+    };
   }, []);
 
   useEffect(() => {

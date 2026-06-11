@@ -26,11 +26,7 @@ export async function cacheGet(key: string): Promise<string | null> {
   }
 }
 
-export async function cacheSet(
-  key: string,
-  value: string,
-  ttlSeconds: number,
-): Promise<void> {
+export async function cacheSet(key: string, value: string, ttlSeconds: number): Promise<void> {
   try {
     await redisCommand(['SET', key, value, 'EX', ttlSeconds]);
   } catch {

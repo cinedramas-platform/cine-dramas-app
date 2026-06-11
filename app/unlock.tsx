@@ -59,7 +59,10 @@ export default function UnlockScreen() {
         { episodeId, seriesId },
         {
           onSuccess: () =>
-            router.replace({ pathname: `/player/${episodeId}`, params: { seriesId: seriesId ?? '' } }),
+            router.replace({
+              pathname: `/player/${episodeId}`,
+              params: { seriesId: seriesId ?? '' },
+            }),
           onError: (err) => {
             // 402 insufficient funds -> paywall (VIP + coin pack offers).
             if (err.message === 'insufficient_funds') {
@@ -106,10 +109,16 @@ export default function UnlockScreen() {
       <Pressable
         onPress={() => router.back()}
         style={{
-          position: 'absolute', top: insets.top + 18, right: 18, zIndex: 5,
-          width: 36, height: 36, borderRadius: 36,
+          position: 'absolute',
+          top: insets.top + 18,
+          right: 18,
+          zIndex: 5,
+          width: 36,
+          height: 36,
+          borderRadius: 36,
           backgroundColor: 'rgba(0,0,0,0.5)',
-          alignItems: 'center', justifyContent: 'center',
+          alignItems: 'center',
+          justifyContent: 'center',
         }}
       >
         <CloseIcon size={16} color="#fff" />
@@ -126,44 +135,82 @@ export default function UnlockScreen() {
             .filter(Boolean)
             .join(' · ')}
         </Eyebrow>
-        <Text style={{
-          fontFamily: Fonts.display, fontSize: 36, lineHeight: 44, color: '#fff',
-          letterSpacing: -0.5, marginTop: 6,
-        }}>
+        <Text
+          style={{
+            fontFamily: Fonts.display,
+            fontSize: 36,
+            lineHeight: 44,
+            color: '#fff',
+            letterSpacing: -0.5,
+            marginTop: 6,
+          }}
+        >
           <Text style={{ fontFamily: Fonts.displayItalic }}>{episodeTitle}</Text>
         </Text>
       </View>
 
       {/* Teaser quote */}
       <View style={{ position: 'absolute', top: insets.top + 200, left: 20, right: 20, zIndex: 5 }}>
-        <Text style={{
-          fontFamily: Fonts.displayItalic, fontSize: 18, lineHeight: 25, color: 'rgba(255,255,255,0.85)',
-        }}>
-          "She knew before the second bottle was poured. She just didn't know which one of them had done it."
+        <Text
+          style={{
+            fontFamily: Fonts.displayItalic,
+            fontSize: 18,
+            lineHeight: 25,
+            color: 'rgba(255,255,255,0.85)',
+          }}
+        >
+          “She knew before the second bottle was poured. She just didn’t know which one of them had
+          done it.”
         </Text>
-        <Eyebrow color={Colors.ink3} style={{ marginTop: 8 }}>FROM THE SCRIPT</Eyebrow>
+        <Eyebrow color={Colors.ink3} style={{ marginTop: 8 }}>
+          FROM THE SCRIPT
+        </Eyebrow>
       </View>
 
       {/* Bottom unlock cluster */}
-      <View style={{ position: 'absolute', left: 20, right: 20, bottom: insets.bottom + 28, zIndex: 5, gap: 14 }}>
+      <View
+        style={{
+          position: 'absolute',
+          left: 20,
+          right: 20,
+          bottom: insets.bottom + 28,
+          zIndex: 5,
+          gap: 14,
+        }}
+      >
         {/* Cost row */}
-        <View style={{
-          padding: 16, borderRadius: 14,
-          backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: Colors.hairline,
-          flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-        }}>
+        <View
+          style={{
+            padding: 16,
+            borderRadius: 14,
+            backgroundColor: 'rgba(255,255,255,0.04)',
+            borderWidth: 1,
+            borderColor: Colors.hairline,
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
+        >
           <View style={{ gap: 2 }}>
             <Eyebrow color={Colors.accent}>UNLOCK</Eyebrow>
             <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
               <CoinIcon size={18} />
-              <Text style={{ fontFamily: Fonts.display, fontSize: 26, color: Colors.ink }}>{cost}</Text>
+              <Text style={{ fontFamily: Fonts.display, fontSize: 26, color: Colors.ink }}>
+                {cost}
+              </Text>
             </View>
           </View>
           <View style={{ alignItems: 'flex-end', gap: 2 }}>
             <Eyebrow color={Colors.ink3}>BALANCE</Eyebrow>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
               <CoinIcon size={12} />
-              <Text style={{ fontFamily: Fonts.display, fontSize: 18, color: balance < cost ? Colors.coin : Colors.ink }}>
+              <Text
+                style={{
+                  fontFamily: Fonts.display,
+                  fontSize: 18,
+                  color: balance < cost ? Colors.coin : Colors.ink,
+                }}
+              >
                 {balance.toLocaleString()}
               </Text>
             </View>
@@ -172,9 +219,14 @@ export default function UnlockScreen() {
 
         {/* Hold to unlock button */}
         <Pressable onPressIn={handlePressIn} onPressOut={handlePressOut}>
-          <View style={{
-            height: 64, borderRadius: 64, overflow: 'hidden', position: 'relative',
-          }}>
+          <View
+            style={{
+              height: 64,
+              borderRadius: 64,
+              overflow: 'hidden',
+              position: 'relative',
+            }}
+          >
             <LinearGradient
               colors={['#C9A857', '#E8C570', '#C9A857']}
               start={{ x: 0, y: 0 }}
@@ -182,21 +234,36 @@ export default function UnlockScreen() {
               style={{ position: 'absolute', width: '100%', height: '100%', borderRadius: 64 }}
             />
             {/* Fill animation */}
-            <Animated.View style={{
-              position: 'absolute', top: 0, left: 0, bottom: 0,
-              width: fillWidth,
-              backgroundColor: 'rgba(255,255,255,0.22)',
-              borderRadius: 64,
-            }} />
-            <View style={{
-              position: 'relative', height: '100%', flexDirection: 'row',
-              alignItems: 'center', justifyContent: 'center', gap: 10,
-            }}>
+            <Animated.View
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                bottom: 0,
+                width: fillWidth,
+                backgroundColor: 'rgba(255,255,255,0.22)',
+                borderRadius: 64,
+              }}
+            />
+            <View
+              style={{
+                position: 'relative',
+                height: '100%',
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 10,
+              }}
+            >
               <TargetIcon size={18} color={Colors.black} />
-              <Text style={{
-                fontFamily: Fonts.sans700, fontSize: 14, color: Colors.black,
-                letterSpacing: 0.6,
-              }}>
+              <Text
+                style={{
+                  fontFamily: Fonts.sans700,
+                  fontSize: 14,
+                  color: Colors.black,
+                  letterSpacing: 0.6,
+                }}
+              >
                 {unlock.isPending ? 'UNLOCKING…' : 'HOLD TO UNLOCK'}
               </Text>
             </View>
@@ -205,16 +272,25 @@ export default function UnlockScreen() {
 
         {/* Alternative paths */}
         <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 14 }}>
-          <Pressable onPress={() => grantCoins.mutate({ kind: 'ad_reward' })} disabled={grantCoins.isPending}>
-            <Text style={{ fontFamily: Fonts.sans500, fontSize: 11, color: Colors.accent }}>Watch ad +10</Text>
+          <Pressable
+            onPress={() => grantCoins.mutate({ kind: 'ad_reward' })}
+            disabled={grantCoins.isPending}
+          >
+            <Text style={{ fontFamily: Fonts.sans500, fontSize: 11, color: Colors.accent }}>
+              Watch ad +10
+            </Text>
           </Pressable>
           <Text style={{ fontSize: 11, color: Colors.ink4 }}>·</Text>
           <Pressable onPress={() => router.push('/coins')}>
-            <Text style={{ fontFamily: Fonts.sans500, fontSize: 11, color: Colors.accent }}>Buy more coins</Text>
+            <Text style={{ fontFamily: Fonts.sans500, fontSize: 11, color: Colors.accent }}>
+              Buy more coins
+            </Text>
           </Pressable>
           <Text style={{ fontSize: 11, color: Colors.ink4 }}>·</Text>
           <Pressable onPress={() => router.push('/paywall')}>
-            <Text style={{ fontFamily: Fonts.sans500, fontSize: 11, color: Colors.accent }}>Go VIP</Text>
+            <Text style={{ fontFamily: Fonts.sans500, fontSize: 11, color: Colors.accent }}>
+              Go VIP
+            </Text>
           </Pressable>
         </View>
       </View>

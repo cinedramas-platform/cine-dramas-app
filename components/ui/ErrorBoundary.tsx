@@ -40,7 +40,14 @@ export class ErrorBoundary extends Component<Props, State> {
           gap: Spacing.lg,
         }}
       >
-        <Text style={{ fontFamily: Fonts.display, fontSize: 32, color: Colors.ink, textAlign: 'center' }}>
+        <Text
+          style={{
+            fontFamily: Fonts.display,
+            fontSize: 32,
+            color: Colors.ink,
+            textAlign: 'center',
+          }}
+        >
           Something went wrong
         </Text>
         <Text
@@ -54,7 +61,12 @@ export class ErrorBoundary extends Component<Props, State> {
         >
           The app hit an unexpected error. Try again — if it keeps happening, restart the app.
         </Text>
-        <Button label="Try again" variant="accent" onPress={this.reset} style={{ marginTop: Spacing.sm }} />
+        <Button
+          label="Try again"
+          variant="accent"
+          onPress={this.reset}
+          style={{ marginTop: Spacing.sm }}
+        />
       </View>
     );
   }

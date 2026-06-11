@@ -27,11 +27,9 @@ serve('playback-token', async (req, log) => {
     return errorResponse('Missing required parameter: episodeId');
   }
 
-  const supabase = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_ANON_KEY')!,
-    { global: { headers: { Authorization: authHeader } } },
-  );
+  const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
+    global: { headers: { Authorization: authHeader } },
+  });
 
   const {
     data: { user },
@@ -44,7 +42,9 @@ serve('playback-token', async (req, log) => {
 
   const { data: episode, error: episodeError } = await supabase
     .from('episodes')
-    .select('id, tenant_id, mux_playback_id, mux_signed_playback_id, mux_asset_status, is_free, coin_cost')
+    .select(
+      'id, tenant_id, mux_playback_id, mux_signed_playback_id, mux_asset_status, is_free, coin_cost',
+    )
     .eq('id', episodeId)
     .single();
 
@@ -80,8 +80,7 @@ serve('playback-token', async (req, log) => {
       hasAccess =
         !!entitlement &&
         entitlement.tier !== 'free' &&
-        (!entitlement.expires_at ||
-          new Date(entitlement.expires_at) > new Date());
+        (!entitlement.expires_at || new Date(entitlement.expires_at) > new Date());
     }
 
     if (!hasAccess) {
@@ -111,29 +110,19 @@ serve('playback-token', async (req, log) => {
     .eq('id', episode.tenant_id)
     .single();
 
-  if (
-    tenantError ||
-    !tenant?.mux_signing_key_id ||
-    !tenant?.mux_signing_private_key
-  ) {
+  if (tenantError || !tenant?.mux_signing_key_id || !tenant?.mux_signing_private_key) {
     log.error('playback signing not configured', { episodeId });
     return errorResponse('Playback signing not configured', 500);
   }
 
-  const expiresAt = new Date(
-    Date.now() + TOKEN_EXPIRY_HOURS * 60 * 60 * 1000,
-  );
+  const expiresAt = new Date(Date.now() + TOKEN_EXPIRY_HOURS * 60 * 60 * 1000);
 
   const keyId = tenant.mux_signing_key_id;
   const keyBase64 = tenant.mux_signing_private_key;
 
-  const videoToken = await signMuxJwt(
-    playbackId, 'v', keyId, keyBase64, expiresAt,
-  );
+  const videoToken = await signMuxJwt(playbackId, 'v', keyId, keyBase64, expiresAt);
 
-  const thumbnailToken = await signMuxJwt(
-    playbackId, 't', keyId, keyBase64, expiresAt,
-  );
+  const thumbnailToken = await signMuxJwt(playbackId, 't', keyId, keyBase64, expiresAt);
 
   const responseData = {
     stream_url: `https://stream.mux.com/${playbackId}.m3u8?token=${videoToken}`,
@@ -141,11 +130,7 @@ serve('playback-token', async (req, log) => {
     expires_at: expiresAt.toISOString(),
   };
 
-  await cacheSet(
-    cacheKey,
-    JSON.stringify(responseData),
-    CACHE_TTL_HOURS * 60 * 60,
-  );
+  await cacheSet(cacheKey, JSON.stringify(responseData), CACHE_TTL_HOURS * 60 * 60);
 
   return jsonResponse(responseData);
 });

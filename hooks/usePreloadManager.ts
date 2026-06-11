@@ -1,8 +1,5 @@
 import { useCallback, useMemo, useRef, useSyncExternalStore } from 'react';
-import {
-  PreloadManager,
-  type PreloadWindow,
-} from '@/components/video/PreloadManager';
+import { PreloadManager, type PreloadWindow } from '@/components/video/PreloadManager';
 
 export function usePreloadManager(totalItems: number, windowSize = 1) {
   const managerRef = useRef<PreloadManager | null>(null);
@@ -33,10 +30,7 @@ export function usePreloadManager(totalItems: number, windowSize = 1) {
     [manager],
   );
 
-  const shouldBeLoaded = useCallback(
-    (index: number) => manager.shouldBeLoaded(index),
-    [manager],
-  );
+  const shouldBeLoaded = useCallback((index: number) => manager.shouldBeLoaded(index), [manager]);
 
   return useMemo(
     () => ({ window, updateCurrentIndex, shouldBeLoaded }),

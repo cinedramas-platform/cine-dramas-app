@@ -22,7 +22,12 @@ function parseColor(c: string): [number, number, number, number] {
   if (h.length === 3)
     return [parseInt(h[0] + h[0], 16), parseInt(h[1] + h[1], 16), parseInt(h[2] + h[2], 16), 1];
   if (h.length === 6)
-    return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16), 1];
+    return [
+      parseInt(h.slice(0, 2), 16),
+      parseInt(h.slice(2, 4), 16),
+      parseInt(h.slice(4, 6), 16),
+      1,
+    ];
   return [0, 0, 0, 1];
 }
 
@@ -96,19 +101,19 @@ function buildUri(colors: readonly string[], locs: readonly number[], vertical: 
   }
 
   const len = raw.length;
-  const deflate = [
-    0x01,
-    len & 0xff,
-    (len >> 8) & 0xff,
-    ~len & 0xff,
-    (~len >> 8) & 0xff,
-    ...raw,
-  ];
+  const deflate = [0x01, len & 0xff, (len >> 8) & 0xff, ~len & 0xff, (~len >> 8) & 0xff, ...raw];
   const ad = adler32(raw);
   const zlib = [0x78, 0x01, ...deflate, ...be32(ad)];
 
   const png = [
-    137, 80, 78, 71, 13, 10, 26, 10,
+    137,
+    80,
+    78,
+    71,
+    13,
+    10,
+    26,
+    10,
     ...chunk([73, 72, 68, 82], [...be32(w), ...be32(h), 8, 6, 0, 0, 0]),
     ...chunk([73, 68, 65, 84], zlib),
     ...chunk([73, 69, 78, 68], []),

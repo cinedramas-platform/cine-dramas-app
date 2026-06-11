@@ -41,7 +41,11 @@ export function Poster({
   const thumbnailUri = imageUrl
     ? imageUrl
     : playbackId
-      ? getMuxThumbnailUrl(playbackId, { width: Math.round(width * 2), height: Math.round(height * 2), fitMode: 'smartcrop' })
+      ? getMuxThumbnailUrl(playbackId, {
+          width: Math.round(width * 2),
+          height: Math.round(height * 2),
+          fitMode: 'smartcrop',
+        })
       : undefined;
 
   return (
@@ -58,9 +62,16 @@ export function Poster({
       ]}
     >
       {thumbnailUri ? (
-        <Image source={{ uri: thumbnailUri }} style={{ position: 'absolute', width: '100%', height: '100%' }} contentFit="cover" />
+        <Image
+          source={{ uri: thumbnailUri }}
+          style={{ position: 'absolute', width: '100%', height: '100%' }}
+          contentFit="cover"
+        />
       ) : (
-        <LinearGradient colors={[a, '#000']} style={{ position: 'absolute', width: '100%', height: '100%' }} />
+        <LinearGradient
+          colors={[a, '#000']}
+          style={{ position: 'absolute', width: '100%', height: '100%' }}
+        />
       )}
 
       <LinearGradient
@@ -73,7 +84,15 @@ export function Poster({
       {overlay}
 
       {showTitle && title && (
-        <View style={{ position: 'absolute', left: width * 0.07, right: width * 0.07, bottom: width * 0.07, zIndex: 3 }}>
+        <View
+          style={{
+            position: 'absolute',
+            left: width * 0.07,
+            right: width * 0.07,
+            bottom: width * 0.07,
+            zIndex: 3,
+          }}
+        >
           <Text
             style={{
               fontFamily: Fonts.display,

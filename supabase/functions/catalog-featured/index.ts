@@ -15,11 +15,9 @@ Deno.serve(async (req) => {
     return errorResponse('Missing authorization header', 401);
   }
 
-  const supabase = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_ANON_KEY')!,
-    { global: { headers: { Authorization: authHeader } } },
-  );
+  const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
+    global: { headers: { Authorization: authHeader } },
+  });
 
   const seriesFields =
     'id, title, description, thumbnail_playback_id, poster_url, category, tags, is_featured, sort_order';
@@ -55,10 +53,7 @@ Deno.serve(async (req) => {
     {
       featured: featuredResult.data ?? [],
       categories,
-      rails_order: tenantResult.data?.home_rails_order ?? [
-        'featured',
-        'categories',
-      ],
+      rails_order: tenantResult.data?.home_rails_order ?? ['featured', 'categories'],
     },
     { cacheTtl: 300 },
   );

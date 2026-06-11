@@ -2,7 +2,12 @@ const MUX_IMAGE_BASE = 'https://image.mux.com';
 
 export function getMuxThumbnailUrl(
   playbackId: string,
-  opts?: { width?: number; height?: number; time?: number; fitMode?: 'smartcrop' | 'preserve' | 'crop' },
+  opts?: {
+    width?: number;
+    height?: number;
+    time?: number;
+    fitMode?: 'smartcrop' | 'preserve' | 'crop';
+  },
 ): string {
   const params = new URLSearchParams();
   if (opts?.width) params.set('width', String(opts.width));

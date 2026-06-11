@@ -58,10 +58,7 @@ export function setUserContext(user: { id: string; tenantId: string } | null): v
 }
 
 /** Manually report a caught error with optional structured context. */
-export function captureException(
-  error: unknown,
-  context?: Record<string, unknown>,
-): void {
+export function captureException(error: unknown, context?: Record<string, unknown>): void {
   if (!isSentryEnabled) {
     if (__DEV__) console.error('[sentry:disabled]', error, context);
     return;

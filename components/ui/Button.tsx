@@ -17,7 +17,15 @@ const variantStyles: Record<Variant, { bg: string; text: string; border?: string
   ghost: { bg: 'rgba(255,255,255,0.08)', text: Colors.ink, border: Colors.hairline },
 };
 
-export function Button({ label, variant = 'primary', block, icon, height = 48, style, ...rest }: Props) {
+export function Button({
+  label,
+  variant = 'primary',
+  block,
+  icon,
+  height = 48,
+  style,
+  ...rest
+}: Props) {
   const v = variantStyles[variant];
   return (
     <Pressable

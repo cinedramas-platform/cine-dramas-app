@@ -13,13 +13,22 @@ import { APP_NAME } from '@/lib/brand';
 import type { WatchProgress } from '@/types/progress';
 
 const TASTE_TAGS = [
-  'Slow-burn romance', 'Whodunit', 'Forbidden', 'Soap',
-  'Late-night thriller', 'Werewolf rom-com',
+  'Slow-burn romance',
+  'Whodunit',
+  'Forbidden',
+  'Soap',
+  'Late-night thriller',
+  'Werewolf rom-com',
 ];
 
 const SETTINGS = [
-  'Notifications', 'Playback & captions', 'Mature content',
-  'Downloads', 'Account', 'Legal', 'Sign out',
+  'Notifications',
+  'Playback & captions',
+  'Mature content',
+  'Downloads',
+  'Account',
+  'Legal',
+  'Sign out',
 ];
 
 export default function ProfileScreen() {
@@ -44,11 +53,33 @@ export default function ProfileScreen() {
     <View style={{ flex: 1, backgroundColor: Colors.bg, paddingTop: insets.top }}>
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}>
         {/* Top bar */}
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 18, paddingBottom: 6 }}>
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            paddingHorizontal: 20,
+            paddingTop: 18,
+            paddingBottom: 6,
+          }}
+        >
           <Eyebrow>MEMBER DOSSIER · NO. 03471</Eyebrow>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <Pressable onPress={() => router.push('/coins')}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 4, paddingLeft: 5, paddingRight: 9, borderRadius: 100, backgroundColor: 'rgba(241,184,68,0.08)', borderWidth: 1, borderColor: 'rgba(241,184,68,0.22)' }}>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 4,
+                  paddingVertical: 4,
+                  paddingLeft: 5,
+                  paddingRight: 9,
+                  borderRadius: 100,
+                  backgroundColor: 'rgba(241,184,68,0.08)',
+                  borderWidth: 1,
+                  borderColor: 'rgba(241,184,68,0.22)',
+                }}
+              >
                 <CoinIcon size={13} />
                 <Text style={{ fontFamily: Fonts.sans600, fontSize: 11, color: Colors.coin }}>
                   {(wallet?.total ?? 0).toLocaleString()}
@@ -62,14 +93,34 @@ export default function ProfileScreen() {
         {/* Avatar + Name */}
         <View style={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 8 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-            <View style={{ width: 84, height: 84, borderRadius: 84, borderWidth: 1, borderColor: Colors.accent, position: 'relative', overflow: 'visible' }}>
+            <View
+              style={{
+                width: 84,
+                height: 84,
+                borderRadius: 84,
+                borderWidth: 1,
+                borderColor: Colors.accent,
+                position: 'relative',
+                overflow: 'visible',
+              }}
+            >
               <LinearGradient
                 colors={['#7E1F4A', '#3A0A14']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
-                style={{ width: 84, height: 84, borderRadius: 84, alignItems: 'center', justifyContent: 'center' }}
+                style={{
+                  width: 84,
+                  height: 84,
+                  borderRadius: 84,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
               >
-                <Text style={{ fontFamily: Fonts.displayItalic, fontSize: 38, color: Colors.accent }}>{initial}</Text>
+                <Text
+                  style={{ fontFamily: Fonts.displayItalic, fontSize: 38, color: Colors.accent }}
+                >
+                  {initial}
+                </Text>
               </LinearGradient>
               {wallet?.is_vip && (
                 <View style={{ position: 'absolute', right: -6, bottom: -6 }}>
@@ -78,10 +129,26 @@ export default function ProfileScreen() {
               )}
             </View>
             <View style={{ gap: 2 }}>
-              <Text style={{ fontFamily: Fonts.display, fontSize: 30, lineHeight: 36, color: Colors.ink, letterSpacing: -0.5 }} numberOfLines={1}>
+              <Text
+                style={{
+                  fontFamily: Fonts.display,
+                  fontSize: 30,
+                  lineHeight: 36,
+                  color: Colors.ink,
+                  letterSpacing: -0.5,
+                }}
+                numberOfLines={1}
+              >
                 <Text style={{ fontFamily: Fonts.displayItalic }}>{displayName}</Text>
               </Text>
-              <Text style={{ fontFamily: Fonts.sans, fontSize: 11, color: Colors.ink3, letterSpacing: 0.8 }}>
+              <Text
+                style={{
+                  fontFamily: Fonts.sans,
+                  fontSize: 11,
+                  color: Colors.ink3,
+                  letterSpacing: 0.8,
+                }}
+              >
                 {wallet?.is_vip ? 'VIP MEMBER' : 'MEMBER'} · {APP_NAME.toUpperCase()}
               </Text>
             </View>
@@ -90,7 +157,16 @@ export default function ProfileScreen() {
 
         {/* Stat block */}
         <View style={{ paddingHorizontal: 20, paddingTop: 18 }}>
-          <View style={{ flexDirection: 'row', paddingVertical: 14, borderTopWidth: 1, borderBottomWidth: 1, borderColor: Colors.hairline, justifyContent: 'space-between' }}>
+          <View
+            style={{
+              flexDirection: 'row',
+              paddingVertical: 14,
+              borderTopWidth: 1,
+              borderBottomWidth: 1,
+              borderColor: Colors.hairline,
+              justifyContent: 'space-between',
+            }}
+          >
             {[
               { label: 'UNLOCKED', value: String(wallet?.unlocked_count ?? 0) },
               { label: 'COINS', value: (wallet?.total ?? 0).toLocaleString() },
@@ -99,7 +175,15 @@ export default function ProfileScreen() {
             ].map((s) => (
               <View key={s.label} style={{ gap: 2 }}>
                 <Eyebrow>{s.label}</Eyebrow>
-                <Text style={{ fontFamily: Fonts.displayItalic, fontSize: 22, color: s.gold ? Colors.accent : Colors.ink }}>{s.value}</Text>
+                <Text
+                  style={{
+                    fontFamily: Fonts.displayItalic,
+                    fontSize: 22,
+                    color: s.gold ? Colors.accent : Colors.ink,
+                  }}
+                >
+                  {s.value}
+                </Text>
               </View>
             ))}
           </View>
@@ -110,17 +194,26 @@ export default function ProfileScreen() {
           <Eyebrow style={{ marginBottom: 12 }}>YOUR TASTE PORTRAIT</Eyebrow>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
             {TASTE_TAGS.map((t, i) => (
-              <View key={t} style={{
-                paddingVertical: 7, paddingHorizontal: 12, borderRadius: 100,
-                backgroundColor: i < 2 ? Colors.accent : 'rgba(255,255,255,0.04)',
-                borderWidth: 1,
-                borderColor: i < 2 ? Colors.accent : Colors.hairline,
-              }}>
-                <Text style={{
-                  fontFamily: i < 2 ? Fonts.sans600 : Fonts.sans500,
-                  fontSize: 12,
-                  color: i < 2 ? Colors.black : Colors.ink2,
-                }}>{t}</Text>
+              <View
+                key={t}
+                style={{
+                  paddingVertical: 7,
+                  paddingHorizontal: 12,
+                  borderRadius: 100,
+                  backgroundColor: i < 2 ? Colors.accent : 'rgba(255,255,255,0.04)',
+                  borderWidth: 1,
+                  borderColor: i < 2 ? Colors.accent : Colors.hairline,
+                }}
+              >
+                <Text
+                  style={{
+                    fontFamily: i < 2 ? Fonts.sans600 : Fonts.sans500,
+                    fontSize: 12,
+                    color: i < 2 ? Colors.black : Colors.ink2,
+                  }}
+                >
+                  {t}
+                </Text>
               </View>
             ))}
           </View>
@@ -129,21 +222,44 @@ export default function ProfileScreen() {
         {/* The History */}
         {history.length > 0 && (
           <View style={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: 4 }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
-              <Text style={{ fontFamily: Fonts.display, fontSize: 20, color: Colors.ink }}>The History</Text>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'baseline',
+                marginBottom: 12,
+              }}
+            >
+              <Text style={{ fontFamily: Fonts.display, fontSize: 20, color: Colors.ink }}>
+                The History
+              </Text>
               <Eyebrow>See all</Eyebrow>
             </View>
             {history.map((item: WatchProgress, i: number) => {
               const duration = item.episode_duration_seconds ?? 3000;
-              const pct = item.completed ? 100 : Math.round(Math.min(item.position_seconds / duration, 0.99) * 100);
+              const pct = item.completed
+                ? 100
+                : Math.round(Math.min(item.position_seconds / duration, 0.99) * 100);
               return (
-                <View key={item.episode_id} style={{
-                  flexDirection: 'row', alignItems: 'center', gap: 12,
-                  paddingVertical: 10,
-                  borderBottomWidth: i < history.length - 1 ? 1 : 0,
-                  borderBottomColor: Colors.hairline2,
-                }}>
-                  <Text style={{ fontFamily: Fonts.displayItalic, fontSize: 18, color: Colors.ink4, width: 22 }}>
+                <View
+                  key={item.episode_id}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 12,
+                    paddingVertical: 10,
+                    borderBottomWidth: i < history.length - 1 ? 1 : 0,
+                    borderBottomColor: Colors.hairline2,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontFamily: Fonts.displayItalic,
+                      fontSize: 18,
+                      color: Colors.ink4,
+                      width: 22,
+                    }}
+                  >
                     0{i + 1}
                   </Text>
                   <Poster
@@ -154,14 +270,19 @@ export default function ProfileScreen() {
                     showTitle={false}
                   />
                   <View style={{ flex: 1, gap: 2 }}>
-                    <Text style={{ fontFamily: Fonts.sans500, fontSize: 13, color: Colors.ink }} numberOfLines={1}>
+                    <Text
+                      style={{ fontFamily: Fonts.sans500, fontSize: 13, color: Colors.ink }}
+                      numberOfLines={1}
+                    >
                       {item.episode_title ?? 'Episode'}
                     </Text>
                     <Text style={{ fontFamily: Fonts.sans, fontSize: 10, color: Colors.ink3 }}>
                       {`${Math.floor(item.position_seconds / 60)}m watched`}
                     </Text>
                   </View>
-                  <Text style={{ fontFamily: Fonts.mono, fontSize: 10, color: Colors.ink3 }}>{pct}%</Text>
+                  <Text style={{ fontFamily: Fonts.mono, fontSize: 10, color: Colors.ink3 }}>
+                    {pct}%
+                  </Text>
                 </View>
               );
             })}
@@ -177,12 +298,23 @@ export default function ProfileScreen() {
                 key={s}
                 onPress={() => handleSettingPress(s)}
                 style={{
-                  flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
                   paddingVertical: 12,
-                  borderBottomWidth: 1, borderBottomColor: Colors.hairline2,
+                  borderBottomWidth: 1,
+                  borderBottomColor: Colors.hairline2,
                 }}
               >
-                <Text style={{ fontFamily: Fonts.sans, fontSize: 13, color: i === SETTINGS.length - 1 ? Colors.ink3 : Colors.ink }}>{s}</Text>
+                <Text
+                  style={{
+                    fontFamily: Fonts.sans,
+                    fontSize: 13,
+                    color: i === SETTINGS.length - 1 ? Colors.ink3 : Colors.ink,
+                  }}
+                >
+                  {s}
+                </Text>
                 <ChevronIcon size={14} color={Colors.ink4} direction="right" />
               </Pressable>
             ))}

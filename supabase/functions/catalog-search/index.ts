@@ -21,11 +21,9 @@ Deno.serve(async (req) => {
     return errorResponse('Query parameter "q" must be at least 2 characters');
   }
 
-  const supabase = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_ANON_KEY')!,
-    { global: { headers: { Authorization: authHeader } } },
-  );
+  const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
+    global: { headers: { Authorization: authHeader } },
+  });
 
   const { data, error } = await supabase.rpc('search_series', {
     search_query: query,

@@ -15,20 +15,43 @@ type Props = {
   children?: React.ReactNode;
 };
 
-export function CineStill({ playbackId, imageUrl, palette, width, height, noFade, borderRadius = 0, style, children }: Props) {
+export function CineStill({
+  playbackId,
+  imageUrl,
+  palette,
+  width,
+  height,
+  noFade,
+  borderRadius = 0,
+  style,
+  children,
+}: Props) {
   const [a = '#111', b = '#222', c = '#333'] = palette ?? [];
   const thumbnailUri = imageUrl
     ? imageUrl
     : playbackId
-      ? getMuxThumbnailUrl(playbackId, { width: Math.round(width * 2), height: Math.round(height * 2), fitMode: 'smartcrop' })
+      ? getMuxThumbnailUrl(playbackId, {
+          width: Math.round(width * 2),
+          height: Math.round(height * 2),
+          fitMode: 'smartcrop',
+        })
       : undefined;
 
   return (
-    <View style={[{ position: 'relative', width, height, overflow: 'hidden', borderRadius }, style]}>
+    <View
+      style={[{ position: 'relative', width, height, overflow: 'hidden', borderRadius }, style]}
+    >
       {thumbnailUri ? (
-        <Image source={{ uri: thumbnailUri }} style={{ position: 'absolute', width: '100%', height: '100%' }} contentFit="cover" />
+        <Image
+          source={{ uri: thumbnailUri }}
+          style={{ position: 'absolute', width: '100%', height: '100%' }}
+          contentFit="cover"
+        />
       ) : (
-        <LinearGradient colors={[a, '#000']} style={{ position: 'absolute', width: '100%', height: '100%' }} />
+        <LinearGradient
+          colors={[a, '#000']}
+          style={{ position: 'absolute', width: '100%', height: '100%' }}
+        />
       )}
 
       {!noFade && (

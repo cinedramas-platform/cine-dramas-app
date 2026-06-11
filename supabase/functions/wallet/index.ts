@@ -18,11 +18,9 @@ serve('wallet', async (req, log) => {
     return errorResponse('Missing authorization header', 401);
   }
 
-  const supabase = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_ANON_KEY')!,
-    { global: { headers: { Authorization: authHeader } } },
-  );
+  const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
+    global: { headers: { Authorization: authHeader } },
+  });
 
   const {
     data: { user },
@@ -39,13 +37,8 @@ serve('wallet', async (req, log) => {
       .from('wallets')
       .select('coin_balance, bonus_balance, checkin_streak, last_checkin_date')
       .maybeSingle(),
-    supabase
-      .from('entitlements')
-      .select('tier, expires_at')
-      .maybeSingle(),
-    supabase
-      .from('episode_unlocks')
-      .select('episode_id'),
+    supabase.from('entitlements').select('tier, expires_at').maybeSingle(),
+    supabase.from('episode_unlocks').select('episode_id'),
   ]);
 
   if (walletRes.error) {

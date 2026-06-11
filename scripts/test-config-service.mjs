@@ -40,8 +40,14 @@ await test('Valid tenant returns all config fields', async () => {
   assert(data.theme.background, 'Missing theme.background');
   assert(data.theme.text, 'Missing theme.text');
   assert(data.theme.fontFamily, 'Missing theme.fontFamily');
-  assert(data.features && typeof data.features.auth_required === 'boolean', 'Missing features.auth_required');
-  assert(data.legal_urls && data.legal_urls.terms_of_service, 'Missing legal_urls.terms_of_service');
+  assert(
+    data.features && typeof data.features.auth_required === 'boolean',
+    'Missing features.auth_required',
+  );
+  assert(
+    data.legal_urls && data.legal_urls.terms_of_service,
+    'Missing legal_urls.terms_of_service',
+  );
   assert(data.legal_urls.privacy_policy, 'Missing legal_urls.privacy_policy');
   assert(Array.isArray(data.home_rails_order), 'home_rails_order is not an array');
   assert(data.home_rails_order.length > 0, 'home_rails_order is empty');

@@ -7,10 +7,7 @@ const TEST_ASSET_ID = 'test-asset-webhook-cd34';
 function signPayload(body, secret, timestampOverride) {
   const timestamp = timestampOverride ?? Math.floor(Date.now() / 1000);
   const payload = `${timestamp}.${body}`;
-  const signature = crypto
-    .createHmac('sha256', secret)
-    .update(payload)
-    .digest('hex');
+  const signature = crypto.createHmac('sha256', secret).update(payload).digest('hex');
   return { header: `t=${timestamp},v1=${signature}`, timestamp };
 }
 
@@ -52,7 +49,11 @@ await test('Missing mux-signature header returns 401', async () => {
 });
 
 await test('Wrong secret returns 401', async () => {
-  const body = JSON.stringify({ id: 'test-wrong-secret', type: 'video.asset.ready', data: { id: 'x' } });
+  const body = JSON.stringify({
+    id: 'test-wrong-secret',
+    type: 'video.asset.ready',
+    data: { id: 'x' },
+  });
   const { header } = signPayload(body, 'wrong_secret');
   const { status, data } = await sendWebhook(body, { 'mux-signature': header });
   assert(status === 401, `Expected 401, got ${status}: ${JSON.stringify(data)}`);

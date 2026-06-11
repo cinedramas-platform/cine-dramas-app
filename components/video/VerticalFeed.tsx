@@ -1,5 +1,13 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Dimensions, type LayoutChangeEvent, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Dimensions,
+  type LayoutChangeEvent,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { FlashList, type ViewToken } from '@shopify/flash-list';
 import { useRouter } from 'expo-router';
 import { VideoPlayer, type VideoPlayerRef } from '@/components/video/VideoPlayer';

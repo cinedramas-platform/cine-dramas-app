@@ -17,10 +17,7 @@ import {
   Geist_600SemiBold,
   Geist_700Bold,
 } from '@expo-google-fonts/geist';
-import {
-  GeistMono_400Regular,
-  GeistMono_500Medium,
-} from '@expo-google-fonts/geist-mono';
+import { GeistMono_400Regular, GeistMono_500Medium } from '@expo-google-fonts/geist-mono';
 import { QueryProvider } from '@/providers/QueryProvider';
 import { ThemeProvider } from '@/providers/ThemeProvider';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
@@ -53,7 +50,14 @@ function NavigationLayout() {
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.bg }}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: Colors.bg,
+        }}
+      >
         <ActivityIndicator size="large" color={Colors.accent} />
       </View>
     );
@@ -96,7 +100,14 @@ function RootLayout() {
 
   if (!fontsLoaded) {
     return (
-      <View style={{ flex: 1, backgroundColor: Colors.bg, justifyContent: 'center', alignItems: 'center' }}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: Colors.bg,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
         <ActivityIndicator size="large" color={Colors.accent} />
       </View>
     );

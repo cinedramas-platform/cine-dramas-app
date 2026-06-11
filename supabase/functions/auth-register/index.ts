@@ -51,17 +51,11 @@ Deno.serve(async (req) => {
   // so ensure the public.users row exists.
   const { error: profileError } = await supabaseAdmin
     .from('users')
-    .upsert(
-      { auth_id: data.user.id, tenant_id, email },
-      { onConflict: 'auth_id' },
-    );
+    .upsert({ auth_id: data.user.id, tenant_id, email }, { onConflict: 'auth_id' });
 
   if (profileError) {
     return errorResponse(profileError.message, 500);
   }
 
-  return jsonResponse(
-    { user: { id: data.user.id, email: data.user.email } },
-    { status: 201 },
-  );
+  return jsonResponse({ user: { id: data.user.id, email: data.user.email } }, { status: 201 });
 });

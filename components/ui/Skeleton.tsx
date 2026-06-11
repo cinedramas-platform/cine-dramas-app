@@ -23,7 +23,12 @@ type SkeletonProps = {
 };
 
 /** A single shimmering block. Compose these into screen-shaped placeholders. */
-export function Skeleton({ width = '100%', height = 16, radius = Radius.sm, style }: SkeletonProps) {
+export function Skeleton({
+  width = '100%',
+  height = 16,
+  radius = Radius.sm,
+  style,
+}: SkeletonProps) {
   const pulse = useSharedValue(0.4);
 
   useEffect(() => {
@@ -59,7 +64,13 @@ export function SkeletonCard({ width = 132 }: { width?: number }) {
 }
 
 /** Horizontal rail placeholder — section label + a row of cards. */
-export function SkeletonRail({ count = 4, cardWidth = 132 }: { count?: number; cardWidth?: number }) {
+export function SkeletonRail({
+  count = 4,
+  cardWidth = 132,
+}: {
+  count?: number;
+  cardWidth?: number;
+}) {
   return (
     <View style={{ gap: Spacing.md, paddingVertical: Spacing.md }}>
       <Skeleton width={140} height={14} style={{ marginHorizontal: Spacing.xl }} />
@@ -96,7 +107,14 @@ export function SkeletonEpisodeRow() {
 /** Full-screen player placeholder shown while the playback token resolves. */
 export function SkeletonPlayer() {
   return (
-    <View style={{ flex: 1, backgroundColor: Colors.black, justifyContent: 'flex-end', padding: Spacing.xl }}>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: Colors.black,
+        justifyContent: 'flex-end',
+        padding: Spacing.xl,
+      }}
+    >
       <View style={{ gap: Spacing.md, paddingBottom: Spacing.xxl }}>
         <Skeleton width="55%" height={20} />
         <Skeleton width="80%" height={12} />

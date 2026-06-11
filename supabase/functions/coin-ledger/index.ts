@@ -20,11 +20,9 @@ serve('coin-ledger', async (req, log) => {
     return errorResponse('Missing authorization header', 401);
   }
 
-  const supabase = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_ANON_KEY')!,
-    { global: { headers: { Authorization: authHeader } } },
-  );
+  const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
+    global: { headers: { Authorization: authHeader } },
+  });
 
   const {
     data: { user },
@@ -36,14 +34,13 @@ serve('coin-ledger', async (req, log) => {
   log.setUser(user.id, (user.app_metadata?.tenant_id as string) ?? null);
 
   const url = new URL(req.url);
-  const limit = Math.min(
-    Number(url.searchParams.get('limit')) || DEFAULT_LIMIT,
-    MAX_LIMIT,
-  );
+  const limit = Math.min(Number(url.searchParams.get('limit')) || DEFAULT_LIMIT, MAX_LIMIT);
 
   const { data, error } = await supabase
     .from('coin_transactions')
-    .select('id, amount, bonus_amount, kind, balance_after, bonus_after, episode_id, note, created_at')
+    .select(
+      'id, amount, bonus_amount, kind, balance_after, bonus_after, episode_id, note, created_at',
+    )
     .order('created_at', { ascending: false })
     .limit(limit);
 

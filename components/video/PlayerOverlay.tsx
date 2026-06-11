@@ -11,7 +11,17 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import { Colors, Fonts } from '@/constants/theme';
-import { ChevronIcon, MoreIcon, HeartIcon, CommentIcon, BookmarkIcon, ShareIcon, PlayIcon, PauseIcon, SparkleIcon } from '@/components/ui/Icon';
+import {
+  ChevronIcon,
+  MoreIcon,
+  HeartIcon,
+  CommentIcon,
+  BookmarkIcon,
+  ShareIcon,
+  PlayIcon,
+  PauseIcon,
+  SparkleIcon,
+} from '@/components/ui/Icon';
 import { Eyebrow } from '@/components/ui/Eyebrow';
 
 const AUTO_HIDE_MS = 3000;
@@ -219,7 +229,9 @@ export function PlayerOverlay({
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
-  const epLabel = episodeNumber ? `EP ${String(episodeNumber).padStart(2, '0')} / ${Math.ceil(duration / 60)}` : '';
+  const epLabel = episodeNumber
+    ? `EP ${String(episodeNumber).padStart(2, '0')} / ${Math.ceil(duration / 60)}`
+    : '';
   const chapterLabel = chapterTitle ? `  ·  ${chapterTitle.toUpperCase()}` : '';
 
   return (
@@ -240,7 +252,8 @@ export function PlayerOverlay({
                 {seriesName?.toUpperCase() ?? 'NOW PLAYING'}
               </Eyebrow>
               <Text style={styles.epMeta}>
-                {epLabel}{chapterLabel}
+                {epLabel}
+                {chapterLabel}
               </Text>
             </View>
             <Pressable style={styles.topButton}>
@@ -306,7 +319,12 @@ export function PlayerOverlay({
                 style={[styles.speedOption, speed === currentSpeed && styles.speedOptionActive]}
                 onPress={() => handleSpeedSelect(speed)}
               >
-                <Text style={[styles.speedOptionText, speed === currentSpeed && styles.speedOptionTextActive]}>
+                <Text
+                  style={[
+                    styles.speedOptionText,
+                    speed === currentSpeed && styles.speedOptionTextActive,
+                  ]}
+                >
                   {speed}x
                 </Text>
               </Pressable>

@@ -5,3 +5,8 @@ dist/
 .expo/
 android/
 ios/
+.agents/
+.github/skills/
+tools/
+cinedramas MASTER DOC/
+package-lock.json

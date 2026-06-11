@@ -21,11 +21,7 @@ serve('webhooks-mux', async (req, log) => {
     return errorResponse('Missing mux-signature header', 401);
   }
 
-  const signatureValid = await verifyMuxSignature(
-    rawBody,
-    signatureHeader,
-    webhookSecret,
-  );
+  const signatureValid = await verifyMuxSignature(rawBody, signatureHeader, webhookSecret);
   if (!signatureValid) {
     log.warn('mux webhook signature verification failed');
     return errorResponse('Invalid signature', 401);
@@ -101,8 +97,7 @@ serve('webhooks-mux', async (req, log) => {
         await processAssetErrored(supabase, episode.id);
       }
     } catch (err) {
-      errorMessage =
-        err instanceof Error ? err.message : 'Unknown processing error';
+      errorMessage = err instanceof Error ? err.message : 'Unknown processing error';
     }
   }
 
@@ -180,11 +175,7 @@ async function verifyMuxSignature(
   );
 
   const signedPayload = `${timestamp}.${rawBody}`;
-  const mac = await crypto.subtle.sign(
-    'HMAC',
-    key,
-    encoder.encode(signedPayload),
-  );
+  const mac = await crypto.subtle.sign('HMAC', key, encoder.encode(signedPayload));
   const computedHex = Array.from(new Uint8Array(mac))
     .map((b) => b.toString(16).padStart(2, '0'))
     .join('');
@@ -210,8 +201,7 @@ async function processAssetReady(
 ): Promise<void> {
   const playbackIds = data.playback_ids ?? [];
   // Public id → thumbnails/images. Signed id → gated video streaming.
-  const publicId =
-    playbackIds.find((p) => p.policy === 'public')?.id ?? playbackIds[0]?.id;
+  const publicId = playbackIds.find((p) => p.policy === 'public')?.id ?? playbackIds[0]?.id;
   let signedId = playbackIds.find((p) => p.policy === 'signed')?.id;
 
   // No signed playback id yet — create one so the episode can be gated
@@ -220,8 +210,7 @@ async function processAssetReady(
     signedId = await createSignedPlaybackId(data.id);
   }
 
-  const duration =
-    typeof data.duration === 'number' ? Math.round(data.duration) : null;
+  const duration = typeof data.duration === 'number' ? Math.round(data.duration) : null;
 
   const update: Record<string, unknown> = {
     mux_asset_status: 'ready',
@@ -231,10 +220,7 @@ async function processAssetReady(
   if (signedId) update.mux_signed_playback_id = signedId;
   if (duration !== null) update.duration_seconds = duration;
 
-  const { error } = await supabase
-    .from('episodes')
-    .update(update)
-    .eq('id', episodeId);
+  const { error } = await supabase.from('episodes').update(update).eq('id', episodeId);
 
   if (error) throw new Error(`Failed to update episode: ${error.message}`);
 }
@@ -248,22 +234,17 @@ async function createSignedPlaybackId(assetId: string): Promise<string> {
   }
 
   const auth = btoa(`${tokenId}:${tokenSecret}`);
-  const res = await fetch(
-    `https://api.mux.com/video/v1/assets/${assetId}/playback-ids`,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Basic ${auth}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ policy: 'signed' }),
+  const res = await fetch(`https://api.mux.com/video/v1/assets/${assetId}/playback-ids`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Basic ${auth}`,
+      'Content-Type': 'application/json',
     },
-  );
+    body: JSON.stringify({ policy: 'signed' }),
+  });
 
   if (!res.ok) {
-    throw new Error(
-      `Mux create signed playback id failed: ${res.status} ${await res.text()}`,
-    );
+    throw new Error(`Mux create signed playback id failed: ${res.status} ${await res.text()}`);
   }
 
   return (await res.json()).data.id as string;

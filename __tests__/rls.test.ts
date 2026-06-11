@@ -132,29 +132,41 @@ afterAll(async () => {
 });
 
 describe('RLS: payment tables are user-isolated', () => {
-  dbit('User A sees own wallet but not User B\'s', async () => {
+  dbit("User A sees own wallet but not User B's", async () => {
     expect(await countAs(A, `SELECT count(*) FROM wallets WHERE user_id = $1`, [A.userId])).toBe(1);
     expect(await countAs(A, `SELECT count(*) FROM wallets WHERE user_id = $1`, [B.userId])).toBe(0);
   });
 
   dbit('User A cannot see User B coin_transactions', async () => {
-    expect(await countAs(A, `SELECT count(*) FROM coin_transactions WHERE user_id = $1`, [B.userId])).toBe(0);
-    expect(await countAs(A, `SELECT count(*) FROM coin_transactions WHERE user_id = $1`, [A.userId])).toBe(1);
+    expect(
+      await countAs(A, `SELECT count(*) FROM coin_transactions WHERE user_id = $1`, [B.userId]),
+    ).toBe(0);
+    expect(
+      await countAs(A, `SELECT count(*) FROM coin_transactions WHERE user_id = $1`, [A.userId]),
+    ).toBe(1);
   });
 
   dbit('User A cannot see User B episode_unlocks', async () => {
-    expect(await countAs(A, `SELECT count(*) FROM episode_unlocks WHERE user_id = $1`, [B.userId])).toBe(0);
-    expect(await countAs(A, `SELECT count(*) FROM episode_unlocks WHERE user_id = $1`, [A.userId])).toBe(1);
+    expect(
+      await countAs(A, `SELECT count(*) FROM episode_unlocks WHERE user_id = $1`, [B.userId]),
+    ).toBe(0);
+    expect(
+      await countAs(A, `SELECT count(*) FROM episode_unlocks WHERE user_id = $1`, [A.userId]),
+    ).toBe(1);
   });
 });
 
 describe('RLS: existing user/tenant tables', () => {
   dbit('User A cannot read User B entitlement', async () => {
-    expect(await countAs(A, `SELECT count(*) FROM entitlements WHERE user_id = $1`, [B.userId])).toBe(0);
+    expect(
+      await countAs(A, `SELECT count(*) FROM entitlements WHERE user_id = $1`, [B.userId]),
+    ).toBe(0);
   });
 
   dbit('User A cannot read User B watch_progress', async () => {
-    expect(await countAs(A, `SELECT count(*) FROM watch_progress WHERE user_id = $1`, [B.userId])).toBe(0);
+    expect(
+      await countAs(A, `SELECT count(*) FROM watch_progress WHERE user_id = $1`, [B.userId]),
+    ).toBe(0);
   });
 
   dbit('User A sees only own-tenant series', async () => {

@@ -21,15 +21,14 @@ Deno.serve(async (req) => {
     return errorResponse('Missing required parameter: id');
   }
 
-  const supabase = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_ANON_KEY')!,
-    { global: { headers: { Authorization: authHeader } } },
-  );
+  const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
+    global: { headers: { Authorization: authHeader } },
+  });
 
   const { data, error } = await supabase
     .from('series')
-    .select(`
+    .select(
+      `
       id, title, description, thumbnail_playback_id, poster_url, category, tags,
       is_featured, sort_order, created_at,
       seasons (
@@ -39,7 +38,8 @@ Deno.serve(async (req) => {
           duration_seconds, order, is_free, coin_cost, thumbnail_time, created_at
         )
       )
-    `)
+    `,
+    )
     .eq('id', id)
     .eq('status', 'published')
     .single();
@@ -52,13 +52,9 @@ Deno.serve(async (req) => {
   }
 
   if (data?.seasons) {
-    data.seasons.sort(
-      (a: { number: number }, b: { number: number }) => a.number - b.number,
-    );
+    data.seasons.sort((a: { number: number }, b: { number: number }) => a.number - b.number);
     for (const season of data.seasons) {
-      season.episodes?.sort(
-        (a: { order: number }, b: { order: number }) => a.order - b.order,
-      );
+      season.episodes?.sort((a: { order: number }, b: { order: number }) => a.order - b.order);
     }
   }
 

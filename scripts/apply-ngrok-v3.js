@@ -11,27 +11,27 @@
  * a vendored binary are swapped; others are left untouched (script is a no-op).
  * Safe to run repeatedly: skips when the bundled binary is already v3+.
  */
-const fs = require("fs");
-const path = require("path");
-const { execFileSync } = require("child_process");
+const fs = require('fs');
+const path = require('path');
+const { execFileSync } = require('child_process');
 
-const tag = "[ngrok-v3]";
+const tag = '[ngrok-v3]';
 const log = (m) => console.log(`${tag} ${m}`);
 
 let bundled = null;
 try {
-  bundled = require("@expo/ngrok-bin");
+  bundled = require('@expo/ngrok-bin');
 } catch (e) {
   /* package not installed */
 }
 if (!bundled || !fs.existsSync(bundled)) {
-  log("bundled ngrok binary not found, skipping");
+  log('bundled ngrok binary not found, skipping');
   process.exit(0);
 }
 
 const platKey = `${process.platform}-${process.arch}`;
-const exeName = process.platform === "win32" ? "ngrok.exe" : "ngrok";
-const vendored = path.join(__dirname, "..", "tools", "ngrok", platKey, exeName);
+const exeName = process.platform === 'win32' ? 'ngrok.exe' : 'ngrok';
+const vendored = path.join(__dirname, '..', 'tools', 'ngrok', platKey, exeName);
 if (!fs.existsSync(vendored)) {
   log(`no vendored v3 binary for ${platKey}; leaving bundled binary as-is`);
   process.exit(0);
@@ -39,7 +39,7 @@ if (!fs.existsSync(vendored)) {
 
 // Skip if the bundled binary is already v3 or newer.
 try {
-  const out = execFileSync(bundled, ["--version"], { encoding: "utf8" });
+  const out = execFileSync(bundled, ['--version'], { encoding: 'utf8' });
   const m = out.match(/(\d+)\.(\d+)\.(\d+)/);
   if (m && parseInt(m[1], 10) >= 3) {
     log(`bundled binary already v${m[0]}, nothing to do`);

@@ -48,27 +48,51 @@ export default function LoginScreen() {
           <Eyebrow color={Colors.accent} style={{ textAlign: 'center', letterSpacing: 3 }}>
             WELCOME BACK
           </Eyebrow>
-          <Text style={{
-            fontFamily: Fonts.display, fontSize: 42, color: Colors.ink,
-            textAlign: 'center', letterSpacing: -0.5, marginTop: 8,
-          }}>
+          <Text
+            style={{
+              fontFamily: Fonts.display,
+              fontSize: 42,
+              color: Colors.ink,
+              textAlign: 'center',
+              letterSpacing: -0.5,
+              marginTop: 8,
+            }}
+          >
             Sign in
           </Text>
-          <Text style={{
-            fontFamily: Fonts.displayItalic, fontSize: 16, color: Colors.ink3,
-            textAlign: 'center', marginTop: 6,
-          }}>
+          <Text
+            style={{
+              fontFamily: Fonts.displayItalic,
+              fontSize: 16,
+              color: Colors.ink3,
+              textAlign: 'center',
+              marginTop: 6,
+            }}
+          >
             Pick up where you left off.
           </Text>
         </View>
 
         {/* Error */}
         {error && (
-          <View style={{
-            padding: 12, borderRadius: Radius.md, marginBottom: 16,
-            backgroundColor: 'rgba(255,68,68,0.08)', borderWidth: 1, borderColor: 'rgba(255,68,68,0.25)',
-          }}>
-            <Text style={{ fontFamily: Fonts.sans, fontSize: 13, color: '#ff6b6b', textAlign: 'center' }}>
+          <View
+            style={{
+              padding: 12,
+              borderRadius: Radius.md,
+              marginBottom: 16,
+              backgroundColor: 'rgba(255,68,68,0.08)',
+              borderWidth: 1,
+              borderColor: 'rgba(255,68,68,0.25)',
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: Fonts.sans,
+                fontSize: 13,
+                color: '#ff6b6b',
+                textAlign: 'center',
+              }}
+            >
               {error}
             </Text>
           </View>
@@ -96,7 +120,10 @@ export default function LoginScreen() {
               autoComplete="email"
               keyboardType="email-address"
               value={email}
-              onChangeText={(t) => { setEmail(t); clearError(); }}
+              onChangeText={(t) => {
+                setEmail(t);
+                clearError();
+              }}
               editable={!isLoading}
             />
           </View>
@@ -120,7 +147,10 @@ export default function LoginScreen() {
               secureTextEntry
               autoComplete="password"
               value={password}
-              onChangeText={(t) => { setPassword(t); clearError(); }}
+              onChangeText={(t) => {
+                setPassword(t);
+                clearError();
+              }}
               editable={!isLoading}
               onSubmitEditing={handleSignIn}
             />
@@ -137,10 +167,16 @@ export default function LoginScreen() {
         {/* CTA */}
         <View style={{ marginTop: 28 }}>
           {isLoading ? (
-            <View style={{
-              height: 52, borderRadius: Radius.pill, backgroundColor: Colors.accent,
-              alignItems: 'center', justifyContent: 'center', opacity: 0.7,
-            }}>
+            <View
+              style={{
+                height: 52,
+                borderRadius: Radius.pill,
+                backgroundColor: Colors.accent,
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: 0.7,
+              }}
+            >
               <ActivityIndicator color={Colors.black} />
             </View>
           ) : (
@@ -167,8 +203,22 @@ export default function LoginScreen() {
         </Pressable>
 
         {/* Bottom branding */}
-        <View style={{ flex: 1, justifyContent: 'flex-end', paddingBottom: insets.bottom + 20, paddingTop: 40 }}>
-          <Text style={{ fontFamily: Fonts.displayItalic, fontSize: 13, color: Colors.ink4, textAlign: 'center' }}>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: 'flex-end',
+            paddingBottom: insets.bottom + 20,
+            paddingTop: 40,
+          }}
+        >
+          <Text
+            style={{
+              fontFamily: Fonts.displayItalic,
+              fontSize: 13,
+              color: Colors.ink4,
+              textAlign: 'center',
+            }}
+          >
             {APP_NAME} — {TAGLINE}
           </Text>
         </View>

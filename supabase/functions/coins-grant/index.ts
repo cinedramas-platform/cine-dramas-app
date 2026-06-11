@@ -34,11 +34,9 @@ serve('coins-grant', async (req, log) => {
     return errorResponse('Missing authorization header', 401);
   }
 
-  const supabase = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_ANON_KEY')!,
-    { global: { headers: { Authorization: authHeader } } },
-  );
+  const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
+    global: { headers: { Authorization: authHeader } },
+  });
 
   const {
     data: { user },
@@ -56,11 +54,7 @@ serve('coins-grant', async (req, log) => {
     return errorResponse('Invalid JSON body');
   }
 
-  const allowed = await rateLimitCheck(
-    `rate:${user.id}:grant`,
-    RATE_LIMIT_MAX,
-    RATE_LIMIT_WINDOW,
-  );
+  const allowed = await rateLimitCheck(`rate:${user.id}:grant`, RATE_LIMIT_MAX, RATE_LIMIT_WINDOW);
   if (!allowed) {
     log.warn('rate limited');
     return errorResponse('Too many requests', 429);

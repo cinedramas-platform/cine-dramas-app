@@ -61,27 +61,51 @@ export default function RegisterScreen() {
           <Eyebrow color={Colors.accent} style={{ textAlign: 'center', letterSpacing: 3 }}>
             JOIN THE CLUB
           </Eyebrow>
-          <Text style={{
-            fontFamily: Fonts.display, fontSize: 42, color: Colors.ink,
-            textAlign: 'center', letterSpacing: -0.5, marginTop: 8,
-          }}>
+          <Text
+            style={{
+              fontFamily: Fonts.display,
+              fontSize: 42,
+              color: Colors.ink,
+              textAlign: 'center',
+              letterSpacing: -0.5,
+              marginTop: 8,
+            }}
+          >
             Create account
           </Text>
-          <Text style={{
-            fontFamily: Fonts.displayItalic, fontSize: 16, color: Colors.ink3,
-            textAlign: 'center', marginTop: 6,
-          }}>
+          <Text
+            style={{
+              fontFamily: Fonts.displayItalic,
+              fontSize: 16,
+              color: Colors.ink3,
+              textAlign: 'center',
+              marginTop: 6,
+            }}
+          >
             Your next obsession awaits.
           </Text>
         </View>
 
         {/* Error */}
         {displayError && (
-          <View style={{
-            padding: 12, borderRadius: Radius.md, marginBottom: 16,
-            backgroundColor: 'rgba(255,68,68,0.08)', borderWidth: 1, borderColor: 'rgba(255,68,68,0.25)',
-          }}>
-            <Text style={{ fontFamily: Fonts.sans, fontSize: 13, color: '#ff6b6b', textAlign: 'center' }}>
+          <View
+            style={{
+              padding: 12,
+              borderRadius: Radius.md,
+              marginBottom: 16,
+              backgroundColor: 'rgba(255,68,68,0.08)',
+              borderWidth: 1,
+              borderColor: 'rgba(255,68,68,0.25)',
+            }}
+          >
+            <Text
+              style={{
+                fontFamily: Fonts.sans,
+                fontSize: 13,
+                color: '#ff6b6b',
+                textAlign: 'center',
+              }}
+            >
               {displayError}
             </Text>
           </View>
@@ -109,7 +133,11 @@ export default function RegisterScreen() {
               autoComplete="email"
               keyboardType="email-address"
               value={email}
-              onChangeText={(t) => { setEmail(t); clearError(); setLocalError(''); }}
+              onChangeText={(t) => {
+                setEmail(t);
+                clearError();
+                setLocalError('');
+              }}
               editable={!isLoading}
             />
           </View>
@@ -133,7 +161,11 @@ export default function RegisterScreen() {
               secureTextEntry
               autoComplete="new-password"
               value={password}
-              onChangeText={(t) => { setPassword(t); clearError(); setLocalError(''); }}
+              onChangeText={(t) => {
+                setPassword(t);
+                clearError();
+                setLocalError('');
+              }}
               editable={!isLoading}
             />
           </View>
@@ -156,7 +188,10 @@ export default function RegisterScreen() {
               placeholderTextColor={Colors.ink4}
               secureTextEntry
               value={confirmPassword}
-              onChangeText={(t) => { setConfirmPassword(t); setLocalError(''); }}
+              onChangeText={(t) => {
+                setConfirmPassword(t);
+                setLocalError('');
+              }}
               editable={!isLoading}
               onSubmitEditing={handleSignUp}
             />
@@ -166,22 +201,41 @@ export default function RegisterScreen() {
         {/* CTA */}
         <View style={{ marginTop: 28 }}>
           {isLoading ? (
-            <View style={{
-              height: 52, borderRadius: Radius.pill, backgroundColor: Colors.accent,
-              alignItems: 'center', justifyContent: 'center', opacity: 0.7,
-            }}>
+            <View
+              style={{
+                height: 52,
+                borderRadius: Radius.pill,
+                backgroundColor: Colors.accent,
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: 0.7,
+              }}
+            >
               <ActivityIndicator color={Colors.black} />
             </View>
           ) : (
-            <Button label="Create Account" variant="accent" block height={52} onPress={handleSignUp} />
+            <Button
+              label="Create Account"
+              variant="accent"
+              block
+              height={52}
+              onPress={handleSignUp}
+            />
           )}
         </View>
 
         {/* Fine print */}
-        <Text style={{
-          fontFamily: Fonts.sans, fontSize: 10, color: Colors.ink4,
-          textAlign: 'center', lineHeight: 15, marginTop: 14, paddingHorizontal: 12,
-        }}>
+        <Text
+          style={{
+            fontFamily: Fonts.sans,
+            fontSize: 10,
+            color: Colors.ink4,
+            textAlign: 'center',
+            lineHeight: 15,
+            marginTop: 14,
+            paddingHorizontal: 12,
+          }}
+        >
           By creating an account you agree to our Terms of Service and Privacy Policy.
         </Text>
 
@@ -204,8 +258,22 @@ export default function RegisterScreen() {
         </Pressable>
 
         {/* Bottom branding */}
-        <View style={{ flex: 1, justifyContent: 'flex-end', paddingBottom: insets.bottom + 20, paddingTop: 40 }}>
-          <Text style={{ fontFamily: Fonts.displayItalic, fontSize: 13, color: Colors.ink4, textAlign: 'center' }}>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: 'flex-end',
+            paddingBottom: insets.bottom + 20,
+            paddingTop: 40,
+          }}
+        >
+          <Text
+            style={{
+              fontFamily: Fonts.displayItalic,
+              fontSize: 13,
+              color: Colors.ink4,
+              textAlign: 'center',
+            }}
+          >
             {APP_NAME} — {TAGLINE}
           </Text>
         </View>

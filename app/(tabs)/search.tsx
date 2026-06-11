@@ -1,5 +1,13 @@
 import { useState } from 'react';
-import { View, Text, TextInput, Pressable, ScrollView, Dimensions, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  ScrollView,
+  Dimensions,
+  ActivityIndicator,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from '@/components/ui/LinearGradient';
@@ -16,12 +24,48 @@ const MOOD_GAP = 10;
 const MOOD_W = (SCREEN_W - 40 - MOOD_GAP) / 2;
 
 const MOODS = [
-  { id: 'romance', label: 'Forbidden', count: 124, palette: ['#1A0612', '#6B1B3E', '#E59FB8'] as [string, string, string], glyph: 'F' },
-  { id: 'thriller', label: 'Twisty', count: 88, palette: ['#070A0B', '#1A2A33', '#7FB5C9'] as [string, string, string], glyph: 'T' },
-  { id: 'drama', label: 'Steamy', count: 156, palette: ['#3A0A14', '#9E1B2F', '#FFC9AE'] as [string, string, string], glyph: 'S' },
-  { id: 'comedy', label: 'Funny', count: 64, palette: ['#150810', '#7E1F4A', '#FFD06B'] as [string, string, string], glyph: 'F' },
-  { id: 'mystery', label: 'Heartbreak', count: 92, palette: ['#0B0810', '#4A1B5F', '#E9B4F0'] as [string, string, string], glyph: 'H' },
-  { id: 'revenge', label: 'Revenge', count: 78, palette: ['#10060A', '#4B0B17', '#F47A6B'] as [string, string, string], glyph: 'R' },
+  {
+    id: 'romance',
+    label: 'Forbidden',
+    count: 124,
+    palette: ['#1A0612', '#6B1B3E', '#E59FB8'] as [string, string, string],
+    glyph: 'F',
+  },
+  {
+    id: 'thriller',
+    label: 'Twisty',
+    count: 88,
+    palette: ['#070A0B', '#1A2A33', '#7FB5C9'] as [string, string, string],
+    glyph: 'T',
+  },
+  {
+    id: 'drama',
+    label: 'Steamy',
+    count: 156,
+    palette: ['#3A0A14', '#9E1B2F', '#FFC9AE'] as [string, string, string],
+    glyph: 'S',
+  },
+  {
+    id: 'comedy',
+    label: 'Funny',
+    count: 64,
+    palette: ['#150810', '#7E1F4A', '#FFD06B'] as [string, string, string],
+    glyph: 'F',
+  },
+  {
+    id: 'mystery',
+    label: 'Heartbreak',
+    count: 92,
+    palette: ['#0B0810', '#4A1B5F', '#E9B4F0'] as [string, string, string],
+    glyph: 'H',
+  },
+  {
+    id: 'revenge',
+    label: 'Revenge',
+    count: 78,
+    palette: ['#10060A', '#4B0B17', '#F47A6B'] as [string, string, string],
+    glyph: 'R',
+  },
 ];
 
 export default function SearchScreen() {
@@ -102,7 +146,10 @@ export default function SearchScreen() {
                     showTitle={false}
                   />
                   <View style={{ flex: 1, gap: 2 }}>
-                    <Text style={{ fontFamily: Fonts.sans600, fontSize: 14, color: Colors.ink }} numberOfLines={1}>
+                    <Text
+                      style={{ fontFamily: Fonts.sans600, fontSize: 14, color: Colors.ink }}
+                      numberOfLines={1}
+                    >
                       {s.title}
                     </Text>
                     <Text style={{ fontFamily: Fonts.sans, fontSize: 10, color: Colors.ink3 }}>
@@ -114,8 +161,18 @@ export default function SearchScreen() {
               ))
             ) : (
               <View style={{ alignItems: 'center', paddingTop: 60, gap: 8 }}>
-                <Text style={{ fontFamily: Fonts.display, fontSize: 22, color: Colors.ink }}>Nothing found</Text>
-                <Text style={{ fontFamily: Fonts.sans, fontSize: 13, color: Colors.ink3, textAlign: 'center', lineHeight: 20 }}>
+                <Text style={{ fontFamily: Fonts.display, fontSize: 22, color: Colors.ink }}>
+                  Nothing found
+                </Text>
+                <Text
+                  style={{
+                    fontFamily: Fonts.sans,
+                    fontSize: 13,
+                    color: Colors.ink3,
+                    textAlign: 'center',
+                    lineHeight: 20,
+                  }}
+                >
                   Try a different mood, genre, or title.
                 </Text>
               </View>
@@ -125,10 +182,23 @@ export default function SearchScreen() {
           <>
             {/* Mood grid */}
             <View style={{ paddingHorizontal: 20, paddingTop: 14 }}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14 }}>
-                <Text style={{ fontFamily: Fonts.display, fontSize: 24, color: Colors.ink, letterSpacing: -0.5 }}>
-                  What's the{' '}
-                  <Text style={{ fontFamily: Fonts.displayItalic }}>mood?</Text>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'baseline',
+                  marginBottom: 14,
+                }}
+              >
+                <Text
+                  style={{
+                    fontFamily: Fonts.display,
+                    fontSize: 24,
+                    color: Colors.ink,
+                    letterSpacing: -0.5,
+                  }}
+                >
+                  What’s the <Text style={{ fontFamily: Fonts.displayItalic }}>mood?</Text>
                 </Text>
               </View>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: MOOD_GAP }}>
@@ -169,10 +239,24 @@ export default function SearchScreen() {
                       {m.glyph}
                     </Text>
                     <View style={{ position: 'absolute', bottom: 10, left: 12, right: 12, gap: 1 }}>
-                      <Text style={{ fontFamily: Fonts.display, fontSize: 20, color: '#fff', letterSpacing: -0.1 }}>
+                      <Text
+                        style={{
+                          fontFamily: Fonts.display,
+                          fontSize: 20,
+                          color: '#fff',
+                          letterSpacing: -0.1,
+                        }}
+                      >
                         {m.label}
                       </Text>
-                      <Text style={{ fontFamily: Fonts.sans, fontSize: 10, color: 'rgba(255,255,255,0.65)', letterSpacing: 0.6 }}>
+                      <Text
+                        style={{
+                          fontFamily: Fonts.sans,
+                          fontSize: 10,
+                          color: 'rgba(255,255,255,0.65)',
+                          letterSpacing: 0.6,
+                        }}
+                      >
                         {m.count} dramas
                       </Text>
                     </View>
@@ -184,8 +268,17 @@ export default function SearchScreen() {
             {/* Editor's Pick */}
             {editorPick && (
               <View style={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 20 }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
-                  <Text style={{ fontFamily: Fonts.display, fontSize: 20, color: Colors.ink }}>The Editor's Pick</Text>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'baseline',
+                    marginBottom: 12,
+                  }}
+                >
+                  <Text style={{ fontFamily: Fonts.display, fontSize: 20, color: Colors.ink }}>
+                    The Editor’s Pick
+                  </Text>
                   <Eyebrow color={Colors.accent}>This week</Eyebrow>
                 </View>
                 <Pressable
@@ -204,14 +297,40 @@ export default function SearchScreen() {
                       end={{ x: 1, y: 0 }}
                       style={{ position: 'absolute', width: '100%', height: '100%' }}
                     />
-                    <View style={{ position: 'absolute', left: 16, top: 16, bottom: 16, maxWidth: '60%', justifyContent: 'space-between' }}>
+                    <View
+                      style={{
+                        position: 'absolute',
+                        left: 16,
+                        top: 16,
+                        bottom: 16,
+                        maxWidth: '60%',
+                        justifyContent: 'space-between',
+                      }}
+                    >
                       <Eyebrow color={Colors.accent}>FROM THE LETTER</Eyebrow>
                       <View style={{ gap: 4 }}>
-                        <Text style={{ fontFamily: Fonts.display, fontSize: 22, color: '#fff', lineHeight: 26, letterSpacing: -0.5 }} numberOfLines={2}>
+                        <Text
+                          style={{
+                            fontFamily: Fonts.display,
+                            fontSize: 22,
+                            color: '#fff',
+                            lineHeight: 26,
+                            letterSpacing: -0.5,
+                          }}
+                          numberOfLines={2}
+                        >
                           {editorPick.title}
                         </Text>
                         {editorPick.description && (
-                          <Text style={{ fontFamily: Fonts.sans, fontSize: 11, color: 'rgba(255,255,255,0.75)', lineHeight: 16 }} numberOfLines={2}>
+                          <Text
+                            style={{
+                              fontFamily: Fonts.sans,
+                              fontSize: 11,
+                              color: 'rgba(255,255,255,0.75)',
+                              lineHeight: 16,
+                            }}
+                            numberOfLines={2}
+                          >
                             {editorPick.description}
                           </Text>
                         )}

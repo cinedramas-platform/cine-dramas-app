@@ -34,11 +34,7 @@ export interface LedgerResponse {
   transactions: CoinTransaction[];
 }
 
-export type UnlockStatus =
-  | 'unlocked'
-  | 'already_unlocked'
-  | 'vip'
-  | 'free';
+export type UnlockStatus = 'unlocked' | 'already_unlocked' | 'vip' | 'free';
 
 export interface UnlockResult {
   status: UnlockStatus;

@@ -9,6 +9,30 @@ module.exports = defineConfig([
     },
   },
   {
-    ignores: ['dist/', 'node_modules/', '.expo/', 'brands/index.js'],
+    files: ['scripts/**', '*.config.js', 'app.config.js'],
+    languageOptions: {
+      globals: {
+        Buffer: 'readonly',
+        process: 'readonly',
+        __dirname: 'readonly',
+        require: 'readonly',
+        module: 'writable',
+        console: 'readonly',
+      },
+    },
+    rules: { 'no-console': 'off' },
+  },
+  {
+    // .agents/.claude/.github skills are vendored third-party tooling — not ours to lint.
+    ignores: [
+      'dist/',
+      'node_modules/',
+      '.expo/',
+      'brands/index.js',
+      '.agents/',
+      '.claude/',
+      '.github/skills/',
+      'tools/',
+    ],
   },
 ]);

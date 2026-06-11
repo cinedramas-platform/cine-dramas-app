@@ -18,7 +18,15 @@ export function FreeBadge() {
         borderColor: 'rgba(255,255,255,0.18)',
       }}
     >
-      <Text style={{ fontFamily: Fonts.sans600, fontSize: 9, letterSpacing: 1.4, color: '#fff', textTransform: 'uppercase' }}>
+      <Text
+        style={{
+          fontFamily: Fonts.sans600,
+          fontSize: 9,
+          letterSpacing: 1.4,
+          color: '#fff',
+          textTransform: 'uppercase',
+        }}
+      >
         Free
       </Text>
     </View>
@@ -39,7 +47,15 @@ export function NewBadge() {
         backgroundColor: Colors.accent,
       }}
     >
-      <Text style={{ fontFamily: Fonts.sans700, fontSize: 9, letterSpacing: 1.4, color: Colors.black, textTransform: 'uppercase' }}>
+      <Text
+        style={{
+          fontFamily: Fonts.sans700,
+          fontSize: 9,
+          letterSpacing: 1.4,
+          color: Colors.black,
+          textTransform: 'uppercase',
+        }}
+      >
         New
       </Text>
     </View>

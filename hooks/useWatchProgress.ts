@@ -44,10 +44,11 @@ export function useSaveProgress(episodeId: string | null) {
   const send = useCallback(
     async (eId: string, payload: UpdateProgressPayload) => {
       try {
-        const data = await invokeFunctionMutation<UpdateProgressResponse>(
-          'user-progress',
-          { method: 'PUT', params: { episodeId: eId }, body: payload },
-        );
+        const data = await invokeFunctionMutation<UpdateProgressResponse>('user-progress', {
+          method: 'PUT',
+          params: { episodeId: eId },
+          body: payload,
+        });
         queryClient.setQueryData(['progress', eId], {
           progress: { episode_id: eId, ...data },
         });
@@ -73,8 +74,7 @@ export function useSaveProgress(episodeId: string | null) {
 
   const saveProgress = useCallback(
     (positionSeconds: number, durationSeconds: number) => {
-      const completed =
-        durationSeconds > 0 && positionSeconds >= durationSeconds * 0.9;
+      const completed = durationSeconds > 0 && positionSeconds >= durationSeconds * 0.9;
 
       pendingRef.current = {
         position_seconds: Math.round(positionSeconds),

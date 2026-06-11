@@ -22,7 +22,9 @@ export function UserIcon({ size = 22, color = '#fff' }: P) {
 
 export function HeartIcon({ size = 24, color = '#fff', fill = 'none' }: P) {
   const filled = fill !== 'none';
-  return <Ionicons name={filled ? 'heart' : 'heart-outline'} size={size} color={filled ? fill : color} />;
+  return (
+    <Ionicons name={filled ? 'heart' : 'heart-outline'} size={size} color={filled ? fill : color} />
+  );
 }
 
 export function CommentIcon({ size = 24, color = '#fff' }: P) {
@@ -35,7 +37,13 @@ export function ShareIcon({ size = 24, color = '#fff' }: P) {
 
 export function BookmarkIcon({ size = 24, color = '#fff', fill = 'none' }: P) {
   const filled = fill !== 'none';
-  return <Ionicons name={filled ? 'bookmark' : 'bookmark-outline'} size={size} color={filled ? fill : color} />;
+  return (
+    <Ionicons
+      name={filled ? 'bookmark' : 'bookmark-outline'}
+      size={size}
+      color={filled ? fill : color}
+    />
+  );
 }
 
 export function MoreIcon({ size = 24, color = '#fff' }: P) {
@@ -62,8 +70,19 @@ export function LockIcon({ size = 14, color = '#fff' }: P) {
   return <Ionicons name="lock-closed" size={size} color={color} />;
 }
 
-export function ChevronIcon({ size = 18, color = '#fff', direction = 'right' }: P & { direction?: 'right' | 'down' | 'left' | 'up' }) {
-  const name = ({ right: 'chevron-forward', down: 'chevron-down', left: 'chevron-back', up: 'chevron-up' } as const)[direction];
+export function ChevronIcon({
+  size = 18,
+  color = '#fff',
+  direction = 'right',
+}: P & { direction?: 'right' | 'down' | 'left' | 'up' }) {
+  const name = (
+    {
+      right: 'chevron-forward',
+      down: 'chevron-down',
+      left: 'chevron-back',
+      up: 'chevron-up',
+    } as const
+  )[direction];
   return <Ionicons name={name} size={size} color={color} />;
 }
 
@@ -73,8 +92,27 @@ export function CloseIcon({ size = 20, color = '#fff' }: P) {
 
 export function CoinIcon({ size = 16 }: P) {
   return (
-    <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: '#F1B844', alignItems: 'center', justifyContent: 'center' }}>
-      <Text style={{ fontSize: size * 0.5, fontWeight: '700', color: '#9C7320', lineHeight: size * 0.65, includeFontPadding: false }}>$</Text>
+    <View
+      style={{
+        width: size,
+        height: size,
+        borderRadius: size / 2,
+        backgroundColor: '#F1B844',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <Text
+        style={{
+          fontSize: size * 0.5,
+          fontWeight: '700',
+          color: '#9C7320',
+          lineHeight: size * 0.65,
+          includeFontPadding: false,
+        }}
+      >
+        $
+      </Text>
     </View>
   );
 }

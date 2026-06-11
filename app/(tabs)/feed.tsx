@@ -18,10 +18,20 @@ export default function FeedScreen() {
       <ScrollView contentContainerStyle={{ paddingTop: 60, paddingBottom: 40 }}>
         <View style={{ paddingHorizontal: 20, marginBottom: 24 }}>
           <Eyebrow color={Colors.accent}>FOR YOU</Eyebrow>
-          <Text style={{ fontFamily: Fonts.display, fontSize: 28, color: Colors.ink, marginTop: 4 }}>
+          <Text
+            style={{ fontFamily: Fonts.display, fontSize: 28, color: Colors.ink, marginTop: 4 }}
+          >
             Your Feed
           </Text>
-          <Text style={{ fontFamily: Fonts.sans, fontSize: 13, color: Colors.ink3, marginTop: 8, lineHeight: 20 }}>
+          <Text
+            style={{
+              fontFamily: Fonts.sans,
+              fontSize: 13,
+              color: Colors.ink3,
+              marginTop: 8,
+              lineHeight: 20,
+            }}
+          >
             Swipe through episodes from series you follow, trending content, and editor picks.
           </Text>
         </View>
@@ -31,7 +41,8 @@ export default function FeedScreen() {
             key={s.id ?? i}
             onPress={() => {
               const firstEp = s.seasons?.[0]?.episodes?.[0];
-              if (firstEp) router.push({ pathname: `/player/${firstEp.id}`, params: { seriesId: s.id } });
+              if (firstEp)
+                router.push({ pathname: `/player/${firstEp.id}`, params: { seriesId: s.id } });
             }}
             style={{
               flexDirection: 'row',
@@ -79,10 +90,16 @@ export default function FeedScreen() {
               <Eyebrow color={Colors.accent}>
                 {s.category ?? 'DRAMA'} · {s.episode_count ?? '?'} EP
               </Eyebrow>
-              <Text style={{ fontFamily: Fonts.sans600, fontSize: 15, color: Colors.ink }} numberOfLines={2}>
+              <Text
+                style={{ fontFamily: Fonts.sans600, fontSize: 15, color: Colors.ink }}
+                numberOfLines={2}
+              >
                 {s.title}
               </Text>
-              <Text style={{ fontFamily: Fonts.sans, fontSize: 12, color: Colors.ink3, lineHeight: 18 }} numberOfLines={2}>
+              <Text
+                style={{ fontFamily: Fonts.sans, fontSize: 12, color: Colors.ink3, lineHeight: 18 }}
+                numberOfLines={2}
+              >
                 {s.description}
               </Text>
             </View>
