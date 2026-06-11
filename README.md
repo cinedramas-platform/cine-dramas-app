@@ -4,12 +4,15 @@ A multi-tenant streaming infrastructure platform — "Shopify for streaming apps
 
 ## Prerequisites
 
-| Tool             | Version                | Install                                                                                                                                          |
-| ---------------- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Node.js          | v20.19.4+ (LTS)        | https://nodejs.org/                                                                                                                              |
-| npm              | v10+ (comes with Node) | Included                                                                                                                                         |
-| Git              | Latest                 | https://git-scm.com/                                                                                                                             |
-| Expo Go (mobile) | Latest                 | [iOS App Store](https://apps.apple.com/app/expo-go/id982107779) / [Google Play](https://play.google.com/store/apps/details?id=host.exp.exponent) |
+| Tool    | Version                | Install              |
+| ------- | ---------------------- | -------------------- |
+| Node.js | v20.19.4+ (LTS)        | https://nodejs.org/  |
+| npm     | v10+ (comes with Node) | Included             |
+| Git     | Latest                 | https://git-scm.com/ |
+| EAS CLI | Latest                 | `npm i -g eas-cli`   |
+
+> **Do not install Expo Go for this project** — the app uses native modules and
+> only runs in a development build or an EAS internal build (see below).
 
 > **Note:** The project uses Expo SDK 54 with React Native 0.81, which requires Node.js >= 20.19.4. Check your version with `node -v`.
 
@@ -87,20 +90,10 @@ Create a `.env` file in the project root (it's gitignored):
 cp .env.example .env
 ```
 
-Currently required variables:
-
-```env
-# None required for basic app startup
-# The following will be needed as services are connected:
-
-# SUPABASE_URL=https://your-project.supabase.co
-# SUPABASE_ANON_KEY=your-anon-key
-# MUX_ENV_KEY=your-mux-env-key
-# REVENUECAT_API_KEY=your-revenuecat-key
-# SENTRY_DSN=https://your-dsn@sentry.io/project-id
-```
-
-The app runs without any env vars for now — API integrations are not yet connected.
+Runtime configuration (Supabase URL/key, Mux env key, tenant id, Sentry DSN) does
+**not** come from `.env` — it lives in the per-brand manifest at
+`brands/<variant>/manifest.json` and is baked in at build time by `app.config.js`.
+`.env` is only used for local tooling secrets (e.g. `SENTRY_AUTH_TOKEN` in CI).
 
 ### Brand configuration
 
@@ -150,10 +143,33 @@ cine-dramas-app/
 ├── scripts/                # Build and validation scripts
 ├── assets/                 # Default app icons and splash
 ├── app.config.js           # Dynamic Expo config (reads APP_VARIANT)
+├── eas.json                # EAS build matrix (per-brand profiles)
 ├── tsconfig.json           # TypeScript config
-├── .eslintrc.js            # ESLint config
+├── eslint.config.js        # ESLint config
 └── .prettierrc             # Prettier config
 ```
+
+## Client demo builds (EAS internal distribution)
+
+The MVP deliverable is an installable internal build per brand — no store listing.
+
+```bash
+# Android APK, default brand — produces a shareable install link
+eas build --profile preview --platform android
+
+# iOS internal (requires registered device UDIDs via `eas device:create`)
+eas build --profile preview --platform ios
+
+# Branded build for a client
+eas build --profile clientA-preview --platform android
+
+# Push JS-only updates to installed builds (no rebuild)
+eas update --channel preview --message "demo polish"
+```
+
+The build page on expo.dev gives a QR/install link to send to a client. See
+[ADR 0002](docs/adr/0002-eas-build-and-update-deployment.md) and
+[docs/eas-build-matrix.md](docs/eas-build-matrix.md).
 
 ## Tech Stack
 
