@@ -5,7 +5,7 @@ const brand = clientConfigs[variant] || clientConfigs['default'];
 
 module.exports = ({ config }) => ({
   ...config,
-  owner: 'cinedramas-app',
+  owner: process.env.EAS_OWNER || 'vassil_iliev',
   name: brand.appName,
   slug: brand.slug,
   version: '1.0.0',

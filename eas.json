@@ -29,21 +29,21 @@
 
     "clientA-development": {
       "extends": "development",
-      "channel": "clientA-development",
+      "channel": "clienta-development",
       "env": {
         "APP_VARIANT": "clientA"
       }
     },
     "clientA-preview": {
       "extends": "preview",
-      "channel": "clientA-preview",
+      "channel": "clienta-preview",
       "env": {
         "APP_VARIANT": "clientA"
       }
     },
     "clientA-production": {
       "extends": "production",
-      "channel": "clientA-production",
+      "channel": "clienta-production",
       "env": {
         "APP_VARIANT": "clientA"
       }
