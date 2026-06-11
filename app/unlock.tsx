@@ -18,9 +18,9 @@ export default function UnlockScreen() {
   const {
     episodeId,
     seriesId,
-    seriesTitle = 'The Estate',
-    episodeNumber = '06',
-    episodeTitle = 'The Confession.',
+    seriesTitle = '',
+    episodeNumber = '',
+    episodeTitle = 'Locked episode',
     coinCost,
     playbackId,
   } = useLocalSearchParams<{
@@ -61,9 +61,9 @@ export default function UnlockScreen() {
           onSuccess: () =>
             router.replace({ pathname: `/player/${episodeId}`, params: { seriesId: seriesId ?? '' } }),
           onError: (err) => {
-            // 402 insufficient funds -> send to The Vault to top up.
+            // 402 insufficient funds -> paywall (VIP + coin pack offers).
             if (err.message === 'insufficient_funds') {
-              router.replace('/coins');
+              router.replace('/paywall');
             }
             fillAnim.setValue(0);
           },
@@ -118,13 +118,19 @@ export default function UnlockScreen() {
       {/* Episode header */}
       <View style={{ position: 'absolute', top: insets.top + 60, left: 22, right: 22, zIndex: 5 }}>
         <Eyebrow color={Colors.accent}>
-          {seriesTitle.toUpperCase()} · EP {String(episodeNumber).padStart(2, '0')} · LOCKED
+          {[
+            seriesTitle ? seriesTitle.toUpperCase() : null,
+            episodeNumber ? `EP ${String(episodeNumber).padStart(2, '0')}` : null,
+            'LOCKED',
+          ]
+            .filter(Boolean)
+            .join(' · ')}
         </Eyebrow>
         <Text style={{
           fontFamily: Fonts.display, fontSize: 38, lineHeight: 36, color: '#fff',
           letterSpacing: -0.5, marginTop: 6,
         }}>
-          The <Text style={{ fontFamily: Fonts.displayItalic }}>{episodeTitle}</Text>
+          <Text style={{ fontFamily: Fonts.displayItalic }}>{episodeTitle}</Text>
         </Text>
       </View>
 

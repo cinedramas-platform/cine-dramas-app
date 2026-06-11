@@ -48,6 +48,7 @@ const FeedItem = memo<FeedItemProps>(function FeedItem({
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [playbackRate, setPlaybackRate] = useState(1);
+  const [videoLoaded, setVideoLoaded] = useState(false);
   const hasSoughtRef = useRef(false);
   const wasActiveRef = useRef(false);
 
@@ -68,9 +69,13 @@ const FeedItem = memo<FeedItemProps>(function FeedItem({
     wasActiveRef.current = isActive;
   }, [isActive, flush]);
 
+  // Resume: only seek once the video has actually loaded — react-native-video
+  // drops seeks issued before onLoad, and before the playback token resolves the
+  // player isn't even mounted.
   useEffect(() => {
     if (
       isActive &&
+      videoLoaded &&
       savedProgress &&
       !hasSoughtRef.current &&
       savedProgress.position_seconds > 0 &&
@@ -79,11 +84,16 @@ const FeedItem = memo<FeedItemProps>(function FeedItem({
       playerRef.current?.seek(savedProgress.position_seconds);
       hasSoughtRef.current = true;
     }
-  }, [isActive, savedProgress]);
+  }, [isActive, videoLoaded, savedProgress]);
 
   useEffect(() => {
     hasSoughtRef.current = false;
+    setVideoLoaded(false);
   }, [episode.id]);
+
+  const handleVideoLoad = useCallback(() => {
+    setVideoLoaded(true);
+  }, []);
 
   useEffect(() => {
     if (isActive) {
@@ -181,6 +191,7 @@ const FeedItem = memo<FeedItemProps>(function FeedItem({
         muted={effectivePaused}
         rate={playbackRate}
         onProgress={handleProgress}
+        onLoad={handleVideoLoad}
         videoTitle={episode.title}
         videoId={episode.id}
       />

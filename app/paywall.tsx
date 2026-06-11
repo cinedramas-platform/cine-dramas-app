@@ -1,4 +1,4 @@
-import { View, Text, Pressable, ScrollView, Dimensions } from 'react-native';
+import { Alert, View, Text, Pressable, ScrollView, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from '@/components/ui/LinearGradient';
@@ -211,6 +211,12 @@ export default function PaywallScreen() {
           block
           height={52}
           icon={<PlayIcon size={14} color={Colors.black} />}
+          onPress={() =>
+            Alert.alert(
+              'VIP is almost here',
+              'VIP subscriptions launch with the store release. Until then, grab the coin pack — on the house.',
+            )
+          }
         />
         <Text
           style={{
