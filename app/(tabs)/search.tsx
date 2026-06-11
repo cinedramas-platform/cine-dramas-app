@@ -162,7 +162,7 @@ export default function SearchScreen() {
                         left: 12,
                         fontFamily: Fonts.displayItalic,
                         fontSize: 60,
-                        lineHeight: 52,
+                        lineHeight: 68,
                         color: 'rgba(255,255,255,0.18)',
                       }}
                     >
@@ -207,7 +207,7 @@ export default function SearchScreen() {
                     <View style={{ position: 'absolute', left: 16, top: 16, bottom: 16, maxWidth: '60%', justifyContent: 'space-between' }}>
                       <Eyebrow color={Colors.accent}>FROM THE LETTER</Eyebrow>
                       <View style={{ gap: 4 }}>
-                        <Text style={{ fontFamily: Fonts.display, fontSize: 22, color: '#fff', lineHeight: 23, letterSpacing: -0.5 }}>
+                        <Text style={{ fontFamily: Fonts.display, fontSize: 22, color: '#fff', lineHeight: 26, letterSpacing: -0.5 }} numberOfLines={2}>
                           {editorPick.title}
                         </Text>
                         {editorPick.description && (

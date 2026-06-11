@@ -116,7 +116,7 @@ export default function UnlockScreen() {
       </Pressable>
 
       {/* Episode header */}
-      <View style={{ position: 'absolute', top: insets.top + 60, left: 22, right: 22, zIndex: 5 }}>
+      <View style={{ position: 'absolute', top: insets.top + 60, left: 20, right: 20, zIndex: 5 }}>
         <Eyebrow color={Colors.accent}>
           {[
             seriesTitle ? seriesTitle.toUpperCase() : null,
@@ -127,7 +127,7 @@ export default function UnlockScreen() {
             .join(' · ')}
         </Eyebrow>
         <Text style={{
-          fontFamily: Fonts.display, fontSize: 38, lineHeight: 36, color: '#fff',
+          fontFamily: Fonts.display, fontSize: 36, lineHeight: 44, color: '#fff',
           letterSpacing: -0.5, marginTop: 6,
         }}>
           <Text style={{ fontFamily: Fonts.displayItalic }}>{episodeTitle}</Text>
@@ -135,7 +135,7 @@ export default function UnlockScreen() {
       </View>
 
       {/* Teaser quote */}
-      <View style={{ position: 'absolute', top: insets.top + 200, left: 22, right: 22, zIndex: 5 }}>
+      <View style={{ position: 'absolute', top: insets.top + 200, left: 20, right: 20, zIndex: 5 }}>
         <Text style={{
           fontFamily: Fonts.displayItalic, fontSize: 18, lineHeight: 25, color: 'rgba(255,255,255,0.85)',
         }}>
@@ -145,7 +145,7 @@ export default function UnlockScreen() {
       </View>
 
       {/* Bottom unlock cluster */}
-      <View style={{ position: 'absolute', left: 22, right: 22, bottom: insets.bottom + 28, zIndex: 5, gap: 14 }}>
+      <View style={{ position: 'absolute', left: 20, right: 20, bottom: insets.bottom + 28, zIndex: 5, gap: 14 }}>
         {/* Cost row */}
         <View style={{
           padding: 16, borderRadius: 14,

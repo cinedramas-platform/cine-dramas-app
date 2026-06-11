@@ -8,6 +8,8 @@ import { Poster } from '@/components/ui/Poster';
 import { ChevronIcon, VipIcon, MoreIcon, CoinIcon } from '@/components/ui/Icon';
 import { useAuthStore } from '@/stores/authStore';
 import { useContinueWatching } from '@/hooks/useWatchProgress';
+import { useWallet } from '@/hooks/useWallet';
+import { APP_NAME } from '@/lib/brand';
 import type { WatchProgress } from '@/types/progress';
 
 const TASTE_TAGS = [
@@ -25,6 +27,7 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { user, signOut } = useAuthStore();
   const { data: continueWatching } = useContinueWatching();
+  const { data: wallet } = useWallet();
 
   const displayName = user?.email?.split('@')[0] ?? 'Member';
   const initial = displayName.charAt(0).toUpperCase();
@@ -41,13 +44,15 @@ export default function ProfileScreen() {
     <View style={{ flex: 1, backgroundColor: Colors.bg, paddingTop: insets.top }}>
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}>
         {/* Top bar */}
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 22, paddingTop: 18, paddingBottom: 6 }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 18, paddingBottom: 6 }}>
           <Eyebrow>MEMBER DOSSIER · NO. 03471</Eyebrow>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <Pressable onPress={() => router.push('/coins')}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingVertical: 4, paddingLeft: 5, paddingRight: 9, borderRadius: 100, backgroundColor: 'rgba(241,184,68,0.08)', borderWidth: 1, borderColor: 'rgba(241,184,68,0.22)' }}>
                 <CoinIcon size={13} />
-                <Text style={{ fontFamily: Fonts.sans600, fontSize: 11, color: Colors.coin }}>1,240</Text>
+                <Text style={{ fontFamily: Fonts.sans600, fontSize: 11, color: Colors.coin }}>
+                  {(wallet?.total ?? 0).toLocaleString()}
+                </Text>
               </View>
             </Pressable>
             <MoreIcon size={20} color="rgba(255,255,255,0.5)" />
@@ -55,7 +60,7 @@ export default function ProfileScreen() {
         </View>
 
         {/* Avatar + Name */}
-        <View style={{ paddingHorizontal: 22, paddingTop: 16, paddingBottom: 8 }}>
+        <View style={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 8 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
             <View style={{ width: 84, height: 84, borderRadius: 84, borderWidth: 1, borderColor: Colors.accent, position: 'relative', overflow: 'visible' }}>
               <LinearGradient
@@ -66,27 +71,31 @@ export default function ProfileScreen() {
               >
                 <Text style={{ fontFamily: Fonts.displayItalic, fontSize: 38, color: Colors.accent }}>{initial}</Text>
               </LinearGradient>
-              <View style={{ position: 'absolute', right: -6, bottom: -6 }}>
-                <VipIcon size={20} color={Colors.accent} />
-              </View>
+              {wallet?.is_vip && (
+                <View style={{ position: 'absolute', right: -6, bottom: -6 }}>
+                  <VipIcon size={20} color={Colors.accent} />
+                </View>
+              )}
             </View>
             <View style={{ gap: 2 }}>
-              <Text style={{ fontFamily: Fonts.display, fontSize: 30, lineHeight: 30, color: Colors.ink, letterSpacing: -0.5 }}>
+              <Text style={{ fontFamily: Fonts.display, fontSize: 30, lineHeight: 36, color: Colors.ink, letterSpacing: -0.5 }} numberOfLines={1}>
                 <Text style={{ fontFamily: Fonts.displayItalic }}>{displayName}</Text>
               </Text>
-              <Text style={{ fontFamily: Fonts.sans, fontSize: 11, color: Colors.ink3, letterSpacing: 0.8 }}>VIP MEMBER · CINEDRAMAS</Text>
+              <Text style={{ fontFamily: Fonts.sans, fontSize: 11, color: Colors.ink3, letterSpacing: 0.8 }}>
+                {wallet?.is_vip ? 'VIP MEMBER' : 'MEMBER'} · {APP_NAME.toUpperCase()}
+              </Text>
             </View>
           </View>
         </View>
 
         {/* Stat block */}
-        <View style={{ paddingHorizontal: 22, paddingTop: 18 }}>
+        <View style={{ paddingHorizontal: 20, paddingTop: 18 }}>
           <View style={{ flexDirection: 'row', paddingVertical: 14, borderTopWidth: 1, borderBottomWidth: 1, borderColor: Colors.hairline, justifyContent: 'space-between' }}>
             {[
-              { label: 'SERIES', value: '48' },
-              { label: 'EPISODES', value: '1,124' },
-              { label: 'HOURS', value: '217' },
-              { label: 'STREAK', value: '14d', gold: true },
+              { label: 'UNLOCKED', value: String(wallet?.unlocked_count ?? 0) },
+              { label: 'COINS', value: (wallet?.total ?? 0).toLocaleString() },
+              { label: 'STREAK', value: `${wallet?.streak ?? 0}d`, gold: true },
+              { label: 'TIER', value: wallet?.is_vip ? 'VIP' : 'Std' },
             ].map((s) => (
               <View key={s.label} style={{ gap: 2 }}>
                 <Eyebrow>{s.label}</Eyebrow>
@@ -97,7 +106,7 @@ export default function ProfileScreen() {
         </View>
 
         {/* Taste portrait */}
-        <View style={{ paddingHorizontal: 22, paddingTop: 18, paddingBottom: 4 }}>
+        <View style={{ paddingHorizontal: 20, paddingTop: 18, paddingBottom: 4 }}>
           <Eyebrow style={{ marginBottom: 12 }}>YOUR TASTE PORTRAIT</Eyebrow>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
             {TASTE_TAGS.map((t, i) => (
@@ -119,7 +128,7 @@ export default function ProfileScreen() {
 
         {/* The History */}
         {history.length > 0 && (
-          <View style={{ paddingHorizontal: 22, paddingTop: 24, paddingBottom: 4 }}>
+          <View style={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: 4 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
               <Text style={{ fontFamily: Fonts.display, fontSize: 20, color: Colors.ink }}>The History</Text>
               <Eyebrow>See all</Eyebrow>
@@ -160,7 +169,7 @@ export default function ProfileScreen() {
         )}
 
         {/* Settings */}
-        <View style={{ paddingHorizontal: 22, paddingTop: 24, paddingBottom: 22 }}>
+        <View style={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: 22 }}>
           <Eyebrow style={{ marginBottom: 12 }}>SETTINGS</Eyebrow>
           <View style={{ borderTopWidth: 1, borderTopColor: Colors.hairline }}>
             {SETTINGS.map((s, i) => (

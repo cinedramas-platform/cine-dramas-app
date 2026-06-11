@@ -15,6 +15,7 @@ import { Colors, Fonts, Radius } from '@/constants/theme';
 import { Eyebrow } from '@/components/ui/Eyebrow';
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/stores/authStore';
+import { APP_NAME, TAGLINE } from '@/lib/brand';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -39,7 +40,7 @@ export default function LoginScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView
-        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingTop: insets.top }}
+        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 20, paddingTop: insets.top }}
         keyboardShouldPersistTaps="handled"
       >
         {/* Top spacer + eyebrow */}
@@ -168,7 +169,7 @@ export default function LoginScreen() {
         {/* Bottom branding */}
         <View style={{ flex: 1, justifyContent: 'flex-end', paddingBottom: insets.bottom + 20, paddingTop: 40 }}>
           <Text style={{ fontFamily: Fonts.displayItalic, fontSize: 13, color: Colors.ink4, textAlign: 'center' }}>
-            CineDramas — the way short stories should be
+            {APP_NAME} — {TAGLINE}
           </Text>
         </View>
       </ScrollView>

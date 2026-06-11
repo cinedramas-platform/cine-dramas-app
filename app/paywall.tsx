@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Alert, View, Text, Pressable, ScrollView, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -12,12 +13,27 @@ import { useGrantCoins } from '@/hooks/useWallet';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 
+const OFFER_SECONDS = 4 * 3600 + 12 * 60 + 38;
+
+function formatCountdown(total: number): string {
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  return [h, m, s].map((n) => String(n).padStart(2, '0')).join(':');
+}
+
 export default function PaywallScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { data: featured } = useFeatured();
   const heroSeries = featured?.featured?.[0];
   const grantCoins = useGrantCoins();
+  const [offerLeft, setOfferLeft] = useState(OFFER_SECONDS);
+
+  useEffect(() => {
+    const t = setInterval(() => setOfferLeft((s) => (s > 0 ? s - 1 : 0)), 1000);
+    return () => clearInterval(t);
+  }, []);
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: Colors.bg }} bounces={false}>
@@ -56,19 +72,19 @@ export default function PaywallScreen() {
           </Pressable>
 
           {/* VIP crown */}
-          <View style={{ position: 'absolute', top: insets.top + 14, left: 22, zIndex: 4, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <View style={{ position: 'absolute', top: insets.top + 14, left: 20, zIndex: 4, flexDirection: 'row', alignItems: 'center', gap: 6 }}>
             <VipIcon size={18} color={Colors.accent} />
             <Text style={{ fontFamily: Fonts.sans700, fontSize: 11, color: Colors.accent, letterSpacing: 2.4 }}>VIP MEMBERSHIP</Text>
           </View>
 
           {/* Headline */}
-          <View style={{ position: 'absolute', left: 22, right: 22, bottom: 20, zIndex: 4, gap: 8 }}>
-            <Text style={{ fontFamily: Fonts.display, fontSize: 40, lineHeight: 38, color: '#fff', letterSpacing: -0.5 }}>
+          <View style={{ position: 'absolute', left: 20, right: 20, bottom: 20, zIndex: 4, gap: 8 }}>
+            <Text style={{ fontFamily: Fonts.display, fontSize: 38, lineHeight: 46, color: '#fff', letterSpacing: -0.5 }}>
               The whole catalog,{'\n'}
               <Text style={{ fontFamily: Fonts.displayItalic, color: Colors.accent }}>without the wait.</Text>
             </Text>
             <Text style={{ fontFamily: Fonts.sans, fontSize: 13, color: 'rgba(255,255,255,0.78)', maxWidth: 320, lineHeight: 19 }}>
-              318 series · 22,400 episodes · 0 ads. Watch like a critic.
+              Every series. Every episode. Zero ads. Watch like a critic.
             </Text>
           </View>
         </CineStill>
@@ -81,7 +97,7 @@ export default function PaywallScreen() {
           justifyContent: 'space-between',
           alignItems: 'center',
           paddingVertical: 10,
-          paddingHorizontal: 22,
+          paddingHorizontal: 20,
           borderTopWidth: 1,
           borderBottomWidth: 1,
           borderColor: Colors.hairline,
@@ -95,7 +111,7 @@ export default function PaywallScreen() {
               SUMMER OFFER · 60% OFF
             </Text>
             <Text style={{ fontFamily: Fonts.sans, fontSize: 10, color: Colors.ink3 }}>
-              Ends in <Text style={{ fontFamily: Fonts.mono, color: Colors.ink2 }}>04:12:38</Text>
+              Ends in <Text style={{ fontFamily: Fonts.mono, color: Colors.ink2 }}>{formatCountdown(offerLeft)}</Text>
             </Text>
           </View>
         </View>
@@ -106,7 +122,7 @@ export default function PaywallScreen() {
       </View>
 
       {/* Comparison cards */}
-      <View style={{ paddingHorizontal: 18, paddingTop: 18, paddingBottom: 12 }}>
+      <View style={{ paddingHorizontal: 20, paddingTop: 18, paddingBottom: 12 }}>
         <View style={{ flexDirection: 'row', gap: 10 }}>
           {/* VIP card */}
           <View
@@ -175,7 +191,7 @@ export default function PaywallScreen() {
       </View>
 
       {/* Social proof */}
-      <View style={{ paddingHorizontal: 22, paddingTop: 8, paddingBottom: 14 }}>
+      <View style={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 14 }}>
         <View
           style={{
             padding: 12,
@@ -203,7 +219,7 @@ export default function PaywallScreen() {
       </View>
 
       {/* CTA */}
-      <View style={{ paddingHorizontal: 22, paddingTop: 4, paddingBottom: 20, gap: 8 }}>
+      <View style={{ paddingHorizontal: 20, paddingTop: 4, paddingBottom: 20, gap: 8 }}>
         {/* TODO(revenuecat): wire VIP subscription to RevenueCat IAP (deferred post-MVP). */}
         <Button
           label="Start VIP — $1.99 first week"

@@ -78,7 +78,7 @@ export function Poster({
             style={{
               fontFamily: Fonts.display,
               color: '#fff',
-              lineHeight: Math.max(13, width * 0.13) * 1.05,
+              lineHeight: Math.ceil(Math.max(13, width * 0.13) * 1.15),
               fontSize: Math.max(13, width * 0.13),
             }}
             numberOfLines={2}

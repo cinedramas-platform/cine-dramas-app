@@ -23,8 +23,9 @@ export const Colors = {
 } as const;
 
 export const Fonts = {
-  display: 'InstrumentSerif_400Regular',
-  displayItalic: 'InstrumentSerif_400Regular_Italic',
+  display: 'PlayfairDisplay_500Medium',
+  displayItalic: 'PlayfairDisplay_500Medium_Italic',
+  display600: 'PlayfairDisplay_600SemiBold',
   sans300: 'Geist_300Light',
   sans: 'Geist_400Regular',
   sans500: 'Geist_500Medium',
@@ -33,6 +34,22 @@ export const Fonts = {
   mono: 'GeistMono_400Regular',
   mono500: 'GeistMono_500Medium',
 } as const;
+
+/**
+ * Display (serif) type style with a safe line-height. Android clips serif
+ * ascenders/descenders whenever lineHeight < fontSize — never hand-tune below
+ * 1.12x for the display face.
+ */
+export function displayType(fontSize: number, italic = false) {
+  return {
+    fontFamily: italic ? Fonts.displayItalic : Fonts.display,
+    fontSize,
+    lineHeight: Math.ceil(fontSize * 1.12),
+  } as const;
+}
+
+/** Standard horizontal screen padding — keep every screen aligned to this. */
+export const ScreenPad = 20;
 
 export const Spacing = {
   xs: 4,

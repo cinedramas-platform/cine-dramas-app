@@ -10,10 +10,11 @@ import { Button } from '@/components/ui/Button';
 import { CheckIcon, ChevronIcon, NotificationIcon } from '@/components/ui/Icon';
 import { CineStill } from '@/components/ui/CineStill';
 import { markOnboarded } from '@/hooks/useProtectedRoute';
+import { APP_NAME, TAGLINE, wordmarkLines } from '@/lib/brand';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const MOOD_GAP = 10;
-const MOOD_W = (SCREEN_W - 44 - MOOD_GAP) / 2;
+const MOOD_W = (SCREEN_W - 40 - MOOD_GAP) / 2;
 const MOOD_H = MOOD_W * (5 / 7);
 
 const MOODS = [
@@ -70,19 +71,28 @@ export default function OnboardingScreen() {
             <Eyebrow color={Colors.accent} style={{ letterSpacing: 4 }}>VOL. 12 — JUN MMXXVI</Eyebrow>
           </View>
 
-          {/* Center wordmark */}
+          {/* Center wordmark — derived from the brand manifest */}
           <View style={{ position: 'absolute', top: insets.top + 120, left: 0, right: 0, alignItems: 'center' }}>
-            <Text style={{ fontFamily: Fonts.display, fontSize: 80, lineHeight: 72, color: '#fff', textAlign: 'center', letterSpacing: -2 }}>
-              Cine
-            </Text>
-            <Text style={{ fontFamily: Fonts.displayItalic, fontSize: 80, lineHeight: 72, color: Colors.accent, textAlign: 'center', letterSpacing: -2 }}>
-              Dramas
-            </Text>
+            {wordmarkLines().map((line, i) => (
+              <Text
+                key={line}
+                style={{
+                  fontFamily: i === 0 ? Fonts.display : Fonts.displayItalic,
+                  fontSize: 72,
+                  lineHeight: 82,
+                  color: i === 0 ? '#fff' : Colors.accent,
+                  textAlign: 'center',
+                  letterSpacing: -1.5,
+                }}
+              >
+                {line}
+              </Text>
+            ))}
             <Text style={{
-              fontFamily: Fonts.displayItalic, fontSize: 13, color: 'rgba(255,255,255,0.7)',
+              fontFamily: Fonts.displayItalic, fontSize: 13, lineHeight: 18, color: 'rgba(255,255,255,0.7)',
               letterSpacing: 1, marginTop: 14, textAlign: 'center',
             }}>
-              — the way short stories should be —
+              — {TAGLINE} —
             </Text>
           </View>
 
@@ -105,14 +115,14 @@ export default function OnboardingScreen() {
     return (
       <View style={{ flex: 1, backgroundColor: Colors.bg, paddingTop: insets.top }}>
         {/* Top bar */}
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 22, paddingTop: 18, paddingBottom: 6 }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 18, paddingBottom: 6 }}>
           <Eyebrow>CHAPTER 01 — TASTE</Eyebrow>
           <Eyebrow>02 / 03</Eyebrow>
         </View>
 
         {/* Heading */}
-        <View style={{ paddingHorizontal: 22, paddingTop: 14, paddingBottom: 6 }}>
-          <Text style={{ fontFamily: Fonts.display, fontSize: 34, lineHeight: 34, color: Colors.ink, letterSpacing: -0.5 }}>
+        <View style={{ paddingHorizontal: 20, paddingTop: 14, paddingBottom: 6 }}>
+          <Text style={{ fontFamily: Fonts.display, fontSize: 34, lineHeight: 42, color: Colors.ink, letterSpacing: -0.5 }}>
             Tell us how you{'\n'}
             <Text style={{ fontFamily: Fonts.displayItalic }}>like to be undone.</Text>
           </Text>
@@ -122,7 +132,7 @@ export default function OnboardingScreen() {
         </View>
 
         {/* Mood grid */}
-        <View style={{ paddingHorizontal: 22, paddingTop: 16 }}>
+        <View style={{ paddingHorizontal: 20, paddingTop: 16 }}>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: MOOD_GAP }}>
             {MOODS.map((m) => {
               const selected = selectedMoods.has(m.id);
@@ -167,7 +177,7 @@ export default function OnboardingScreen() {
         <View style={{ flex: 1 }} />
 
         {/* Bottom */}
-        <View style={{ paddingHorizontal: 22, paddingBottom: insets.bottom + 16, gap: 12 }}>
+        <View style={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 16, gap: 12 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <Text style={{ fontFamily: Fonts.sans, fontSize: 11, color: Colors.ink3 }}>
               <Text style={{ color: Colors.accent, fontFamily: Fonts.sans600 }}>{selectedMoods.size} of 3</Text> selected
@@ -193,13 +203,13 @@ export default function OnboardingScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: Colors.bg, paddingTop: insets.top }}>
       {/* Top bar */}
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 22, paddingTop: 18, paddingBottom: 6 }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 18, paddingBottom: 6 }}>
         <Eyebrow>CHAPTER 03 — NOTIFICATIONS</Eyebrow>
         <Eyebrow>03 / 03</Eyebrow>
       </View>
 
       {/* Content */}
-      <View style={{ paddingHorizontal: 22, paddingTop: 30 }}>
+      <View style={{ paddingHorizontal: 20, paddingTop: 30 }}>
         {/* Bell icon */}
         <View style={{
           width: 80, height: 80, borderRadius: 80, marginBottom: 24,
@@ -209,7 +219,7 @@ export default function OnboardingScreen() {
           <NotificationIcon size={38} color={Colors.accent} />
         </View>
 
-        <Text style={{ fontFamily: Fonts.display, fontSize: 32, lineHeight: 32, color: Colors.ink, letterSpacing: -0.5 }}>
+        <Text style={{ fontFamily: Fonts.display, fontSize: 32, lineHeight: 40, color: Colors.ink, letterSpacing: -0.5 }}>
           New episode?{'\n'}
           <Text style={{ fontFamily: Fonts.displayItalic }}>We'll tell you.</Text>
         </Text>
@@ -219,7 +229,7 @@ export default function OnboardingScreen() {
       </View>
 
       {/* Notification preview */}
-      <View style={{ paddingHorizontal: 22, paddingTop: 20 }}>
+      <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
         <View style={{
           padding: 14, borderRadius: 14,
           backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.hairline,
@@ -234,7 +244,7 @@ export default function OnboardingScreen() {
           />
           <View style={{ flex: 1, gap: 2 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              <Text style={{ fontFamily: Fonts.sans600, fontSize: 11, color: Colors.ink }}>CineDramas</Text>
+              <Text style={{ fontFamily: Fonts.sans600, fontSize: 11, color: Colors.ink }}>{APP_NAME}</Text>
               <Text style={{ fontFamily: Fonts.mono, fontSize: 10, color: Colors.ink3 }}>now</Text>
             </View>
             <Text style={{ fontFamily: Fonts.sans, fontSize: 12, color: Colors.ink2, lineHeight: 17 }}>
@@ -247,7 +257,7 @@ export default function OnboardingScreen() {
       <View style={{ flex: 1 }} />
 
       {/* Buttons */}
-      <View style={{ paddingHorizontal: 22, paddingBottom: insets.bottom + 20, gap: 10 }}>
+      <View style={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 20, gap: 10 }}>
         <Button label="Turn on notifications" variant="accent" block height={52} onPress={advance} />
         <Button label="Not now" variant="ghost" block height={48} onPress={advance} />
       </View>

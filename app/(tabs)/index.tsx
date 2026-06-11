@@ -13,6 +13,7 @@ import { SkeletonRail } from '@/components/ui/Skeleton';
 import { useFeatured } from '@/hooks/useCatalog';
 import { useContinueWatching } from '@/hooks/useWatchProgress';
 import { useWallet } from '@/hooks/useWallet';
+import { APP_NAME } from '@/lib/brand';
 import type { Series } from '@/types/catalog';
 import type { WatchProgress } from '@/types/progress';
 
@@ -61,7 +62,7 @@ export default function HomeScreen() {
             VOL. 12 — JUN
           </Eyebrow>
           <Text style={{ fontFamily: Fonts.display, fontSize: 26, color: Colors.ink, letterSpacing: -0.5 }}>
-            CineDramas
+            {APP_NAME}
           </Text>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
@@ -105,11 +106,11 @@ export default function HomeScreen() {
 
       {/* Hero */}
       {hero && (
-        <Pressable onPress={() => goToSeries(hero.id)} style={{ paddingHorizontal: 16, paddingBottom: 22 }}>
+        <Pressable onPress={() => goToSeries(hero.id)} style={{ paddingHorizontal: 20, paddingBottom: 22 }}>
           <CineStill
             imageUrl={hero.poster_url ?? undefined}
             playbackId={hero.thumbnail_playback_id ?? undefined}
-            width={SCREEN_W - 32}
+            width={SCREEN_W - 40}
             height={460}
             borderRadius={Radius.xl}
             noFade
@@ -129,7 +130,7 @@ export default function HomeScreen() {
 
             <View style={{ position: 'absolute', left: 22, right: 22, bottom: 22, zIndex: 4, gap: 10 }}>
               <Eyebrow color={Colors.accent}>The June Cover</Eyebrow>
-              <Text style={{ fontFamily: Fonts.display, fontSize: 48, lineHeight: 44, color: '#fff', letterSpacing: -0.6 }}>
+              <Text style={{ fontFamily: Fonts.display, fontSize: 42, lineHeight: 50, color: '#fff', letterSpacing: -0.6 }} numberOfLines={2}>
                 {hero.title}
               </Text>
               {hero.description && (
@@ -197,7 +198,7 @@ export default function HomeScreen() {
 
       {/* The Edit — two-up editorial */}
       {editPicks.length >= 2 && (
-        <View style={{ paddingHorizontal: 16, paddingBottom: 24 }}>
+        <View style={{ paddingHorizontal: 20, paddingBottom: 24 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
             <Text style={{ fontFamily: Fonts.display, fontSize: 22, color: Colors.ink }}>The Edit</Text>
             <Eyebrow>Curated</Eyebrow>
@@ -210,7 +211,7 @@ export default function HomeScreen() {
                   imageUrl={s.poster_url ?? undefined}
                   playbackId={s.thumbnail_playback_id ?? undefined}
                   genre={s.category}
-                  width={(SCREEN_W - 42) / 2}
+                  width={(SCREEN_W - 50) / 2}
                   height={240}
                   borderRadius={10}
                 />

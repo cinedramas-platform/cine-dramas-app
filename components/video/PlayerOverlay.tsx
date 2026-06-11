@@ -412,7 +412,7 @@ const styles = StyleSheet.create({
   bottomTitle: {
     fontFamily: Fonts.display,
     fontSize: 22,
-    lineHeight: 24,
+    lineHeight: 26,
     color: '#fff',
     letterSpacing: -0.1,
   },

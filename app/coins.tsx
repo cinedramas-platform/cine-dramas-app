@@ -49,7 +49,7 @@ export default function CoinsScreen() {
     <View style={{ flex: 1, backgroundColor: Colors.bg, paddingTop: insets.top }}>
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}>
         {/* Header */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 22, paddingTop: 18, paddingBottom: 8 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 18, paddingBottom: 8 }}>
           <Pressable
             onPress={() => router.back()}
             style={{
@@ -65,7 +65,7 @@ export default function CoinsScreen() {
         </View>
 
         {/* Editorial balance */}
-        <View style={{ paddingHorizontal: 22, paddingTop: 40, paddingBottom: 26, alignItems: 'center', position: 'relative' }}>
+        <View style={{ paddingHorizontal: 20, paddingTop: 40, paddingBottom: 26, alignItems: 'center', position: 'relative' }}>
           {/* Radial glow */}
           <View style={{
             position: 'absolute', top: 30, alignSelf: 'center', width: 280, height: 280,
@@ -74,8 +74,8 @@ export default function CoinsScreen() {
 
           <Eyebrow color={Colors.accent}>YOUR BALANCE</Eyebrow>
           <Text style={{
-            fontFamily: Fonts.display, fontSize: 110, lineHeight: 100, color: Colors.accent,
-            letterSpacing: -4, marginTop: 10,
+            fontFamily: Fonts.display, fontSize: 96, lineHeight: 110, color: Colors.accent,
+            letterSpacing: -3, marginTop: 10,
           }}>
             {(wallet?.total ?? 0).toLocaleString()}
           </Text>
@@ -109,7 +109,7 @@ export default function CoinsScreen() {
         </View>
 
         {/* CTAs */}
-        <View style={{ flexDirection: 'row', paddingHorizontal: 22, paddingBottom: 20, gap: 10 }}>
+        <View style={{ flexDirection: 'row', paddingHorizontal: 20, paddingBottom: 20, gap: 10 }}>
           <Button
             label={grantCoins.isPending ? 'Adding…' : 'Buy 500'}
             variant="accent"
@@ -135,7 +135,7 @@ export default function CoinsScreen() {
         </View>
 
         {/* The Ledger */}
-        <View style={{ paddingHorizontal: 22, paddingTop: 10 }}>
+        <View style={{ paddingHorizontal: 20, paddingTop: 10 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14 }}>
             <Text style={{ fontFamily: Fonts.display, fontSize: 22, color: Colors.ink }}>The Ledger</Text>
             <Eyebrow>Last 30 days</Eyebrow>

@@ -12,11 +12,12 @@ import { ChevronIcon, ShareIcon, PlayIcon, LockIcon, CoinIcon, SparkleIcon } fro
 import { Skeleton, SkeletonEpisodeRow } from '@/components/ui/Skeleton';
 import { useSeriesDetail } from '@/hooks/useCatalog';
 import { useWallet } from '@/hooks/useWallet';
+import { useContinueWatching } from '@/hooks/useWatchProgress';
 import type { Episode } from '@/types/catalog';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const GRID_GAP = 8;
-const GRID_PAD = 22;
+const GRID_PAD = 20;
 const GRID_COLS = 4;
 const GRID_ITEM_W = (SCREEN_W - GRID_PAD * 2 - GRID_GAP * (GRID_COLS - 1)) / GRID_COLS;
 
@@ -26,8 +27,8 @@ export default function SeriesDetailScreen() {
   const insets = useSafeAreaInsets();
   const { data: series, isLoading, error } = useSeriesDetail(id);
   const { data: wallet } = useWallet();
+  const { data: continueWatching } = useContinueWatching();
   const [selectedSeasonIndex, setSelectedSeasonIndex] = useState(0);
-  const [activeTab, setActiveTab] = useState(0);
 
   const unlockedIds = wallet?.unlocked_episode_ids ?? [];
   const isVip = wallet?.is_vip ?? false;
@@ -87,6 +88,21 @@ export default function SeriesDetailScreen() {
   const totalEpisodes = seasons.reduce((sum, s) => sum + (s.episodes?.length ?? 0), 0);
   const firstPlayableEp = episodes.find((e) => e.mux_playback_id && e.mux_asset_status === 'ready');
   const nextLockedEp = episodes.find((e) => isLocked(e));
+
+  // Resume point: the viewer's most recent in-progress episode in this series.
+  const allEpisodes = seasons.flatMap((s) => s.episodes ?? []);
+  const resumeProgress = (continueWatching ?? []).find((p) =>
+    allEpisodes.some((e) => e.id === p.episode_id),
+  );
+  const resumeEp = resumeProgress
+    ? allEpisodes.find((e) => e.id === resumeProgress.episode_id)
+    : undefined;
+  const ctaEp = resumeEp ?? firstPlayableEp;
+  const ctaLabel = resumeEp
+    ? `Continue — Episode ${resumeEp.order}`
+    : firstPlayableEp
+      ? `Start — Episode ${firstPlayableEp.order}`
+      : 'No episodes available';
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.bg, paddingTop: insets.top }}>
@@ -148,11 +164,11 @@ export default function SeriesDetailScreen() {
             locations={[0.5, 1]}
             style={{ position: 'absolute', width: '100%', height: '100%' }}
           />
-          <View style={{ position: 'absolute', left: 22, right: 22, bottom: 22, gap: 8 }}>
+          <View style={{ position: 'absolute', left: 20, right: 20, bottom: 22, gap: 8 }}>
             <Eyebrow color={Colors.accent}>
               {series.tags?.length ? series.tags.join(' · ').toUpperCase() : series.category?.toUpperCase()}
             </Eyebrow>
-            <Text style={{ fontFamily: Fonts.display, fontSize: 56, lineHeight: 50, color: '#fff', letterSpacing: -0.6 }}>
+            <Text style={{ fontFamily: Fonts.display, fontSize: 46, lineHeight: 54, color: '#fff', letterSpacing: -0.6 }} numberOfLines={3}>
               {series.title}
             </Text>
           </View>
@@ -164,7 +180,7 @@ export default function SeriesDetailScreen() {
         style={{
           flexDirection: 'row',
           justifyContent: 'space-between',
-          paddingHorizontal: 22,
+          paddingHorizontal: 20,
           paddingVertical: 14,
           borderBottomWidth: 1,
           borderBottomColor: Colors.hairline,
@@ -186,7 +202,7 @@ export default function SeriesDetailScreen() {
 
       {/* Logline */}
       {series.description && (
-        <View style={{ paddingHorizontal: 22, paddingTop: 16, paddingBottom: 8 }}>
+        <View style={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 8 }}>
           <Text style={{ fontFamily: Fonts.displayItalic, fontSize: 18, color: Colors.ink, lineHeight: 24 }}>
             &ldquo;{series.description}&rdquo;
           </Text>
@@ -194,38 +210,29 @@ export default function SeriesDetailScreen() {
       )}
 
       {/* CTA */}
-      <View style={{ paddingHorizontal: 22, paddingTop: 14, paddingBottom: 18 }}>
+      <View style={{ paddingHorizontal: 20, paddingTop: 14, paddingBottom: 18 }}>
         <Button
-          label={firstPlayableEp ? `Continue — Episode ${firstPlayableEp.order}` : 'No episodes available'}
+          label={ctaLabel}
           variant="accent"
           block
           height={52}
           icon={<PlayIcon size={15} color={Colors.black} />}
-          onPress={() => firstPlayableEp && handlePlayEpisode(firstPlayableEp.id)}
+          onPress={() => ctaEp && handlePlayEpisode(ctaEp.id)}
         />
       </View>
 
-      {/* Tabs */}
-      <View style={{ flexDirection: 'row', paddingHorizontal: 22, gap: 14, borderBottomWidth: 1, borderBottomColor: Colors.hairline }}>
-        {['Episodes', 'Cast', 'Reviews'].map((t, i) => (
-          <Pressable key={t} onPress={() => setActiveTab(i)} style={{ paddingBottom: 10 }}>
-            <Text
-              style={{
-                fontFamily: i === activeTab ? Fonts.sans600 : Fonts.sans500,
-                fontSize: 12,
-                color: i === activeTab ? Colors.accent : Colors.ink3,
-                letterSpacing: 0.4,
-              }}
-            >
-              {t}
-            </Text>
-          </Pressable>
-        ))}
+      {/* Section label */}
+      <View style={{ flexDirection: 'row', paddingHorizontal: 20, gap: 14, borderBottomWidth: 1, borderBottomColor: Colors.hairline }}>
+        <View style={{ paddingBottom: 10 }}>
+          <Text style={{ fontFamily: Fonts.sans600, fontSize: 12, color: Colors.accent, letterSpacing: 0.4 }}>
+            Episodes
+          </Text>
+        </View>
       </View>
 
       {/* Slide-to-unlock prompt */}
       {nextLockedEp && (
-        <Pressable onPress={() => handleUnlockEpisode(nextLockedEp)} style={{ paddingHorizontal: 22, paddingTop: 14, paddingBottom: 8 }}>
+        <Pressable onPress={() => handleUnlockEpisode(nextLockedEp)} style={{ paddingHorizontal: 20, paddingTop: 14, paddingBottom: 8 }}>
           <View
             style={{
               padding: 12,
@@ -310,7 +317,7 @@ export default function SeriesDetailScreen() {
       )}
 
       {/* Season selector + Episode grid */}
-      <View style={{ paddingHorizontal: 22, paddingTop: 10, paddingBottom: 14 }}>
+      <View style={{ paddingHorizontal: 20, paddingTop: 10, paddingBottom: 14 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
           <Eyebrow>
             Season {String(activeSeason?.number ?? 1).padStart(2, '0')} · {episodes.length} of {totalEpisodes} shown
