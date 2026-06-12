@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { View, Text, Pressable, ScrollView, Dimensions } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,14 +8,7 @@ import { Eyebrow } from '@/components/ui/Eyebrow';
 import { Poster } from '@/components/ui/Poster';
 import { CineStill } from '@/components/ui/CineStill';
 import { Button } from '@/components/ui/Button';
-import {
-  ChevronIcon,
-  ShareIcon,
-  PlayIcon,
-  LockIcon,
-  CoinIcon,
-  SparkleIcon,
-} from '@/components/ui/Icon';
+import { ChevronIcon, ShareIcon, PlayIcon, LockIcon, CoinIcon } from '@/components/ui/Icon';
 import { Skeleton, SkeletonEpisodeRow } from '@/components/ui/Skeleton';
 import { useSeriesDetail } from '@/hooks/useCatalog';
 import { useWallet } from '@/hooks/useWallet';
@@ -62,10 +55,33 @@ export default function SeriesDetailScreen() {
           episodeTitle: ep.title ?? 'Untitled',
           coinCost: String(ep.coin_cost),
           playbackId: series?.thumbnail_playback_id ?? '',
+          origin: 'series',
         },
       }),
     [router, series],
   );
+
+  // CTA target. Resume = the viewer's most recent in-progress episode in this
+  // series — but only if it's still playable AND not (re-)locked; otherwise the
+  // label would lie about what actually plays. Fallback is the first playable
+  // episode of the whole series (not the selected season), so the CTA doesn't
+  // change when the season selector is cycled.
+  const { ctaEp, ctaLabel } = useMemo(() => {
+    const all = (series?.seasons ?? []).flatMap((s) => s.episodes ?? []);
+    const playable = (e: Episode) => Boolean(e.mux_playback_id && e.mux_asset_status === 'ready');
+    const byId = new Map(all.map((e) => [e.id, e]));
+    const resume = (continueWatching ?? [])
+      .map((p) => byId.get(p.episode_id))
+      .find((e) => e && playable(e) && !isLocked(e));
+    const first = all.find(playable);
+    const target = resume ?? first;
+    const label = resume
+      ? `Continue — Episode ${resume.order}`
+      : first
+        ? `Start — Episode ${first.order}`
+        : 'No episodes available';
+    return { ctaEp: target, ctaLabel: label };
+  }, [series, continueWatching, isLocked]);
 
   if (isLoading) {
     return (
@@ -104,23 +120,7 @@ export default function SeriesDetailScreen() {
   const activeSeason = seasons[selectedSeasonIndex];
   const episodes = activeSeason?.episodes ?? [];
   const totalEpisodes = seasons.reduce((sum, s) => sum + (s.episodes?.length ?? 0), 0);
-  const firstPlayableEp = episodes.find((e) => e.mux_playback_id && e.mux_asset_status === 'ready');
   const nextLockedEp = episodes.find((e) => isLocked(e));
-
-  // Resume point: the viewer's most recent in-progress episode in this series.
-  const allEpisodes = seasons.flatMap((s) => s.episodes ?? []);
-  const resumeProgress = (continueWatching ?? []).find((p) =>
-    allEpisodes.some((e) => e.id === p.episode_id),
-  );
-  const resumeEp = resumeProgress
-    ? allEpisodes.find((e) => e.id === resumeProgress.episode_id)
-    : undefined;
-  const ctaEp = resumeEp ?? firstPlayableEp;
-  const ctaLabel = resumeEp
-    ? `Continue — Episode ${resumeEp.order}`
-    : firstPlayableEp
-      ? `Start — Episode ${firstPlayableEp.order}`
-      : 'No episodes available';
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.bg, paddingTop: insets.top }}>

@@ -74,27 +74,30 @@ serve('webhooks-mux', async (req, log) => {
     return errorResponse('Missing asset ID in event data', 400);
   }
 
-  const { data: episode, error: episodeError } = await supabase
+  // Multiple episodes can legitimately share a Mux asset (the demo catalog
+  // reuses assets across series), so this must not assume a single row.
+  const { data: episodes, error: episodeError } = await supabase
     .from('episodes')
     .select('id, tenant_id')
-    .eq('mux_asset_id', assetId)
-    .maybeSingle();
+    .eq('mux_asset_id', assetId);
 
   if (episodeError) {
     return errorResponse('Internal error', 500);
   }
 
-  const tenantId = episode?.tenant_id ?? 'unknown';
+  const tenantId = episodes?.[0]?.tenant_id ?? 'unknown';
   let errorMessage: string | null = null;
 
-  if (!episode) {
+  if (!episodes || episodes.length === 0) {
     errorMessage = `No episode found for mux_asset_id: ${assetId}`;
   } else {
     try {
-      if (eventType === 'video.asset.ready') {
-        await processAssetReady(supabase, episode.id, event.data);
-      } else if (eventType === 'video.asset.errored') {
-        await processAssetErrored(supabase, episode.id);
+      for (const episode of episodes) {
+        if (eventType === 'video.asset.ready') {
+          await processAssetReady(supabase, episode.id, event.data);
+        } else if (eventType === 'video.asset.errored') {
+          await processAssetErrored(supabase, episode.id);
+        }
       }
     } catch (err) {
       errorMessage = err instanceof Error ? err.message : 'Unknown processing error';

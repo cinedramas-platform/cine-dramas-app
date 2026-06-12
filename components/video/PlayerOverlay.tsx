@@ -44,6 +44,8 @@ export type PlayerOverlayProps = {
   onLike?: () => void;
   onShowInfo?: () => void;
   onSpeedChange?: (speed: number) => void;
+  /** Actual playback rate owned by the parent — keeps the speed menu in sync across overlay remounts. */
+  rate?: number;
   onBack?: () => void;
   onUnlockNext?: () => void;
 };
@@ -61,6 +63,7 @@ export function PlayerOverlay({
   onLike,
   onShowInfo,
   onSpeedChange,
+  rate = 1,
   onBack,
   onUnlockNext,
 }: PlayerOverlayProps) {
@@ -73,7 +76,11 @@ export function PlayerOverlay({
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [seekOffset, setSeekOffset] = useState(0);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
-  const [currentSpeed, setCurrentSpeed] = useState<PlaybackSpeed>(1);
+  // Derived from the parent-owned rate, not local state — the overlay unmounts
+  // whenever the screen loses focus and local state would reset to 1x.
+  const currentSpeed = (SPEED_OPTIONS as readonly number[]).includes(rate)
+    ? (rate as PlaybackSpeed)
+    : 1;
   const seekStartTimeRef = useRef(0);
 
   const scheduleHide = useCallback(() => {
@@ -160,7 +167,6 @@ export function PlayerOverlay({
 
   const handleSpeedSelect = useCallback(
     (speed: PlaybackSpeed) => {
-      setCurrentSpeed(speed);
       setShowSpeedMenu(false);
       onSpeedChange?.(speed);
       scheduleHide();

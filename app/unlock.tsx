@@ -1,5 +1,5 @@
 import { useRef, useCallback } from 'react';
-import { View, Text, Pressable, Animated, Dimensions } from 'react-native';
+import { Alert, View, Text, Pressable, Animated, Dimensions } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from '@/components/ui/LinearGradient';
@@ -23,6 +23,7 @@ export default function UnlockScreen() {
     episodeTitle = 'Locked episode',
     coinCost,
     playbackId,
+    origin,
   } = useLocalSearchParams<{
     episodeId?: string;
     seriesId?: string;
@@ -31,13 +32,16 @@ export default function UnlockScreen() {
     episodeTitle?: string;
     coinCost?: string;
     playbackId?: string;
+    origin?: string;
   }>();
 
   const { data: wallet } = useWallet();
   const unlock = useUnlockEpisode();
   const grantCoins = useGrantCoins();
 
-  const cost = Number(coinCost) || 0;
+  // null = price unknown (deep links without catalog context) — never claim 0
+  // for an episode the server will charge for.
+  const cost = coinCost != null && coinCost !== '' ? Number(coinCost) || 0 : null;
   const balance = wallet?.total ?? 0;
 
   const fillAnim = useRef(new Animated.Value(0)).current;
@@ -58,15 +62,30 @@ export default function UnlockScreen() {
       unlock.mutate(
         { episodeId, seriesId },
         {
-          onSuccess: () =>
-            router.replace({
-              pathname: `/player/${episodeId}`,
-              params: { seriesId: seriesId ?? '' },
-            }),
+          onSuccess: () => {
+            // Coming from a player screen: go back to it instead of stacking a
+            // second player — its playback-token query refetches and plays in
+            // place (useUnlockEpisode invalidates it).
+            if (origin === 'player') {
+              router.back();
+            } else {
+              router.replace({
+                pathname: `/player/${episodeId}`,
+                params: { seriesId: seriesId ?? '' },
+              });
+            }
+          },
           onError: (err) => {
             // 402 insufficient funds -> paywall (VIP + coin pack offers).
             if (err.message === 'insufficient_funds') {
               router.replace('/paywall');
+            } else {
+              Alert.alert(
+                'Unlock failed',
+                err.message === 'Too many requests'
+                  ? 'Slow down a moment, then try again.'
+                  : 'Something went wrong — check your connection and try again.',
+              );
             }
             fillAnim.setValue(0);
           },
@@ -196,7 +215,7 @@ export default function UnlockScreen() {
             <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
               <CoinIcon size={18} />
               <Text style={{ fontFamily: Fonts.display, fontSize: 26, color: Colors.ink }}>
-                {cost}
+                {cost ?? '—'}
               </Text>
             </View>
           </View>
@@ -208,7 +227,7 @@ export default function UnlockScreen() {
                 style={{
                   fontFamily: Fonts.display,
                   fontSize: 18,
-                  color: balance < cost ? Colors.coin : Colors.ink,
+                  color: cost != null && balance < cost ? Colors.coin : Colors.ink,
                 }}
               >
                 {balance.toLocaleString()}

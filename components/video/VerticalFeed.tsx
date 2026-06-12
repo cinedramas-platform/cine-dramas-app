@@ -63,7 +63,12 @@ const FeedItem = memo<FeedItemProps>(function FeedItem({
 
   const router = useRouter();
   const { saveProgress, flush } = useSaveProgress(episode.id);
-  const { data: savedProgress } = useWatchProgress(isActive ? episode.id : null);
+  const progressQuery = useWatchProgress(isActive ? episode.id : null);
+  const savedProgress = progressQuery.data;
+  // The saved position is only trustworthy once the fetch settles (success OR
+  // error) — until then we must not record new progress, or an early flush
+  // would overwrite the server's resume point with position ≈ 0.
+  const progressSettled = progressQuery.isSuccess || progressQuery.isError;
   // Signed stream URL. A 403 (locked/unpaid) lands in `tokenError`.
   const {
     data: playback,
@@ -80,24 +85,25 @@ const FeedItem = memo<FeedItemProps>(function FeedItem({
 
   // Resume: only seek once the video has actually loaded — react-native-video
   // drops seeks issued before onLoad, and before the playback token resolves the
-  // player isn't even mounted.
+  // player isn't even mounted. hasSoughtRef doubles as "resume settled": progress
+  // saving stays disabled until this effect has run once for the episode.
   useEffect(() => {
-    if (
-      isActive &&
-      videoLoaded &&
-      savedProgress &&
-      !hasSoughtRef.current &&
-      savedProgress.position_seconds > 0 &&
-      !savedProgress.completed
-    ) {
+    if (!isActive || !videoLoaded || !progressSettled || hasSoughtRef.current) return;
+    if (savedProgress && savedProgress.position_seconds > 0 && !savedProgress.completed) {
       playerRef.current?.seek(savedProgress.position_seconds);
-      hasSoughtRef.current = true;
     }
-  }, [isActive, videoLoaded, savedProgress]);
+    hasSoughtRef.current = true;
+  }, [isActive, videoLoaded, progressSettled, savedProgress]);
 
+  // FlashList recycles this component instance for a different episode — reset
+  // every piece of per-episode playback state, not just the seek bookkeeping.
   useEffect(() => {
     hasSoughtRef.current = false;
     setVideoLoaded(false);
+    setPaused(false);
+    setPlaybackRate(1);
+    setCurrentTime(0);
+    setDuration(0);
   }, [episode.id]);
 
   const handleVideoLoad = useCallback(() => {
@@ -116,7 +122,11 @@ const FeedItem = memo<FeedItemProps>(function FeedItem({
       setCurrentTime(data.currentTime);
       setDuration(data.seekableDuration);
       if (isActive) {
-        saveProgress(data.currentTime, data.seekableDuration);
+        // Don't record progress until the resume decision has been made —
+        // otherwise an early flush clobbers the saved position with ~0s.
+        if (hasSoughtRef.current) {
+          saveProgress(data.currentTime, data.seekableDuration);
+        }
         usePlayerStore.getState().setPosition(data.currentTime);
         usePlayerStore.getState().setDuration(data.seekableDuration);
       }
@@ -165,6 +175,7 @@ const FeedItem = memo<FeedItemProps>(function FeedItem({
                 episodeTitle: episode.title ?? '',
                 coinCost: String(episode.coinCost ?? ''),
                 playbackId: episode.playbackId,
+                origin: 'player',
               },
             })
           }
@@ -215,6 +226,7 @@ const FeedItem = memo<FeedItemProps>(function FeedItem({
           onTogglePlay={handleTogglePlay}
           onSeek={handleSeek}
           onSpeedChange={handleSpeedChange}
+          rate={playbackRate}
           onBack={() => router.back()}
         />
       )}

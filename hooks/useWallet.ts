@@ -32,9 +32,12 @@ export function useUnlockEpisode() {
       invokeFunctionMutation<UnlockResult>('unlock-episode', {
         body: { episodeId },
       }),
-    onSuccess: (_data, { seriesId }) => {
+    onSuccess: (_data, { episodeId, seriesId }) => {
       queryClient.invalidateQueries({ queryKey: ['wallet'] });
       queryClient.invalidateQueries({ queryKey: ['coin-ledger'] });
+      // The episode's playback token was a cached 403 — refetch so any mounted
+      // player heals to a playable state immediately after the unlock.
+      queryClient.invalidateQueries({ queryKey: ['playback', episodeId] });
       if (seriesId) {
         queryClient.invalidateQueries({ queryKey: ['catalog', 'series', seriesId] });
       }
