@@ -55,6 +55,12 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(function
   const [state, setState] = useState<PlayerState>('loading');
   const [errorMessage, setErrorMessage] = useState('');
 
+  // iOS AVPlayer footgun: applying a new `rate` while `paused` resumes audio
+  // playback behind the frozen video surface. Freeze the rate prop during
+  // pause; the latest rate is applied on resume.
+  const appliedRateRef = useRef(rate);
+  if (!paused) appliedRateRef.current = rate;
+
   useImperativeHandle(ref, () => ({
     play: () => videoRef.current?.resume(),
     pause: () => videoRef.current?.pause(),
@@ -132,7 +138,7 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(function
         muted={muted}
         playInBackground={false}
         playWhenInactive={false}
-        rate={rate}
+        rate={appliedRateRef.current}
         onLoad={handleLoad}
         onReadyForDisplay={handleReadyForDisplay}
         onBuffer={handleBuffer}

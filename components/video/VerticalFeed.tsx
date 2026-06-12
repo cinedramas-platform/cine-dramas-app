@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import { FlashList, type ViewToken } from '@shopify/flash-list';
+import { useIsFocused } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { VideoPlayer, type VideoPlayerRef } from '@/components/video/VideoPlayer';
 import { PlayerOverlay } from '@/components/video/PlayerOverlay';
@@ -228,6 +229,10 @@ const viewabilityConfig = {
 export function VerticalFeed({ episodes, onEpisodeChange }: VerticalFeedProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [containerHeight, setContainerHeight] = useState(SCREEN_HEIGHT);
+  // A covered screen (e.g. unlock -> replace -> new player pushed on top) stays
+  // mounted in the navigation stack — without this its item keeps playing AUDIO
+  // under the new screen.
+  const isFocused = useIsFocused();
   const onEpisodeChangeRef = useRef(onEpisodeChange);
   onEpisodeChangeRef.current = onEpisodeChange;
 
@@ -252,12 +257,12 @@ export function VerticalFeed({ episodes, onEpisodeChange }: VerticalFeedProps) {
     ({ item, index }: { item: FeedEpisode; index: number }) => (
       <FeedItem
         episode={item}
-        isActive={index === activeIndex}
+        isActive={index === activeIndex && isFocused}
         isLoaded={Math.abs(index - activeIndex) <= PRELOAD_WINDOW}
         itemHeight={containerHeight}
       />
     ),
-    [activeIndex, containerHeight],
+    [activeIndex, containerHeight, isFocused],
   );
 
   const keyExtractor = useCallback((item: FeedEpisode) => item.id, []);
@@ -282,7 +287,7 @@ export function VerticalFeed({ episodes, onEpisodeChange }: VerticalFeedProps) {
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
         drawDistance={containerHeight * 3}
-        extraData={activeIndex}
+        extraData={`${activeIndex}:${isFocused}`}
       />
     </View>
   );
