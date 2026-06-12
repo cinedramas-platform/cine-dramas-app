@@ -34,6 +34,13 @@ module.exports = ({ config }) => ({
     },
     edgeToEdgeEnabled: true,
   },
+  web: {
+    bundler: 'metro',
+    // SPA — routes resolve client-side (auth-gated app; nothing meaningful to
+    // prerender) and dynamic catalog ids need no generateStaticParams.
+    output: 'single',
+    favicon: './assets/favicon.png',
+  },
   extra: {
     eas: { projectId: brand.easProjectId },
     supabaseUrl: brand.supabaseUrl,
