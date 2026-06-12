@@ -149,6 +149,21 @@ cine-dramas-app/
 └── .prettierrc             # Prettier config
 ```
 
+## Web (same codebase)
+
+The app compiles to a web SPA (react-native-web + expo-router URLs). Desktop
+renders a centered phone column; mobile web is full-bleed. Video plays via
+hls.js (`components/video/VideoPlayer.web.tsx`).
+
+```bash
+npx expo start --web                 # dev
+npx expo export --platform web      # build -> dist/
+npx eas-cli deploy --export-dir dist          # preview deploy (EAS Hosting)
+npx eas-cli deploy --export-dir dist --prod   # production
+```
+
+Live: https://cinedramas-dev.expo.app
+
 ## Client demo builds (EAS internal distribution)
 
 The MVP deliverable is an installable internal build per brand — no store listing.
