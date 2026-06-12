@@ -3,8 +3,11 @@ import { useLocalSearchParams } from 'expo-router';
 import { useSeriesDetail } from '@/hooks/useCatalog';
 import { SkeletonPlayer } from '@/components/ui/Skeleton';
 import { VerticalFeed, type FeedEpisode } from '@/components/video/VerticalFeed';
+import { View } from 'react-native';
+import { useIsDesktopWeb } from '@/lib/layout';
 
 export default function PlayerScreen() {
+  const desktop = useIsDesktopWeb();
   const { episodeId, seriesId } = useLocalSearchParams<{ episodeId: string; seriesId?: string }>();
   const { data: series, isLoading } = useSeriesDetail(seriesId ?? '');
 
@@ -34,6 +37,18 @@ export default function PlayerScreen() {
 
   if (seriesId && isLoading) {
     return <SkeletonPlayer />;
+  }
+
+  // Desktop web: cinema mode — centered portrait reel on a black stage,
+  // like the ReelShort web player.
+  if (desktop) {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#000', alignItems: 'center' }}>
+        <View style={{ flex: 1, width: 480, maxWidth: '100%' }}>
+          <VerticalFeed episodes={episodes} />
+        </View>
+      </View>
+    );
   }
 
   return <VerticalFeed episodes={episodes} />;
