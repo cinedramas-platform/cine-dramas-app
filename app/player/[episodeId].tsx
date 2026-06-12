@@ -3,11 +3,14 @@ import { useLocalSearchParams } from 'expo-router';
 import { useSeriesDetail } from '@/hooks/useCatalog';
 import { SkeletonPlayer } from '@/components/ui/Skeleton';
 import { VerticalFeed, type FeedEpisode } from '@/components/video/VerticalFeed';
-import { View } from 'react-native';
-import { useIsDesktopWeb } from '@/lib/layout';
+import { View, useWindowDimensions } from 'react-native';
+import { useIsDesktopWeb, CONTENT_MAX } from '@/lib/layout';
+import { usePlayerStore } from '@/stores/playerStore';
 
 export default function PlayerScreen() {
   const desktop = useIsDesktopWeb();
+  const { height: winH } = useWindowDimensions();
+  const videoAspect = usePlayerStore((s) => s.videoAspect);
   const { episodeId, seriesId } = useLocalSearchParams<{ episodeId: string; seriesId?: string }>();
   const { data: series, isLoading } = useSeriesDetail(seriesId ?? '');
 
@@ -39,13 +42,18 @@ export default function PlayerScreen() {
     return <SkeletonPlayer />;
   }
 
-  // Desktop web: cinema mode — centered portrait reel on a black stage,
-  // like the ReelShort web player.
+  // Desktop web: cinema mode — a black stage whose width adapts to the active
+  // episode's format. Vertical dramas get the portrait reel column; landscape
+  // ("web format") episodes get a wide player sized to fit the viewport.
   if (desktop) {
+    const landscape = videoAspect != null && videoAspect > 1.05;
+    const stageWidth = landscape
+      ? Math.min(CONTENT_MAX, Math.round((winH - 96) * videoAspect))
+      : 480;
     return (
       <View style={{ flex: 1, backgroundColor: '#000', alignItems: 'center' }}>
-        <View style={{ flex: 1, width: 480, maxWidth: '100%' }}>
-          <VerticalFeed episodes={episodes} />
+        <View style={{ flex: 1, width: stageWidth, maxWidth: '100%' }}>
+          <VerticalFeed episodes={episodes} single />
         </View>
       </View>
     );

@@ -18,7 +18,7 @@ import { usePlaybackToken } from '@/hooks/usePlayback';
 import { usePlayerStore } from '@/stores/playerStore';
 import { Colors, Fonts } from '@/constants/theme';
 import { CoinIcon, LockIcon, ChevronIcon } from '@/components/ui/Icon';
-import type { OnProgressData } from 'react-native-video';
+import type { OnLoadData, OnProgressData } from 'react-native-video';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const PRELOAD_WINDOW = 1;
@@ -37,6 +37,12 @@ export type FeedEpisode = {
 export type VerticalFeedProps = {
   episodes: FeedEpisode[];
   onEpisodeChange?: (episode: FeedEpisode, index: number) => void;
+  /**
+   * Render only the first episode, sized to the container (desktop-web cinema
+   * stage). Skips FlashList entirely — its cells cache their mount width and
+   * fight the stage's aspect-driven resizing.
+   */
+  single?: boolean;
 };
 
 type FeedItemProps = {
@@ -60,6 +66,9 @@ const FeedItem = memo<FeedItemProps>(function FeedItem({
   const [videoLoaded, setVideoLoaded] = useState(false);
   const hasSoughtRef = useRef(false);
   const wasActiveRef = useRef(false);
+  // width/height from load metadata — drives the desktop-web stage layout
+  // (landscape episodes get a wide player instead of the portrait reel).
+  const aspectRef = useRef<number | null>(null);
 
   const router = useRouter();
   const { saveProgress, flush } = useSaveProgress(episode.id);
@@ -104,6 +113,7 @@ const FeedItem = memo<FeedItemProps>(function FeedItem({
   // every piece of per-episode playback state, not just the seek bookkeeping.
   useEffect(() => {
     hasSoughtRef.current = false;
+    aspectRef.current = null;
     setVideoLoaded(false);
     setPaused(false);
     setPlaybackRate(1);
@@ -111,14 +121,21 @@ const FeedItem = memo<FeedItemProps>(function FeedItem({
     setDuration(0);
   }, [episode.id]);
 
-  const handleVideoLoad = useCallback(() => {
-    setVideoLoaded(true);
-  }, []);
+  const handleVideoLoad = useCallback(
+    (data: OnLoadData) => {
+      const { width, height } = data.naturalSize ?? { width: 0, height: 0 };
+      aspectRef.current = width > 0 && height > 0 ? width / height : null;
+      if (isActive) usePlayerStore.getState().setVideoAspect(aspectRef.current);
+      setVideoLoaded(true);
+    },
+    [isActive],
+  );
 
   useEffect(() => {
     if (isActive) {
       usePlayerStore.getState().setEpisode(episode.id);
       usePlayerStore.getState().setIsPlaying(!paused);
+      usePlayerStore.getState().setVideoAspect(aspectRef.current);
     }
   }, [isActive, episode.id, paused]);
 
@@ -243,7 +260,7 @@ const viewabilityConfig = {
   itemVisiblePercentThreshold: 50,
 };
 
-export function VerticalFeed({ episodes, onEpisodeChange }: VerticalFeedProps) {
+export function VerticalFeed({ episodes, onEpisodeChange, single = false }: VerticalFeedProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [containerHeight, setContainerHeight] = useState(SCREEN_HEIGHT);
   const onEpisodeChangeRef = useRef(onEpisodeChange);
@@ -284,6 +301,14 @@ export function VerticalFeed({ episodes, onEpisodeChange }: VerticalFeedProps) {
     return (
       <View style={styles.empty}>
         <Text style={styles.emptyText}>No episodes available</Text>
+      </View>
+    );
+  }
+
+  if (single) {
+    return (
+      <View style={styles.feed} onLayout={handleLayout}>
+        <FeedItem episode={episodes[0]} isActive isLoaded itemHeight={containerHeight} />
       </View>
     );
   }
