@@ -9,6 +9,12 @@ module.exports = defineConfig([
     },
   },
   {
+    // Deno edge functions resolve imports via supabase/functions/deno.json
+    // import maps — the node resolver can't see them.
+    files: ['supabase/functions/**'],
+    rules: { 'import/no-unresolved': 'off' },
+  },
+  {
     files: ['scripts/**', '*.config.js', 'app.config.js'],
     languageOptions: {
       globals: {

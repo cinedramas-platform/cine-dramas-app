@@ -8,7 +8,8 @@ import { Eyebrow } from '@/components/ui/Eyebrow';
 import { Poster } from '@/components/ui/Poster';
 import { CineStill } from '@/components/ui/CineStill';
 import { Button } from '@/components/ui/Button';
-import { CoinIcon, PlayIcon, ChevronIcon } from '@/components/ui/Icon';
+import { PlayIcon, ChevronIcon } from '@/components/ui/Icon';
+import { CoinBadge } from '@/components/ui/CoinBadge';
 import { SkeletonRail } from '@/components/ui/Skeleton';
 import { useFeatured } from '@/hooks/useCatalog';
 import { useContinueWatching } from '@/hooks/useWatchProgress';
@@ -91,26 +92,7 @@ export default function HomeScreen() {
             </Text>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <Pressable
-              onPress={() => router.push('/coins')}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 4,
-                paddingVertical: 4,
-                paddingLeft: 5,
-                paddingRight: 9,
-                borderRadius: 100,
-                backgroundColor: 'rgba(241,184,68,0.08)',
-                borderWidth: 1,
-                borderColor: 'rgba(241,184,68,0.22)',
-              }}
-            >
-              <CoinIcon size={13} />
-              <Text style={{ fontFamily: Fonts.sans600, fontSize: 11, color: Colors.coin }}>
-                {(wallet?.total ?? 0).toLocaleString()}
-              </Text>
-            </Pressable>
+            <CoinBadge total={wallet?.total ?? 0} />
             {wallet?.is_vip && (
               <View
                 style={{

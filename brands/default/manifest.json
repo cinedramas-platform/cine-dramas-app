@@ -15,5 +15,6 @@
   "sentryDsn": "",
   "sentryProject": "cinedramas-dev",
   "easProjectId": "8be3485f-b42f-413e-98a4-99a9304db436",
-  "splashBackgroundColor": "#000000"
+  "splashBackgroundColor": "#000000",
+  "tagline": "the way short stories should be"
 }

@@ -48,9 +48,6 @@ export function displayType(fontSize: number, italic = false) {
   } as const;
 }
 
-/** Standard horizontal screen padding — keep every screen aligned to this. */
-export const ScreenPad = 20;
-
 export const Spacing = {
   xs: 4,
   sm: 8,

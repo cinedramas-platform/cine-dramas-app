@@ -29,7 +29,10 @@ export function useContinueWatching() {
   return useQuery({
     queryKey: ['progress', 'continue-watching'],
     queryFn: () => invokeFunction<ContinueWatchingResponse>('user-progress'),
-    staleTime: 1000 * 60 * 2,
+    // Progress only changes when the user watches — useSaveProgress invalidates
+    // this key on every successful write, so a long staleTime is safe and saves
+    // an edge-function round trip per screen open.
+    staleTime: 1000 * 60 * 30,
     select: (data) => data.progress,
   });
 }
@@ -52,6 +55,7 @@ export function useSaveProgress(episodeId: string | null) {
         queryClient.setQueryData(['progress', eId], {
           progress: { episode_id: eId, ...data },
         });
+        queryClient.invalidateQueries({ queryKey: ['progress', 'continue-watching'] });
       } catch {
         // Offline / server error — queue it so it survives and replays on reconnect.
         void enqueueProgress(eId, payload);

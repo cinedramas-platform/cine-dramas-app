@@ -9,6 +9,7 @@ import { Poster } from '@/components/ui/Poster';
 import { CineStill } from '@/components/ui/CineStill';
 import { Button } from '@/components/ui/Button';
 import { ChevronIcon, ShareIcon, PlayIcon, LockIcon, CoinIcon } from '@/components/ui/Icon';
+import { episodeCode } from '@/lib/format';
 import { Skeleton, SkeletonEpisodeRow } from '@/components/ui/Skeleton';
 import { useSeriesDetail } from '@/hooks/useCatalog';
 import { useWallet } from '@/hooks/useWallet';
@@ -460,7 +461,7 @@ export default function SeriesDetailScreen() {
                       letterSpacing: 0.4,
                     }}
                   >
-                    EP{String(ep.order).padStart(2, '0')}
+                    {episodeCode(ep.order)}
                   </Text>
                   {locked && (
                     <View style={{ position: 'absolute', bottom: 6, right: 6 }}>

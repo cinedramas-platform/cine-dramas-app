@@ -15,5 +15,6 @@
   "sentryDsn": "",
   "sentryProject": "cinedramas-northlight",
   "easProjectId": "ef283dfa-16c8-4486-a171-ed2f0820bbcd",
-  "splashBackgroundColor": "#0B1A2A"
+  "splashBackgroundColor": "#0B1A2A",
+  "tagline": "stories after midnight"
 }

@@ -13,20 +13,23 @@ import { logger } from '@/lib/logger';
 
 let initialized = false;
 
-/** Wire NetInfo → React Query and flush queued writes on reconnect. Idempotent. */
-export function setupNetworkMonitor(): () => void {
-  if (initialized) return () => {};
+/**
+ * Wire NetInfo → React Query and flush queued writes on reconnect. Idempotent,
+ * app-lifetime — intentionally returns nothing so it can't be mistaken for a
+ * React-effect setup/teardown pair.
+ */
+export function setupNetworkMonitor(): void {
+  if (initialized) return;
   initialized = true;
 
   let wasOnline = true;
-  let unsubscribe: () => void = () => {};
 
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const NetInfo = require('@react-native-community/netinfo')
       .default as typeof import('@react-native-community/netinfo').default;
 
-    unsubscribe = NetInfo.addEventListener((state) => {
+    NetInfo.addEventListener((state) => {
       // reachable can be null while unknown — treat null as "assume online".
       const online = Boolean(state.isConnected && state.isInternetReachable !== false);
 
@@ -46,9 +49,4 @@ export function setupNetworkMonitor(): () => void {
 
   // Attempt a flush on cold start in case writes were queued in a prior session.
   void flushProgressQueue();
-
-  return () => {
-    unsubscribe();
-    initialized = false;
-  };
 }

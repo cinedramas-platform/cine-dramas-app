@@ -43,6 +43,7 @@ module.exports = ({ config }) => ({
     sentryDsn: brand.sentryDsn,
     tenantId: brand.tenantId,
     brandId: variant,
+    tagline: brand.tagline,
   },
   plugins: [
     'expo-router',

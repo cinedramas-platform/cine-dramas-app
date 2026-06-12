@@ -7,6 +7,7 @@
 > The tenancy model and schema described below still hold.
 >
 > **Infra addendum (2026-06-11):**
+>
 > - EAS builds now run under the `vassil_iliev/cinedramas-dev` Expo project
 >   (`8be3485f-…`, see `brands/default/manifest.json`) — the original
 >   `cinedramas-app` org project is not accessible from the active Expo account.

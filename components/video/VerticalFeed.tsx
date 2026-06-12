@@ -76,7 +76,12 @@ const FeedItem = memo<FeedItemProps>(function FeedItem({
     error: tokenError,
   } = usePlaybackToken(isLoaded ? episode.id : null);
 
-  const effectivePaused = !isActive || paused;
+  // A covered screen (unlock/paywall pushed on top) stays mounted in the
+  // navigation stack — without this gate its video keeps playing AUDIO under
+  // the new screen. Subscribed per-item so a focus flip re-renders only the
+  // mounted items instead of forcing a list-wide extraData pass.
+  const screenFocused = useIsFocused();
+  const effectivePaused = !isActive || !screenFocused || paused;
 
   useEffect(() => {
     if (wasActiveRef.current && !isActive) flush();
@@ -241,10 +246,6 @@ const viewabilityConfig = {
 export function VerticalFeed({ episodes, onEpisodeChange }: VerticalFeedProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [containerHeight, setContainerHeight] = useState(SCREEN_HEIGHT);
-  // A covered screen (e.g. unlock -> replace -> new player pushed on top) stays
-  // mounted in the navigation stack — without this its item keeps playing AUDIO
-  // under the new screen.
-  const isFocused = useIsFocused();
   const onEpisodeChangeRef = useRef(onEpisodeChange);
   onEpisodeChangeRef.current = onEpisodeChange;
 
@@ -269,12 +270,12 @@ export function VerticalFeed({ episodes, onEpisodeChange }: VerticalFeedProps) {
     ({ item, index }: { item: FeedEpisode; index: number }) => (
       <FeedItem
         episode={item}
-        isActive={index === activeIndex && isFocused}
+        isActive={index === activeIndex}
         isLoaded={Math.abs(index - activeIndex) <= PRELOAD_WINDOW}
         itemHeight={containerHeight}
       />
     ),
-    [activeIndex, containerHeight, isFocused],
+    [activeIndex, containerHeight],
   );
 
   const keyExtractor = useCallback((item: FeedEpisode) => item.id, []);
@@ -299,7 +300,7 @@ export function VerticalFeed({ episodes, onEpisodeChange }: VerticalFeedProps) {
         onViewableItemsChanged={onViewableItemsChanged}
         viewabilityConfig={viewabilityConfig}
         drawDistance={containerHeight * 3}
-        extraData={`${activeIndex}:${isFocused}`}
+        extraData={activeIndex}
       />
     </View>
   );

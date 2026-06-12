@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Alert, View, Text, Pressable, ScrollView, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from '@/components/ui/LinearGradient';
-import { Colors, Fonts, Radius } from '@/constants/theme';
+import { Colors, Fonts, displayType } from '@/constants/theme';
+import { formatClock } from '@/lib/format';
 import { Eyebrow } from '@/components/ui/Eyebrow';
 import { CineStill } from '@/components/ui/CineStill';
 import { Button } from '@/components/ui/Button';
@@ -22,11 +23,26 @@ const { width: SCREEN_W } = Dimensions.get('window');
 
 const OFFER_SECONDS = 4 * 3600 + 12 * 60 + 38;
 
-function formatCountdown(total: number): string {
-  const h = Math.floor(total / 3600);
-  const m = Math.floor((total % 3600) / 60);
-  const s = total % 60;
-  return [h, m, s].map((n) => String(n).padStart(2, '0')).join(':');
+/**
+ * Owns its own 1 Hz tick so the rest of the paywall tree doesn't re-render
+ * every second. Deadline-derived (no drift) and the interval stops at zero.
+ */
+function OfferCountdown() {
+  const deadlineRef = useRef(Date.now() + OFFER_SECONDS * 1000);
+  const remaining = () => Math.max(0, Math.round((deadlineRef.current - Date.now()) / 1000));
+  const [left, setLeft] = useState(remaining);
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      const next = remaining();
+      setLeft(next);
+      if (next === 0) clearInterval(t);
+    }, 1000);
+    return () => clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return <Text style={{ fontFamily: Fonts.mono, color: Colors.ink2 }}>{formatClock(left)}</Text>;
 }
 
 export default function PaywallScreen() {
@@ -35,12 +51,6 @@ export default function PaywallScreen() {
   const { data: featured } = useFeatured();
   const heroSeries = featured?.featured?.[0];
   const grantCoins = useGrantCoins();
-  const [offerLeft, setOfferLeft] = useState(OFFER_SECONDS);
-
-  useEffect(() => {
-    const t = setInterval(() => setOfferLeft((s) => (s > 0 ? s - 1 : 0)), 1000);
-    return () => clearInterval(t);
-  }, []);
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: Colors.bg }} bounces={false}>
@@ -164,10 +174,7 @@ export default function PaywallScreen() {
               SUMMER OFFER · 60% OFF
             </Text>
             <Text style={{ fontFamily: Fonts.sans, fontSize: 10, color: Colors.ink3 }}>
-              Ends in{' '}
-              <Text style={{ fontFamily: Fonts.mono, color: Colors.ink2 }}>
-                {formatCountdown(offerLeft)}
-              </Text>
+              Ends in <OfferCountdown />
             </Text>
           </View>
         </View>
@@ -218,9 +225,7 @@ export default function PaywallScreen() {
             <Eyebrow color={Colors.accent} style={{ marginBottom: 8 }}>
               VIP · PICKED
             </Eyebrow>
-            <Text
-              style={{ fontFamily: Fonts.display, fontSize: 28, color: Colors.ink, lineHeight: 30 }}
-            >
+            <Text style={{ ...displayType(28), color: Colors.ink }}>
               $29<Text style={{ fontSize: 14, color: Colors.ink3 }}>/yr</Text>
             </Text>
             <Text

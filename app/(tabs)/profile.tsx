@@ -5,7 +5,8 @@ import { LinearGradient } from '@/components/ui/LinearGradient';
 import { Colors, Fonts } from '@/constants/theme';
 import { Eyebrow } from '@/components/ui/Eyebrow';
 import { Poster } from '@/components/ui/Poster';
-import { ChevronIcon, VipIcon, MoreIcon, CoinIcon } from '@/components/ui/Icon';
+import { ChevronIcon, VipIcon, MoreIcon } from '@/components/ui/Icon';
+import { CoinBadge } from '@/components/ui/CoinBadge';
 import { useAuthStore } from '@/stores/authStore';
 import { useContinueWatching } from '@/hooks/useWatchProgress';
 import { useWallet } from '@/hooks/useWallet';
@@ -65,27 +66,7 @@ export default function ProfileScreen() {
         >
           <Eyebrow>MEMBER DOSSIER · NO. 03471</Eyebrow>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <Pressable onPress={() => router.push('/coins')}>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 4,
-                  paddingVertical: 4,
-                  paddingLeft: 5,
-                  paddingRight: 9,
-                  borderRadius: 100,
-                  backgroundColor: 'rgba(241,184,68,0.08)',
-                  borderWidth: 1,
-                  borderColor: 'rgba(241,184,68,0.22)',
-                }}
-              >
-                <CoinIcon size={13} />
-                <Text style={{ fontFamily: Fonts.sans600, fontSize: 11, color: Colors.coin }}>
-                  {(wallet?.total ?? 0).toLocaleString()}
-                </Text>
-              </View>
-            </Pressable>
+            <CoinBadge total={wallet?.total ?? 0} />
             <MoreIcon size={20} color="rgba(255,255,255,0.5)" />
           </View>
         </View>

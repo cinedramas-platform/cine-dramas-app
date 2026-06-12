@@ -93,7 +93,7 @@ export default function OnboardingScreen() {
           >
             {wordmarkLines().map((line, i) => (
               <Text
-                key={line}
+                key={i}
                 style={{
                   fontFamily: i === 0 ? Fonts.display : Fonts.displayItalic,
                   fontSize: 72,

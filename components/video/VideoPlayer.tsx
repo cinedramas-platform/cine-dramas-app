@@ -1,4 +1,12 @@
-import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import Video from 'react-native-video';
 import type { OnLoadData, OnProgressData, OnVideoErrorData, VideoRef } from 'react-native-video';
@@ -56,10 +64,13 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(function
   const [errorMessage, setErrorMessage] = useState('');
 
   // iOS AVPlayer footgun: applying a new `rate` while `paused` resumes audio
-  // playback behind the frozen video surface. Freeze the rate prop during
-  // pause; the latest rate is applied on resume.
-  const appliedRateRef = useRef(rate);
-  if (!paused) appliedRateRef.current = rate;
+  // playback behind the frozen video surface. Freeze the applied rate during
+  // pause (committed state, not a render-phase ref write); the latest rate is
+  // applied on resume.
+  const [appliedRate, setAppliedRate] = useState(rate);
+  useEffect(() => {
+    if (!paused) setAppliedRate(rate);
+  }, [paused, rate]);
 
   useImperativeHandle(ref, () => ({
     play: () => videoRef.current?.resume(),
@@ -138,7 +149,7 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(function
         muted={muted}
         playInBackground={false}
         playWhenInactive={false}
-        rate={appliedRateRef.current}
+        rate={appliedRate}
         onLoad={handleLoad}
         onReadyForDisplay={handleReadyForDisplay}
         onBuffer={handleBuffer}

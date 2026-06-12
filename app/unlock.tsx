@@ -3,7 +3,8 @@ import { Alert, View, Text, Pressable, Animated, Dimensions } from 'react-native
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from '@/components/ui/LinearGradient';
-import { Colors, Fonts } from '@/constants/theme';
+import { Colors, Fonts, displayType } from '@/constants/theme';
+import { episodeCode, joinDots } from '@/lib/format';
 import { Eyebrow } from '@/components/ui/Eyebrow';
 import { CineStill } from '@/components/ui/CineStill';
 import { CloseIcon, CoinIcon, TargetIcon } from '@/components/ui/Icon';
@@ -92,7 +93,7 @@ export default function UnlockScreen() {
         },
       );
     });
-  }, [fillAnim, router, episodeId, seriesId, unlock]);
+  }, [fillAnim, router, episodeId, seriesId, unlock, origin]);
 
   const handlePressOut = useCallback(() => {
     animRef.current?.stop();
@@ -146,24 +147,13 @@ export default function UnlockScreen() {
       {/* Episode header */}
       <View style={{ position: 'absolute', top: insets.top + 60, left: 20, right: 20, zIndex: 5 }}>
         <Eyebrow color={Colors.accent}>
-          {[
+          {joinDots(
             seriesTitle ? seriesTitle.toUpperCase() : null,
-            episodeNumber ? `EP ${String(episodeNumber).padStart(2, '0')}` : null,
+            episodeNumber ? episodeCode(episodeNumber) : null,
             'LOCKED',
-          ]
-            .filter(Boolean)
-            .join(' · ')}
+          )}
         </Eyebrow>
-        <Text
-          style={{
-            fontFamily: Fonts.display,
-            fontSize: 36,
-            lineHeight: 44,
-            color: '#fff',
-            letterSpacing: -0.5,
-            marginTop: 6,
-          }}
-        >
+        <Text style={{ ...displayType(36), color: '#fff', letterSpacing: -0.5, marginTop: 6 }}>
           <Text style={{ fontFamily: Fonts.displayItalic }}>{episodeTitle}</Text>
         </Text>
       </View>

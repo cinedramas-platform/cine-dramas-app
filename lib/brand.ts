@@ -5,7 +5,8 @@ import Constants from 'expo-constants';
 
 export const APP_NAME: string = Constants.expoConfig?.name ?? 'CineDramas';
 
-export const TAGLINE = 'the way short stories should be';
+export const TAGLINE: string =
+  Constants.expoConfig?.extra?.tagline ?? 'the way short stories should be';
 
 /**
  * Split the app name for the two-line wordmark on onboarding.
