@@ -2,13 +2,13 @@ import { useCallback } from 'react';
 import { View, Text, Pressable, ScrollView } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors, Fonts } from '@/constants/theme';
+import { Colors, Fonts, Radius } from '@/constants/theme';
 import { Eyebrow } from '@/components/ui/Eyebrow';
 import { Button } from '@/components/ui/Button';
-import { ChevronIcon, CoinIcon, PlusIcon, SparkleIcon } from '@/components/ui/Icon';
+import { ChevronIcon, PlusIcon, SparkleIcon } from '@/components/ui/Icon';
 import { useWallet, useCoinLedger, useGrantCoins, useDailyCheckin } from '@/hooks/useWallet';
 import type { CoinTransaction } from '@/types/wallet';
-import { WebContent } from '@/lib/layout';
+import { WebContent, useIsDesktopWeb } from '@/lib/layout';
 
 const KIND_LABELS: Record<CoinTransaction['kind'], string> = {
   purchase: 'Pack purchased',
@@ -34,6 +34,7 @@ function formatDate(iso: string): string {
 export default function CoinsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const desktop = useIsDesktopWeb();
   const { data: wallet, refetch: refetchWallet } = useWallet();
   const { data: ledger, refetch: refetchLedger } = useCoinLedger();
   const grantCoins = useGrantCoins();
@@ -48,10 +49,191 @@ export default function CoinsScreen() {
 
   const transactions = ledger?.transactions ?? [];
 
+  const stats = (
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 22,
+        marginTop: 18,
+      }}
+    >
+      {[
+        { v: String(wallet?.unlocked_count ?? 0), l: 'EPISODES', gold: false },
+        { v: `${wallet?.streak ?? 0}d`, l: 'STREAK', gold: false },
+        { v: wallet?.is_vip ? 'VIP' : '—', l: 'TIER', gold: !!wallet?.is_vip },
+      ].map((s, i) => (
+        <View key={s.l} style={{ flexDirection: 'row', alignItems: 'center', gap: 22 }}>
+          {i > 0 && <View style={{ width: 1, height: 34, backgroundColor: Colors.hairline }} />}
+          <View style={{ alignItems: 'center', gap: 1 }}>
+            <Text
+              style={{
+                fontFamily: Fonts.displayItalic,
+                fontSize: 22,
+                color: s.gold ? Colors.accent : Colors.ink,
+              }}
+            >
+              {s.v}
+            </Text>
+            <Eyebrow>{s.l}</Eyebrow>
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+
+  const ctas = (
+    <View
+      style={{
+        flexDirection: desktop ? 'column' : 'row',
+        gap: 10,
+        marginTop: desktop ? 24 : 0,
+        width: '100%',
+      }}
+    >
+      <Button
+        label={grantCoins.isPending ? 'Adding…' : 'Buy 500'}
+        variant="accent"
+        height={48}
+        icon={<PlusIcon size={16} color={Colors.onAccent} />}
+        style={desktop ? { width: '100%' } : { flex: 1 }}
+        onPress={() => grantCoins.mutate({ kind: 'purchase', pack: 'pack_500' })}
+      />
+      <Button
+        label={
+          wallet?.checked_in_today
+            ? 'Checked in'
+            : dailyCheckin.isPending
+              ? 'Claiming…'
+              : 'Daily +10'
+        }
+        variant="ghost"
+        height={48}
+        icon={<SparkleIcon size={14} color="#fff" />}
+        style={desktop ? { width: '100%' } : { flex: 1 }}
+        onPress={() => !wallet?.checked_in_today && dailyCheckin.mutate()}
+      />
+    </View>
+  );
+
+  // Balance "card" — the radial glow lives inside a clipped container so it can
+  // never bleed onto the stats row or the buttons (the desktop overlap bug).
+  const balanceCard = (
+    <View
+      style={{
+        borderRadius: Radius.xl,
+        overflow: 'hidden',
+        paddingHorizontal: 24,
+        paddingVertical: 32,
+        alignItems: 'center',
+        backgroundColor: desktop ? Colors.surface : 'transparent',
+        borderWidth: desktop ? 1 : 0,
+        borderColor: Colors.hairline,
+      }}
+    >
+      <View
+        pointerEvents="none"
+        style={{
+          position: 'absolute',
+          top: 20,
+          alignSelf: 'center',
+          width: 300,
+          height: 300,
+          borderRadius: 150,
+          backgroundColor: 'rgba(124,92,255,0.16)',
+        }}
+      />
+      <Eyebrow color={Colors.accent}>YOUR BALANCE</Eyebrow>
+      <Text
+        style={{
+          fontFamily: Fonts.display,
+          fontSize: 84,
+          lineHeight: 96,
+          color: Colors.accent,
+          letterSpacing: -3,
+          marginTop: 8,
+        }}
+      >
+        {(wallet?.total ?? 0).toLocaleString()}
+      </Text>
+      <Text
+        style={{ fontFamily: Fonts.displayItalic, fontSize: 13, color: Colors.ink2, marginTop: 6 }}
+      >
+        {wallet?.bonus_balance
+          ? `${wallet.coin_balance.toLocaleString()} coins + ${wallet.bonus_balance.toLocaleString()} bonus`
+          : 'coins to spend'}
+      </Text>
+      {stats}
+      {ctas}
+    </View>
+  );
+
+  const ledgerBlock = (
+    <View>
+      <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          alignItems: 'baseline',
+          marginBottom: 14,
+        }}
+      >
+        <Text style={{ fontFamily: Fonts.display, fontSize: 22, color: Colors.ink }}>
+          The Ledger
+        </Text>
+        <Eyebrow>Last 30 days</Eyebrow>
+      </View>
+      <View style={{ borderTopWidth: 1, borderTopColor: Colors.hairline }}>
+        {transactions.length === 0 && (
+          <View style={{ paddingVertical: 24, alignItems: 'center' }}>
+            <Text style={{ fontFamily: Fonts.sans, fontSize: 13, color: Colors.ink3 }}>
+              No transactions yet.
+            </Text>
+          </View>
+        )}
+        {transactions.map((row) => {
+          const net = row.amount + row.bonus_amount;
+          return (
+            <View
+              key={row.id}
+              style={{
+                paddingVertical: 13,
+                borderBottomWidth: 1,
+                borderBottomColor: Colors.hairline2,
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <View style={{ gap: 2, flex: 1 }}>
+                <Eyebrow color={Colors.ink3}>{formatDate(row.created_at)}</Eyebrow>
+                <Text style={{ fontFamily: Fonts.sans, fontSize: 13, color: Colors.ink }}>
+                  {row.note ?? KIND_LABELS[row.kind]}
+                </Text>
+              </View>
+              <Text
+                style={{
+                  fontFamily: Fonts.mono,
+                  fontSize: 13,
+                  fontWeight: '600',
+                  color: net > 0 ? Colors.success : Colors.ink2,
+                }}
+              >
+                {net > 0 ? '+' : ''}
+                {net}
+              </Text>
+            </View>
+          );
+        })}
+      </View>
+    </View>
+  );
+
   return (
     <View style={{ flex: 1, backgroundColor: Colors.bg, paddingTop: insets.top }}>
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}>
-        <WebContent max={560}>
+        <WebContent max={desktop ? 1040 : 560}>
           {/* Header */}
           <View
             style={{
@@ -80,172 +262,20 @@ export default function CoinsScreen() {
             <View style={{ width: 34 }} />
           </View>
 
-          {/* Editorial balance */}
-          <View
-            style={{
-              paddingHorizontal: 20,
-              paddingTop: 40,
-              paddingBottom: 26,
-              alignItems: 'center',
-              position: 'relative',
-            }}
-          >
-            {/* Radial glow */}
-            <View
-              style={{
-                position: 'absolute',
-                top: 30,
-                alignSelf: 'center',
-                width: 280,
-                height: 280,
-                borderRadius: 140,
-                backgroundColor: 'rgba(183,164,255,0.12)',
-              }}
-            />
-
-            <Eyebrow color={Colors.accent}>YOUR BALANCE</Eyebrow>
-            <Text
-              style={{
-                fontFamily: Fonts.display,
-                fontSize: 96,
-                lineHeight: 110,
-                color: Colors.accent,
-                letterSpacing: -3,
-                marginTop: 10,
-              }}
-            >
-              {(wallet?.total ?? 0).toLocaleString()}
-            </Text>
-            <Text
-              style={{
-                fontFamily: Fonts.displayItalic,
-                fontSize: 13,
-                color: Colors.ink2,
-                marginTop: 8,
-              }}
-            >
-              {wallet?.bonus_balance
-                ? `${wallet.coin_balance.toLocaleString()} coins + ${wallet.bonus_balance.toLocaleString()} bonus`
-                : 'coins to spend'}
-            </Text>
-
-            {/* Stats row */}
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 22, marginTop: 18 }}>
-              <View style={{ alignItems: 'center', gap: 1 }}>
-                <Text style={{ fontFamily: Fonts.displayItalic, fontSize: 22, color: Colors.ink }}>
-                  {wallet?.unlocked_count ?? 0}
-                </Text>
-                <Eyebrow>EPISODES</Eyebrow>
-              </View>
-              <View style={{ width: 1, height: 34, backgroundColor: Colors.hairline }} />
-              <View style={{ alignItems: 'center', gap: 1 }}>
-                <Text style={{ fontFamily: Fonts.displayItalic, fontSize: 22, color: Colors.ink }}>
-                  {wallet?.streak ?? 0}d
-                </Text>
-                <Eyebrow>STREAK</Eyebrow>
-              </View>
-              <View style={{ width: 1, height: 34, backgroundColor: Colors.hairline }} />
-              <View style={{ alignItems: 'center', gap: 1 }}>
-                <Text
-                  style={{
-                    fontFamily: Fonts.displayItalic,
-                    fontSize: 22,
-                    color: wallet?.is_vip ? Colors.accent : Colors.ink,
-                  }}
-                >
-                  {wallet?.is_vip ? 'VIP' : '—'}
-                </Text>
-                <Eyebrow>TIER</Eyebrow>
-              </View>
+          {desktop ? (
+            // Two-panel desktop: balance card (left) + ledger (right).
+            <View style={{ flexDirection: 'row', gap: 28, paddingHorizontal: 20, paddingTop: 24 }}>
+              <View style={{ width: 420 }}>{balanceCard}</View>
+              <View style={{ flex: 1, paddingTop: 8 }}>{ledgerBlock}</View>
             </View>
-          </View>
-
-          {/* CTAs */}
-          <View style={{ flexDirection: 'row', paddingHorizontal: 20, paddingBottom: 20, gap: 10 }}>
-            <Button
-              label={grantCoins.isPending ? 'Adding…' : 'Buy 500'}
-              variant="accent"
-              height={48}
-              icon={<PlusIcon size={16} color={Colors.onAccent} />}
-              style={{ flex: 1 }}
-              onPress={() => grantCoins.mutate({ kind: 'purchase', pack: 'pack_500' })}
-            />
-            <Button
-              label={
-                wallet?.checked_in_today
-                  ? 'Checked in'
-                  : dailyCheckin.isPending
-                    ? 'Claiming…'
-                    : 'Daily +10'
-              }
-              variant="ghost"
-              height={48}
-              icon={<SparkleIcon size={14} color="#fff" />}
-              style={{ flex: 1 }}
-              onPress={() => !wallet?.checked_in_today && dailyCheckin.mutate()}
-            />
-          </View>
-
-          {/* The Ledger */}
-          <View style={{ paddingHorizontal: 20, paddingTop: 10 }}>
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'baseline',
-                marginBottom: 14,
-              }}
-            >
-              <Text style={{ fontFamily: Fonts.display, fontSize: 22, color: Colors.ink }}>
-                The Ledger
-              </Text>
-              <Eyebrow>Last 30 days</Eyebrow>
-            </View>
-
-            <View style={{ borderTopWidth: 1, borderTopColor: Colors.hairline }}>
-              {transactions.length === 0 && (
-                <View style={{ paddingVertical: 24, alignItems: 'center' }}>
-                  <Text style={{ fontFamily: Fonts.sans, fontSize: 13, color: Colors.ink3 }}>
-                    No transactions yet.
-                  </Text>
-                </View>
-              )}
-              {transactions.map((row) => {
-                const net = row.amount + row.bonus_amount;
-                return (
-                  <View
-                    key={row.id}
-                    style={{
-                      paddingVertical: 13,
-                      borderBottomWidth: 1,
-                      borderBottomColor: Colors.hairline2,
-                      flexDirection: 'row',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <View style={{ gap: 2, flex: 1 }}>
-                      <Eyebrow color={Colors.ink3}>{formatDate(row.created_at)}</Eyebrow>
-                      <Text style={{ fontFamily: Fonts.sans, fontSize: 13, color: Colors.ink }}>
-                        {row.note ?? KIND_LABELS[row.kind]}
-                      </Text>
-                    </View>
-                    <Text
-                      style={{
-                        fontFamily: Fonts.mono,
-                        fontSize: 13,
-                        fontWeight: '600',
-                        color: net > 0 ? Colors.success : Colors.ink2,
-                      }}
-                    >
-                      {net > 0 ? '+' : ''}
-                      {net}
-                    </Text>
-                  </View>
-                );
-              })}
-            </View>
-          </View>
+          ) : (
+            <>
+              <View style={{ paddingHorizontal: 20, paddingTop: 24, paddingBottom: 20 }}>
+                {balanceCard}
+              </View>
+              <View style={{ paddingHorizontal: 20, paddingTop: 4 }}>{ledgerBlock}</View>
+            </>
+          )}
         </WebContent>
       </ScrollView>
     </View>

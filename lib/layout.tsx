@@ -6,7 +6,8 @@ import type { ReactNode } from 'react';
 import { Platform, View, useWindowDimensions, type ViewStyle } from 'react-native';
 
 export const DESKTOP_MIN = 1024;
-export const CONTENT_MAX = 1140;
+// Wide, Netflix-portal content column.
+export const CONTENT_MAX = 1320;
 
 export function useIsDesktopWeb(): boolean {
   const { width } = useWindowDimensions();

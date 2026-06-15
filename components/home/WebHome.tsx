@@ -52,8 +52,8 @@ export function WebHome({ featured, categories, continueWatching }: Props) {
   const genres = useMemo(() => ['All', ...Object.keys(categories)], [categories]);
   const grid = activeGenre === 'All' ? allSeries : (categories[activeGenre] ?? []);
 
-  // 5 columns on wide desktop, 4 on narrower.
-  const cols = winW >= 1280 ? 5 : 4;
+  // Netflix-portal density: up to 6 columns on wide screens.
+  const cols = winW >= 1600 ? 6 : winW >= 1280 ? 5 : 4;
   const gap = 16;
   const cardW = Math.floor((contentW - gap * (cols - 1)) / cols);
 
