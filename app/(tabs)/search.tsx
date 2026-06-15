@@ -6,6 +6,7 @@ import { LinearGradient } from '@/components/ui/LinearGradient';
 import { Colors, Fonts, Radius } from '@/constants/theme';
 import { Eyebrow } from '@/components/ui/Eyebrow';
 import { Poster } from '@/components/ui/Poster';
+import { PosterCard } from '@/components/ui/PosterCard';
 import { CineStill } from '@/components/ui/CineStill';
 import { SearchIcon, ChevronIcon, CloseIcon } from '@/components/ui/Icon';
 import { useSearch, useFeatured } from '@/hooks/useCatalog';
@@ -121,40 +122,53 @@ export default function SearchScreen() {
               {searching ? (
                 <ActivityIndicator size="small" color={Colors.accent} style={{ marginTop: 40 }} />
               ) : results && results.length > 0 ? (
-                results.map((s: Series) => (
-                  <Pressable
-                    key={s.id}
-                    onPress={() => router.push(`/series/${s.id}`)}
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      gap: 12,
-                      paddingVertical: 12,
-                      borderBottomWidth: 1,
-                      borderBottomColor: Colors.hairline2,
-                    }}
-                  >
-                    <Poster
-                      playbackId={s.thumbnail_playback_id ?? undefined}
-                      width={48}
-                      height={66}
-                      borderRadius={4}
-                      showTitle={false}
-                    />
-                    <View style={{ flex: 1, gap: 2 }}>
-                      <Text
-                        style={{ fontFamily: Fonts.sans600, fontSize: 14, color: Colors.ink }}
-                        numberOfLines={1}
-                      >
-                        {s.title}
-                      </Text>
-                      <Text style={{ fontFamily: Fonts.sans, fontSize: 10, color: Colors.ink3 }}>
-                        {s.category}
-                      </Text>
-                    </View>
-                    <ChevronIcon size={14} color={Colors.ink3} direction="right" />
-                  </Pressable>
-                ))
+                desktop ? (
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16 }}>
+                    {results.map((s: Series) => (
+                      <PosterCard
+                        key={s.id}
+                        series={s}
+                        width={Math.floor((SCREEN_W - 40 - 16 * 4) / 5)}
+                        onPress={() => router.push(`/series/${s.id}`)}
+                      />
+                    ))}
+                  </View>
+                ) : (
+                  results.map((s: Series) => (
+                    <Pressable
+                      key={s.id}
+                      onPress={() => router.push(`/series/${s.id}`)}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 12,
+                        paddingVertical: 12,
+                        borderBottomWidth: 1,
+                        borderBottomColor: Colors.hairline2,
+                      }}
+                    >
+                      <Poster
+                        playbackId={s.thumbnail_playback_id ?? undefined}
+                        width={48}
+                        height={66}
+                        borderRadius={4}
+                        showTitle={false}
+                      />
+                      <View style={{ flex: 1, gap: 2 }}>
+                        <Text
+                          style={{ fontFamily: Fonts.sans600, fontSize: 14, color: Colors.ink }}
+                          numberOfLines={1}
+                        >
+                          {s.title}
+                        </Text>
+                        <Text style={{ fontFamily: Fonts.sans, fontSize: 10, color: Colors.ink3 }}>
+                          {s.category}
+                        </Text>
+                      </View>
+                      <ChevronIcon size={14} color={Colors.ink3} direction="right" />
+                    </Pressable>
+                  ))
+                )
               ) : (
                 <View style={{ alignItems: 'center', paddingTop: 60, gap: 8 }}>
                   <Text style={{ fontFamily: Fonts.display, fontSize: 22, color: Colors.ink }}>

@@ -16,6 +16,7 @@ import { useContinueWatching } from '@/hooks/useWatchProgress';
 import { useWallet } from '@/hooks/useWallet';
 import { APP_NAME } from '@/lib/brand';
 import { WebContent, useContentWidth, useIsDesktopWeb } from '@/lib/layout';
+import { WebHome } from '@/components/home/WebHome';
 import type { Series } from '@/types/catalog';
 import type { WatchProgress } from '@/types/progress';
 
@@ -57,6 +58,31 @@ export default function HomeScreen() {
   const editPicks = featuredSeries.slice(1, 3);
   const newThisWeek = featuredSeries.slice(0, 4);
   const railsOrder = Object.keys(categories);
+
+  // Desktop web → real streaming-site layout. Phones fall through to the
+  // existing mobile composition below.
+  if (desktop) {
+    return (
+      <View style={{ flex: 1, backgroundColor: Colors.bg }}>
+        <ScrollView
+          style={{ flex: 1 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefetching}
+              onRefresh={refetch}
+              tintColor={Colors.accent}
+            />
+          }
+        >
+          <WebHome
+            featured={featuredSeries}
+            categories={categories}
+            continueWatching={continueWatching}
+          />
+        </ScrollView>
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: Colors.bg, paddingTop: insets.top }}>
