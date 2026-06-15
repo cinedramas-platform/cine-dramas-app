@@ -132,18 +132,6 @@ export default function CoinsScreen() {
         borderColor: Colors.hairline,
       }}
     >
-      <View
-        pointerEvents="none"
-        style={{
-          position: 'absolute',
-          top: 20,
-          alignSelf: 'center',
-          width: 300,
-          height: 300,
-          borderRadius: 150,
-          backgroundColor: 'rgba(124,92,255,0.16)',
-        }}
-      />
       <Eyebrow color={Colors.accent}>YOUR BALANCE</Eyebrow>
       <Text
         style={{
