@@ -1,9 +1,9 @@
 import { useState, useCallback } from 'react';
-import { View, Text, Pressable, Dimensions } from 'react-native';
+import { View, Text, Pressable, ScrollView, useWindowDimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from '@/components/ui/LinearGradient';
-import { Colors, Fonts, Radius } from '@/constants/theme';
+import { Colors, Fonts, Radius, displayType } from '@/constants/theme';
 import { Eyebrow } from '@/components/ui/Eyebrow';
 import { Poster } from '@/components/ui/Poster';
 import { Button } from '@/components/ui/Button';
@@ -12,10 +12,11 @@ import { CineStill } from '@/components/ui/CineStill';
 import { markOnboarded } from '@/hooks/useProtectedRoute';
 import { APP_NAME, TAGLINE, wordmarkLines } from '@/lib/brand';
 
-const { width: SCREEN_W } = Dimensions.get('window');
 const MOOD_GAP = 10;
-const MOOD_W = (SCREEN_W - 40 - MOOD_GAP) / 2;
-const MOOD_H = MOOD_W * (5 / 7);
+// Onboarding is always a single, centered, phone-width column — even on desktop
+// web (a full-bleed 3-step flow on a 1440px screen looks broken). This cap is
+// the column the content lives in everywhere.
+const COLUMN_MAX = 460;
 
 const MOODS = [
   { id: 'forbidden', label: 'Forbidden', palette: ['#1A0612', '#6B1B3E'] as [string, string] },
@@ -26,11 +27,37 @@ const MOODS = [
   { id: 'revenge', label: 'Revenge', palette: ['#10060A', '#4B0B17'] as [string, string] },
 ];
 
+/** Slim 3-segment progress bar for the taste/notifications steps. */
+function Progress({ step }: { step: number }) {
+  return (
+    <View style={{ flexDirection: 'row', gap: 5 }}>
+      {[0, 1, 2].map((i) => (
+        <View
+          key={i}
+          style={{
+            width: 22,
+            height: 3,
+            borderRadius: 3,
+            backgroundColor: i <= step ? Colors.accent : 'rgba(255,255,255,0.16)',
+          }}
+        />
+      ))}
+    </View>
+  );
+}
+
 export default function OnboardingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { width: winW } = useWindowDimensions();
   const [step, setStep] = useState(0);
   const [selectedMoods, setSelectedMoods] = useState<Set<string>>(new Set());
+
+  // Content column width (capped), and mood-card math derived from it.
+  const colW = Math.min(winW, COLUMN_MAX);
+  const moodCols = colW >= 420 ? 3 : 2;
+  const moodW = Math.floor((colW - 40 - MOOD_GAP * (moodCols - 1)) / moodCols);
+  const moodH = Math.round(moodW * (moodCols === 3 ? 1.3 : 0.72));
 
   const advance = useCallback(async () => {
     if (step < 2) {
@@ -50,141 +77,147 @@ export default function OnboardingScreen() {
     });
   }, []);
 
+  // Shared scroll shell: content centers in COLUMN_MAX, fills tall screens (so
+  // the footer pins to the bottom), and scrolls on short ones (mobile browser
+  // address bar, small windows) instead of clipping — the core a11y fix.
+  const Shell = ({ children }: { children: React.ReactNode }) => (
+    <ScrollView
+      style={{ flex: 1, backgroundColor: Colors.bg }}
+      contentContainerStyle={{
+        flexGrow: 1,
+        paddingTop: insets.top,
+        paddingBottom: insets.bottom + 16,
+        alignItems: 'center',
+      }}
+      showsVerticalScrollIndicator={false}
+    >
+      <View style={{ flex: 1, width: '100%', maxWidth: COLUMN_MAX }}>{children}</View>
+    </ScrollView>
+  );
+
+  // ---- Step 0: cinematic welcome ----
   if (step === 0) {
+    const wordSize = Math.min(72, Math.floor(colW * 0.19));
     return (
       <View style={{ flex: 1, backgroundColor: Colors.bg }}>
+        {/* Full-bleed backdrop */}
         <CineStill
           playbackId={undefined}
-          width={SCREEN_W}
-          height={SCREEN_W * 2.2}
+          width={winW}
+          height={Math.max(winW * 2.2, 900)}
           noFade
           style={{ position: 'absolute', width: '100%', height: '100%' }}
+        />
+        <LinearGradient
+          colors={['rgba(8,7,10,0.25)', 'rgba(8,7,10,0.05)', 'rgba(8,7,10,0.92)', '#08070A']}
+          locations={[0, 0.4, 0.85, 1]}
+          style={{ position: 'absolute', width: '100%', height: '100%' }}
+        />
+        <ScrollView
+          contentContainerStyle={{
+            flexGrow: 1,
+            paddingTop: insets.top + 40,
+            paddingBottom: insets.bottom + 36,
+            paddingHorizontal: 24,
+            alignItems: 'center',
+          }}
+          showsVerticalScrollIndicator={false}
         >
-          <LinearGradient
-            colors={['rgba(8,7,10,0.2)', 'rgba(8,7,10,0.0)', 'rgba(8,7,10,0.9)', '#08070A']}
-            locations={[0, 0.4, 0.85, 1]}
-            style={{ position: 'absolute', width: '100%', height: '100%' }}
-          />
+          <View style={{ flex: 1, width: '100%', maxWidth: COLUMN_MAX }}>
+            <View style={{ alignItems: 'center' }}>
+              <Eyebrow color={Colors.accent} style={{ letterSpacing: 4 }}>
+                VOL. 12 — JUN MMXXVI
+              </Eyebrow>
+            </View>
 
-          {/* Top eyebrow */}
-          <View
-            style={{
-              position: 'absolute',
-              top: insets.top + 40,
-              left: 0,
-              right: 0,
-              alignItems: 'center',
-            }}
-          >
-            <Eyebrow color={Colors.accent} style={{ letterSpacing: 4 }}>
-              VOL. 12 — JUN MMXXVI
-            </Eyebrow>
-          </View>
-
-          {/* Center wordmark — derived from the brand manifest */}
-          <View
-            style={{
-              position: 'absolute',
-              top: insets.top + 120,
-              left: 0,
-              right: 0,
-              alignItems: 'center',
-            }}
-          >
-            {wordmarkLines().map((line, i) => (
+            {/* Wordmark — vertically centered in the available space */}
+            <View
+              style={{
+                flex: 1,
+                justifyContent: 'center',
+                alignItems: 'center',
+                paddingVertical: 48,
+              }}
+            >
+              {wordmarkLines().map((line, i) => (
+                <Text
+                  key={i}
+                  style={{
+                    fontFamily: i === 0 ? Fonts.display : Fonts.displayItalic,
+                    fontSize: wordSize,
+                    lineHeight: Math.ceil(wordSize * 1.14),
+                    color: i === 0 ? '#fff' : Colors.accent,
+                    textAlign: 'center',
+                    letterSpacing: -1.5,
+                  }}
+                >
+                  {line}
+                </Text>
+              ))}
               <Text
-                key={i}
                 style={{
-                  fontFamily: i === 0 ? Fonts.display : Fonts.displayItalic,
-                  fontSize: 72,
-                  lineHeight: 82,
-                  color: i === 0 ? '#fff' : Colors.accent,
+                  fontFamily: Fonts.displayItalic,
+                  fontSize: 13,
+                  lineHeight: 18,
+                  color: 'rgba(255,255,255,0.7)',
+                  letterSpacing: 1,
+                  marginTop: 16,
                   textAlign: 'center',
-                  letterSpacing: -1.5,
                 }}
               >
-                {line}
+                — {TAGLINE} —
               </Text>
-            ))}
-            <Text
-              style={{
-                fontFamily: Fonts.displayItalic,
-                fontSize: 13,
-                lineHeight: 18,
-                color: 'rgba(255,255,255,0.7)',
-                letterSpacing: 1,
-                marginTop: 14,
-                textAlign: 'center',
-              }}
-            >
-              — {TAGLINE} —
-            </Text>
-          </View>
+            </View>
 
-          {/* Bottom CTA */}
-          <View
-            style={{
-              position: 'absolute',
-              left: 24,
-              right: 24,
-              bottom: insets.bottom + 40,
-              gap: 10,
-            }}
-          >
-            <Button label="Begin Reading" variant="accent" block height={52} onPress={advance} />
-            <Pressable
-              onPress={async () => {
-                await markOnboarded();
-                router.replace('/auth/login');
-              }}
-              style={{ alignItems: 'center', paddingTop: 4 }}
-            >
-              <Text style={{ fontSize: 11, color: 'rgba(250,246,238,0.55)', letterSpacing: 0.6 }}>
-                ALREADY A SUBSCRIBER?{' '}
-                <Text style={{ color: Colors.accent, fontFamily: Fonts.sans600 }}>SIGN IN</Text>
-              </Text>
-            </Pressable>
+            {/* CTA */}
+            <View style={{ gap: 12 }}>
+              <Button label="Begin Reading" variant="accent" block height={52} onPress={advance} />
+              <Pressable
+                onPress={async () => {
+                  await markOnboarded();
+                  router.replace('/auth/login');
+                }}
+                style={{ alignItems: 'center', paddingTop: 4 }}
+              >
+                <Text style={{ fontSize: 11, color: 'rgba(250,246,238,0.6)', letterSpacing: 0.6 }}>
+                  ALREADY A SUBSCRIBER?{' '}
+                  <Text style={{ color: Colors.accent, fontFamily: Fonts.sans600 }}>SIGN IN</Text>
+                </Text>
+              </Pressable>
+            </View>
           </View>
-        </CineStill>
+        </ScrollView>
       </View>
     );
   }
 
+  // ---- Step 1: taste / mood grid ----
   if (step === 1) {
     return (
-      <View style={{ flex: 1, backgroundColor: Colors.bg, paddingTop: insets.top }}>
-        {/* Top bar */}
+      <Shell>
         <View
           style={{
             flexDirection: 'row',
             justifyContent: 'space-between',
+            alignItems: 'center',
             paddingHorizontal: 20,
             paddingTop: 18,
             paddingBottom: 6,
           }}
         >
           <Eyebrow>CHAPTER 01 — TASTE</Eyebrow>
-          <Eyebrow>02 / 03</Eyebrow>
+          <Progress step={1} />
         </View>
 
-        {/* Heading */}
         <View style={{ paddingHorizontal: 20, paddingTop: 14, paddingBottom: 6 }}>
-          <Text
-            style={{
-              fontFamily: Fonts.display,
-              fontSize: 34,
-              lineHeight: 42,
-              color: Colors.ink,
-              letterSpacing: -0.5,
-            }}
-          >
+          <Text style={{ ...displayType(34), color: Colors.ink, letterSpacing: -0.5 }}>
             Tell us how you{'\n'}
             <Text style={{ fontFamily: Fonts.displayItalic }}>like to be undone.</Text>
           </Text>
           <Text
             style={{
               fontFamily: Fonts.sans,
-              fontSize: 12,
+              fontSize: 12.5,
               color: Colors.ink3,
               marginTop: 8,
               lineHeight: 18,
@@ -194,7 +227,6 @@ export default function OnboardingScreen() {
           </Text>
         </View>
 
-        {/* Mood grid */}
         <View style={{ paddingHorizontal: 20, paddingTop: 16 }}>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: MOOD_GAP }}>
             {MOODS.map((m) => {
@@ -204,13 +236,13 @@ export default function OnboardingScreen() {
                   key={m.id}
                   onPress={() => toggleMood(m.id)}
                   style={{
-                    width: MOOD_W,
-                    height: MOOD_H,
+                    width: moodW,
+                    height: moodH,
                     borderRadius: Radius.lg,
                     overflow: 'hidden',
                     position: 'relative',
-                    borderWidth: selected ? 2 : 0,
-                    borderColor: Colors.accent,
+                    borderWidth: selected ? 2 : 1,
+                    borderColor: selected ? Colors.accent : Colors.hairline,
                   }}
                 >
                   <LinearGradient
@@ -225,7 +257,7 @@ export default function OnboardingScreen() {
                     style={{ position: 'absolute', width: '100%', height: '100%' }}
                   />
                   <View style={{ position: 'absolute', bottom: 10, left: 12, right: 12 }}>
-                    <Text style={{ fontFamily: Fonts.display, fontSize: 20, color: '#fff' }}>
+                    <Text style={{ fontFamily: Fonts.display, fontSize: 19, color: '#fff' }}>
                       {m.label}
                     </Text>
                   </View>
@@ -252,10 +284,10 @@ export default function OnboardingScreen() {
           </View>
         </View>
 
-        <View style={{ flex: 1 }} />
+        {/* Spacer pins the footer down on tall screens; scrolls on short ones */}
+        <View style={{ flex: 1, minHeight: 24 }} />
 
-        {/* Bottom */}
-        <View style={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 16, gap: 12 }}>
+        <View style={{ paddingHorizontal: 20, gap: 12 }}>
           <View
             style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
           >
@@ -265,7 +297,7 @@ export default function OnboardingScreen() {
               </Text>{' '}
               selected
             </Text>
-            <Pressable onPress={advance}>
+            <Pressable onPress={advance} hitSlop={10}>
               <Eyebrow>SKIP</Eyebrow>
             </Pressable>
           </View>
@@ -278,30 +310,28 @@ export default function OnboardingScreen() {
             onPress={advance}
           />
         </View>
-      </View>
+      </Shell>
     );
   }
 
-  // Step 2 — Notifications
+  // ---- Step 2: notifications ----
   return (
-    <View style={{ flex: 1, backgroundColor: Colors.bg, paddingTop: insets.top }}>
-      {/* Top bar */}
+    <Shell>
       <View
         style={{
           flexDirection: 'row',
           justifyContent: 'space-between',
+          alignItems: 'center',
           paddingHorizontal: 20,
           paddingTop: 18,
           paddingBottom: 6,
         }}
       >
-        <Eyebrow>CHAPTER 03 — NOTIFICATIONS</Eyebrow>
-        <Eyebrow>03 / 03</Eyebrow>
+        <Eyebrow>CHAPTER 02 — ALERTS</Eyebrow>
+        <Progress step={2} />
       </View>
 
-      {/* Content */}
       <View style={{ paddingHorizontal: 20, paddingTop: 30 }}>
-        {/* Bell icon */}
         <View
           style={{
             width: 80,
@@ -318,15 +348,7 @@ export default function OnboardingScreen() {
           <NotificationIcon size={38} color={Colors.accent} />
         </View>
 
-        <Text
-          style={{
-            fontFamily: Fonts.display,
-            fontSize: 32,
-            lineHeight: 40,
-            color: Colors.ink,
-            letterSpacing: -0.5,
-          }}
-        >
+        <Text style={{ ...displayType(32), color: Colors.ink, letterSpacing: -0.5 }}>
           New episode?{'\n'}
           <Text style={{ fontFamily: Fonts.displayItalic }}>We’ll tell you.</Text>
         </Text>
@@ -337,7 +359,6 @@ export default function OnboardingScreen() {
             color: Colors.ink2,
             marginTop: 12,
             lineHeight: 20,
-            maxWidth: 320,
           }}
         >
           Get notified the moment new episodes of your saved series drop. Two pings a week. Never
@@ -345,7 +366,6 @@ export default function OnboardingScreen() {
         </Text>
       </View>
 
-      {/* Notification preview */}
       <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
         <View
           style={{
@@ -385,10 +405,9 @@ export default function OnboardingScreen() {
         </View>
       </View>
 
-      <View style={{ flex: 1 }} />
+      <View style={{ flex: 1, minHeight: 24 }} />
 
-      {/* Buttons */}
-      <View style={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 20, gap: 10 }}>
+      <View style={{ paddingHorizontal: 20, gap: 10 }}>
         <Button
           label="Turn on notifications"
           variant="accent"
@@ -398,6 +417,6 @@ export default function OnboardingScreen() {
         />
         <Button label="Not now" variant="ghost" block height={48} onPress={advance} />
       </View>
-    </View>
+    </Shell>
   );
 }
