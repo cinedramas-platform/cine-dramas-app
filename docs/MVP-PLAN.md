@@ -146,3 +146,23 @@ the loop once by hand (feed → play → resume → locked → unlock → check-
   (`Content-Encoding: br`) — decompress before grepping.
 - **Fast inner loop**: the previously installed dev client still works with
   today's JS (font package is JS-only) — `npx expo start --dev-client`, same Wi-Fi.
+
+## 8. Web build (2026-06-13/14)
+
+The app now also ships as a **website from the same Expo codebase** —
+react-native-web + expo-router URL routing, deployed to EAS Hosting at
+**https://cinedramas-dev.expo.app**. Memory: [[cinedramas-web]]; README has the
+build/deploy commands.
+
+- **Platform splits**: `VideoPlayer.web.tsx` (plain `<video>` + hls.js — NOT
+  mux-player, its custom element breaks under Metro), `services/supabase.ts`
+  localStorage auth adapter, `index.js` custom entry → `lib/webShell.ts` base CSS.
+- **Responsive desktop** (`lib/layout.tsx`, `useIsDesktopWeb`/`WebContent`):
+  ≥1024px gets `TopNav` + centered max-width content + wider grids; bottom tabs
+  hidden. Phones (native + mobile web) unchanged — helpers no-op off desktop-web.
+- **Format-aware player**: desktop cinema stage sizes to the active episode's
+  aspect (vertical → 480px reel; landscape → wide player fitted to viewport).
+  All demo assets are vertical today; landscape mode needs a landscape Mux asset
+  to see live (no code change).
+- **Deferred**: not an SEO/marketing site (auth-gated SPA, `output: 'single'`).
+  A public landing/catalog page would be a separate small build if ever wanted.

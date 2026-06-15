@@ -151,15 +151,28 @@ cine-dramas-app/
 
 ## Web (same codebase)
 
-The app compiles to a web SPA (react-native-web + expo-router URLs). Desktop
-renders a centered phone column; mobile web is full-bleed. Video plays via
-hls.js (`components/video/VideoPlayer.web.tsx`).
+The app compiles to a web SPA (react-native-web + expo-router URLs) from the
+same source as the mobile app — no separate web project.
+
+- **Responsive** (`lib/layout.tsx`): desktop (≥1024px) gets a top nav bar
+  (`components/ui/TopNav.tsx`), centered max-width content, and wider grids;
+  phones (native + mobile web) keep the existing full-bleed design. All layout
+  helpers are no-ops off desktop-web, so phone screens are untouched.
+- **Video** (`components/video/VideoPlayer.web.tsx`): plain `<video>` + hls.js
+  (NOT `@mux/mux-player-react` — its custom element breaks under Metro). Signed
+  Mux stream URLs work unchanged.
+- **Format-aware player**: the desktop cinema stage sizes itself to the active
+  episode's aspect — vertical dramas get a 480px portrait reel, landscape
+  ("web format") episodes get a wide player fitted to the viewport.
+- **Platform branches**: `services/supabase.ts` uses a localStorage auth
+  adapter on web; `index.js` (custom entry) loads `lib/webShell.ts` for base
+  page CSS.
 
 ```bash
-npx expo start --web                 # dev
-npx expo export --platform web      # build -> dist/
-npx eas-cli deploy --export-dir dist          # preview deploy (EAS Hosting)
-npx eas-cli deploy --export-dir dist --prod   # production
+npx expo start --web                            # dev
+npx expo export --platform web                  # build -> dist/
+npx eas-cli deploy --export-dir dist            # preview deploy (EAS Hosting)
+npx eas-cli deploy --export-dir dist --prod     # production
 ```
 
 Live: https://cinedramas-dev.expo.app
