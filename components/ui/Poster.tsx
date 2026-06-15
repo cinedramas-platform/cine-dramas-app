@@ -139,7 +139,7 @@ export function Poster({
             style={{
               width: `${progress * 100}%`,
               height: '100%',
-              backgroundColor: Colors.accent,
+              backgroundColor: Colors.accent2,
               borderRadius: 1,
             }}
           />

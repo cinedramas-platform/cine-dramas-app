@@ -124,7 +124,7 @@ export default function UnlockScreen() {
           style={{ position: 'absolute', width: '100%', height: '100%' }}
         />
         <LinearGradient
-          colors={['rgba(0,0,0,0.55)', 'rgba(0,0,0,0.2)', 'rgba(8,7,10,0.95)', '#08070A']}
+          colors={['rgba(0,0,0,0.55)', 'rgba(0,0,0,0.2)', 'rgba(10,10,15,0.95)', '#0A0A0F']}
           locations={[0, 0.3, 0.8, 1]}
           style={{ position: 'absolute', width: '100%', height: '100%' }}
         />
@@ -245,7 +245,7 @@ export default function UnlockScreen() {
               }}
             >
               <LinearGradient
-                colors={['#C9A857', '#E8C570', '#C9A857']}
+                colors={['#7C5CFF', '#B7A4FF', '#7C5CFF']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={{ position: 'absolute', width: '100%', height: '100%', borderRadius: 64 }}
@@ -272,12 +272,12 @@ export default function UnlockScreen() {
                   gap: 10,
                 }}
               >
-                <TargetIcon size={18} color={Colors.black} />
+                <TargetIcon size={18} color={Colors.onAccent} />
                 <Text
                   style={{
                     fontFamily: Fonts.sans700,
                     fontSize: 14,
-                    color: Colors.black,
+                    color: Colors.onAccent,
                     letterSpacing: 0.6,
                   }}
                 >

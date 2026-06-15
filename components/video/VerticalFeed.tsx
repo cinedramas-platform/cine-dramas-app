@@ -378,10 +378,10 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 22,
     borderRadius: 100,
-    backgroundColor: Colors.accent,
+    backgroundColor: Colors.accent2,
   },
   unlockBtnText: {
-    color: Colors.black,
+    color: Colors.onAccent,
     fontFamily: Fonts.sans700,
     fontSize: 13,
     letterSpacing: 0.4,

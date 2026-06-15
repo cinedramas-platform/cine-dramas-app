@@ -44,7 +44,7 @@ export function NewBadge() {
         paddingVertical: 3,
         paddingHorizontal: 6,
         borderRadius: 3,
-        backgroundColor: Colors.accent,
+        backgroundColor: Colors.accent2,
       }}
     >
       <Text
@@ -52,7 +52,7 @@ export function NewBadge() {
           fontFamily: Fonts.sans700,
           fontSize: 9,
           letterSpacing: 1.4,
-          color: Colors.black,
+          color: Colors.onAccent,
           textTransform: 'uppercase',
         }}
       >

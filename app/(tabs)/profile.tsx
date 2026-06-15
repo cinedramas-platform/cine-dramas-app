@@ -183,7 +183,7 @@ export default function ProfileScreen() {
                     paddingVertical: 7,
                     paddingHorizontal: 12,
                     borderRadius: 100,
-                    backgroundColor: i < 2 ? Colors.accent : 'rgba(255,255,255,0.04)',
+                    backgroundColor: i < 2 ? Colors.accent2 : 'rgba(255,255,255,0.04)',
                     borderWidth: 1,
                     borderColor: i < 2 ? Colors.accent : Colors.hairline,
                   }}
@@ -192,7 +192,7 @@ export default function ProfileScreen() {
                     style={{
                       fontFamily: i < 2 ? Fonts.sans600 : Fonts.sans500,
                       fontSize: 12,
-                      color: i < 2 ? Colors.black : Colors.ink2,
+                      color: i < 2 ? Colors.onAccent : Colors.ink2,
                     }}
                   >
                     {t}

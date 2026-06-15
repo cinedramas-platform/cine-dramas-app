@@ -454,7 +454,7 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: Colors.accent,
+    backgroundColor: Colors.accent2,
   },
   centerPlayPause: {
     position: 'absolute',
@@ -485,14 +485,14 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     backgroundColor: 'rgba(20,17,14,0.85)',
     borderWidth: 1,
-    borderColor: 'rgba(232,197,112,0.3)',
+    borderColor: 'rgba(183,164,255,0.3)',
     zIndex: 9,
   },
   unlockIcon: {
     width: 24,
     height: 24,
     borderRadius: 24,
-    backgroundColor: 'rgba(232,197,112,0.15)',
+    backgroundColor: 'rgba(183,164,255,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -526,7 +526,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   speedOptionActive: {
-    backgroundColor: 'rgba(232,197,112,0.2)',
+    backgroundColor: 'rgba(183,164,255,0.2)',
   },
   speedOptionText: {
     fontFamily: Fonts.sans600,

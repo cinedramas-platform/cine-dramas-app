@@ -207,13 +207,13 @@ export default function RegisterScreen() {
                 style={{
                   height: 52,
                   borderRadius: Radius.pill,
-                  backgroundColor: Colors.accent,
+                  backgroundColor: Colors.accent2,
                   alignItems: 'center',
                   justifyContent: 'center',
                   opacity: 0.7,
                 }}
               >
-                <ActivityIndicator color={Colors.black} />
+                <ActivityIndicator color={Colors.onAccent} />
               </View>
             ) : (
               <Button

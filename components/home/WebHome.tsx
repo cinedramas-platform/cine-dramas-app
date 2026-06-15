@@ -84,13 +84,13 @@ export function WebHome({ featured, categories, continueWatching }: Props) {
                 style={{ width: '100%' }}
               >
                 <LinearGradient
-                  colors={['rgba(8,7,10,0.10)', 'rgba(8,7,10,0.55)', 'rgba(8,7,10,0.96)']}
+                  colors={['rgba(10,10,15,0.10)', 'rgba(10,10,15,0.55)', 'rgba(10,10,15,0.96)']}
                   locations={[0, 0.55, 1]}
                   style={{ position: 'absolute', width: '100%', height: '100%' }}
                 />
                 {/* left-anchored cinematic gradient for text legibility */}
                 <LinearGradient
-                  colors={['rgba(8,7,10,0.85)', 'transparent']}
+                  colors={['rgba(10,10,15,0.85)', 'transparent']}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
                   style={{ position: 'absolute', width: '70%', height: '100%' }}
@@ -131,7 +131,7 @@ export function WebHome({ featured, categories, continueWatching }: Props) {
                       label="Play"
                       variant="accent"
                       height={48}
-                      icon={<PlayIcon size={15} color={Colors.black} />}
+                      icon={<PlayIcon size={15} color={Colors.onAccent} />}
                       onPress={() => goSeries(hero.id)}
                     />
                     <Button
@@ -208,7 +208,7 @@ export function WebHome({ featured, categories, continueWatching }: Props) {
                   paddingVertical: 8,
                   paddingHorizontal: 16,
                   borderRadius: Radius.pill,
-                  backgroundColor: active ? Colors.accent : 'rgba(255,255,255,0.05)',
+                  backgroundColor: active ? Colors.accent2 : 'rgba(255,255,255,0.05)',
                   borderWidth: 1,
                   borderColor: active ? Colors.accent : Colors.hairline,
                 }}
@@ -218,7 +218,7 @@ export function WebHome({ featured, categories, continueWatching }: Props) {
                     fontFamily: active ? Fonts.sans600 : Fonts.sans500,
                     fontSize: 12.5,
                     letterSpacing: 0.3,
-                    color: active ? Colors.black : Colors.ink2,
+                    color: active ? Colors.onAccent : Colors.ink2,
                   }}
                 >
                   {label}
@@ -299,12 +299,12 @@ function ContinueCard({
                   width: 44,
                   height: 44,
                   borderRadius: 44,
-                  backgroundColor: hovered ? Colors.accent : 'rgba(8,7,10,0.6)',
+                  backgroundColor: hovered ? Colors.accent2 : 'rgba(10,10,15,0.6)',
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
-                <PlayIcon size={16} color={hovered ? Colors.black : '#fff'} />
+                <PlayIcon size={16} color={hovered ? Colors.onAccent : '#fff'} />
               </View>
             </View>
           }

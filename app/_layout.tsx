@@ -5,11 +5,10 @@ import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useFonts } from 'expo-font';
 import {
-  PlayfairDisplay_400Regular_Italic,
-  PlayfairDisplay_500Medium,
-  PlayfairDisplay_500Medium_Italic,
-  PlayfairDisplay_600SemiBold,
-} from '@expo-google-fonts/playfair-display';
+  PlusJakartaSans_700Bold,
+  PlusJakartaSans_700Bold_Italic,
+  PlusJakartaSans_800ExtraBold,
+} from '@expo-google-fonts/plus-jakarta-sans';
 import {
   Geist_300Light,
   Geist_400Regular,
@@ -85,10 +84,9 @@ function NavigationLayout() {
 
 function RootLayout() {
   const [fontsLoaded] = useFonts({
-    PlayfairDisplay_400Regular_Italic,
-    PlayfairDisplay_500Medium,
-    PlayfairDisplay_500Medium_Italic,
-    PlayfairDisplay_600SemiBold,
+    PlusJakartaSans_700Bold,
+    PlusJakartaSans_700Bold_Italic,
+    PlusJakartaSans_800ExtraBold,
     Geist_300Light,
     Geist_400Regular,
     Geist_500Medium,

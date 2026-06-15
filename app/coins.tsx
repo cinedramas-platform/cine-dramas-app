@@ -99,7 +99,7 @@ export default function CoinsScreen() {
                 width: 280,
                 height: 280,
                 borderRadius: 140,
-                backgroundColor: 'rgba(232,197,112,0.12)',
+                backgroundColor: 'rgba(183,164,255,0.12)',
               }}
             />
 
@@ -166,7 +166,7 @@ export default function CoinsScreen() {
               label={grantCoins.isPending ? 'Adding…' : 'Buy 500'}
               variant="accent"
               height={48}
-              icon={<PlusIcon size={16} color={Colors.black} />}
+              icon={<PlusIcon size={16} color={Colors.onAccent} />}
               style={{ flex: 1 }}
               onPress={() => grantCoins.mutate({ kind: 'purchase', pack: 'pack_500' })}
             />

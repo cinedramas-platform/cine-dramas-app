@@ -109,7 +109,7 @@ export default function OnboardingScreen() {
           style={{ position: 'absolute', width: '100%', height: '100%' }}
         />
         <LinearGradient
-          colors={['rgba(8,7,10,0.25)', 'rgba(8,7,10,0.05)', 'rgba(8,7,10,0.92)', '#08070A']}
+          colors={['rgba(10,10,15,0.25)', 'rgba(10,10,15,0.05)', 'rgba(10,10,15,0.92)', '#0A0A0F']}
           locations={[0, 0.4, 0.85, 1]}
           style={{ position: 'absolute', width: '100%', height: '100%' }}
         />
@@ -270,12 +270,12 @@ export default function OnboardingScreen() {
                         width: 22,
                         height: 22,
                         borderRadius: 22,
-                        backgroundColor: Colors.accent,
+                        backgroundColor: Colors.accent2,
                         alignItems: 'center',
                         justifyContent: 'center',
                       }}
                     >
-                      <CheckIcon size={13} color={Colors.black} />
+                      <CheckIcon size={13} color={Colors.onAccent} />
                     </View>
                   )}
                 </Pressable>
@@ -306,7 +306,7 @@ export default function OnboardingScreen() {
             variant="accent"
             block
             height={52}
-            icon={<ChevronIcon size={14} color={Colors.black} direction="right" />}
+            icon={<ChevronIcon size={14} color={Colors.onAccent} direction="right" />}
             onPress={advance}
           />
         </View>
@@ -338,9 +338,9 @@ export default function OnboardingScreen() {
             height: 80,
             borderRadius: 80,
             marginBottom: 24,
-            backgroundColor: 'rgba(232,197,112,0.12)',
+            backgroundColor: 'rgba(183,164,255,0.12)',
             borderWidth: 1,
-            borderColor: 'rgba(232,197,112,0.3)',
+            borderColor: 'rgba(183,164,255,0.3)',
             alignItems: 'center',
             justifyContent: 'center',
           }}

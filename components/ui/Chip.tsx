@@ -21,7 +21,7 @@ export function Chip({ label, accent, icon, style, ...rest }: Props) {
           borderRadius: Radius.pill,
           backgroundColor: accent ? Colors.accentTint : 'rgba(255,255,255,0.06)',
           borderWidth: 1,
-          borderColor: accent ? 'rgba(232,197,112,0.30)' : Colors.hairline,
+          borderColor: accent ? 'rgba(183,164,255,0.30)' : Colors.hairline,
         },
         style,
       ]}

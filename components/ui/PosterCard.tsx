@@ -97,7 +97,7 @@ export function PosterCard({
             height: '100%',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: 'rgba(8,7,10,0.35)',
+            backgroundColor: 'rgba(10,10,15,0.35)',
             opacity: overlay,
           }}
         >
@@ -106,12 +106,12 @@ export function PosterCard({
               width: 52,
               height: 52,
               borderRadius: 52,
-              backgroundColor: Colors.accent,
+              backgroundColor: Colors.accent2,
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <PlayIcon size={20} color={Colors.black} />
+            <PlayIcon size={20} color={Colors.onAccent} />
           </View>
         </Animated.View>
       </Animated.View>

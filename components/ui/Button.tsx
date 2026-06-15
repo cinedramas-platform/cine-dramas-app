@@ -1,5 +1,6 @@
-import { Pressable, Text, type PressableProps, type ViewStyle } from 'react-native';
-import { Colors, Fonts, Radius } from '@/constants/theme';
+import { Pressable, Text, View, type PressableProps, type ViewStyle } from 'react-native';
+import { LinearGradient } from '@/components/ui/LinearGradient';
+import { Colors, Fonts, Gradients, Radius } from '@/constants/theme';
 
 type Variant = 'primary' | 'accent' | 'ghost';
 
@@ -11,12 +12,6 @@ type Props = PressableProps & {
   height?: number;
 };
 
-const variantStyles: Record<Variant, { bg: string; text: string; border?: string }> = {
-  primary: { bg: Colors.ink, text: Colors.black },
-  accent: { bg: Colors.accent, text: Colors.black },
-  ghost: { bg: 'rgba(255,255,255,0.08)', text: Colors.ink, border: Colors.hairline },
-};
-
 export function Button({
   label,
   variant = 'primary',
@@ -26,7 +21,11 @@ export function Button({
   style,
   ...rest
 }: Props) {
-  const v = variantStyles[variant];
+  // accent → brand gradient fill with white content; primary → solid ink with
+  // dark text; ghost → translucent fill.
+  const isAccent = variant === 'accent';
+  const textColor = variant === 'primary' ? Colors.bg : isAccent ? Colors.onAccent : Colors.ink;
+
   return (
     <Pressable
       {...rest}
@@ -39,22 +38,36 @@ export function Button({
           height,
           paddingHorizontal: 20,
           borderRadius: Radius.pill,
-          backgroundColor: v.bg,
-          borderWidth: v.border ? 1 : 0,
-          borderColor: v.border,
-          opacity: pressed ? 0.85 : 1,
+          overflow: 'hidden',
+          backgroundColor:
+            variant === 'primary'
+              ? Colors.ink
+              : isAccent
+                ? Colors.accent2
+                : 'rgba(255,255,255,0.08)',
+          borderWidth: variant === 'ghost' ? 1 : 0,
+          borderColor: Colors.hairline,
+          opacity: pressed ? 0.9 : 1,
           ...(block ? { width: '100%' } : {}),
         } as ViewStyle,
         typeof style === 'function' ? undefined : (style as ViewStyle),
       ]}
     >
-      {icon}
+      {isAccent && (
+        <LinearGradient
+          colors={Gradients.brand}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{ position: 'absolute', left: 0, top: 0, right: 0, bottom: 0 }}
+        />
+      )}
+      {icon != null && <View>{icon}</View>}
       <Text
         style={{
           fontFamily: Fonts.sans600,
           fontSize: 15,
           letterSpacing: -0.15,
-          color: v.text,
+          color: textColor,
         }}
       >
         {label}

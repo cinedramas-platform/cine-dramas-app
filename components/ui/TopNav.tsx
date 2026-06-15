@@ -1,6 +1,6 @@
 // Desktop-web navigation bar. Replaces the bottom tab bar on wide viewports —
 // brand wordmark left, section links center, coin badge right.
-import { Pressable, Text, View } from 'react-native';
+import { Platform, Pressable, Text, View, type ViewStyle } from 'react-native';
 import { usePathname, useRouter } from 'expo-router';
 import { Colors, Fonts } from '@/constants/theme';
 import { CoinBadge } from '@/components/ui/CoinBadge';
@@ -26,14 +26,25 @@ export function TopNav() {
 
   return (
     <View
-      style={{
-        width: '100%',
-        alignItems: 'center',
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.hairline,
-        backgroundColor: Colors.bg,
-        zIndex: 50,
-      }}
+      style={[
+        {
+          width: '100%',
+          alignItems: 'center',
+          borderBottomWidth: 1,
+          borderBottomColor: Colors.glassBorder,
+          backgroundColor: 'rgba(10,10,15,0.62)',
+          zIndex: 50,
+        },
+        // Frosted, sticky bar — content scrolls under it (liquid glass).
+        Platform.OS === 'web'
+          ? ({
+              position: 'sticky',
+              top: 0,
+              backdropFilter: 'blur(20px) saturate(140%)',
+              WebkitBackdropFilter: 'blur(20px) saturate(140%)',
+            } as unknown as ViewStyle)
+          : null,
+      ]}
     >
       <View
         style={{

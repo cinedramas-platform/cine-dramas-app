@@ -266,7 +266,7 @@ export default function SeriesDetailScreen() {
               variant="accent"
               block
               height={52}
-              icon={<PlayIcon size={15} color={Colors.black} />}
+              icon={<PlayIcon size={15} color={Colors.onAccent} />}
               onPress={() => ctaEp && handlePlayEpisode(ctaEp.id)}
             />
           </View>
@@ -306,12 +306,12 @@ export default function SeriesDetailScreen() {
                   padding: 12,
                   borderRadius: Radius.lg,
                   borderWidth: 1,
-                  borderColor: 'rgba(232,197,112,0.25)',
+                  borderColor: 'rgba(183,164,255,0.25)',
                   overflow: 'hidden',
                 }}
               >
                 <LinearGradient
-                  colors={['rgba(232,197,112,0.10)', 'rgba(232,197,112,0.02)']}
+                  colors={['rgba(183,164,255,0.10)', 'rgba(183,164,255,0.02)']}
                   style={{ position: 'absolute', width: '100%', height: '100%', left: 0, top: 0 }}
                 />
                 <View
@@ -354,13 +354,13 @@ export default function SeriesDetailScreen() {
                     borderRadius: 22,
                     backgroundColor: 'rgba(0,0,0,0.5)',
                     borderWidth: 1,
-                    borderColor: 'rgba(232,197,112,0.20)',
+                    borderColor: 'rgba(183,164,255,0.20)',
                     overflow: 'hidden',
                     justifyContent: 'center',
                   }}
                 >
                   <LinearGradient
-                    colors={['rgba(232,197,112,0.18)', 'rgba(232,197,112,0.0)']}
+                    colors={['rgba(183,164,255,0.18)', 'rgba(183,164,255,0.0)']}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 0.6, y: 0 }}
                     style={{
@@ -378,12 +378,12 @@ export default function SeriesDetailScreen() {
                       width: 38,
                       height: 38,
                       borderRadius: 38,
-                      backgroundColor: Colors.accent,
+                      backgroundColor: Colors.accent2,
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
                   >
-                    <ChevronIcon size={16} color={Colors.black} direction="right" />
+                    <ChevronIcon size={16} color={Colors.onAccent} direction="right" />
                   </View>
                   <Text
                     style={{
@@ -485,12 +485,12 @@ export default function SeriesDetailScreen() {
                           width: 16,
                           height: 16,
                           borderRadius: 16,
-                          backgroundColor: Colors.accent,
+                          backgroundColor: Colors.accent2,
                           alignItems: 'center',
                           justifyContent: 'center',
                         }}
                       >
-                        <PlayIcon size={8} color={Colors.black} />
+                        <PlayIcon size={8} color={Colors.onAccent} />
                       </View>
                     )}
                   </Pressable>

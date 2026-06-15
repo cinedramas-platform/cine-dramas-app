@@ -65,7 +65,7 @@ export default function PaywallScreen() {
             style={{ width: '100%' }}
           >
             <LinearGradient
-              colors={['rgba(0,0,0,0.3)', 'transparent', 'rgba(8,7,10,0.95)']}
+              colors={['rgba(0,0,0,0.3)', 'transparent', 'rgba(10,10,15,0.95)']}
               locations={[0, 0.4, 0.95]}
               style={{ position: 'absolute', width: '100%', height: '100%' }}
             />
@@ -158,7 +158,7 @@ export default function PaywallScreen() {
             borderTopWidth: 1,
             borderBottomWidth: 1,
             borderColor: Colors.hairline,
-            backgroundColor: 'rgba(232,197,112,0.04)',
+            backgroundColor: 'rgba(183,164,255,0.04)',
           }}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -213,7 +213,7 @@ export default function PaywallScreen() {
               }}
             >
               <LinearGradient
-                colors={['rgba(232,197,112,0.14)', 'rgba(232,197,112,0.04)']}
+                colors={['rgba(183,164,255,0.14)', 'rgba(183,164,255,0.04)']}
                 style={{
                   position: 'absolute',
                   width: '100%',
@@ -357,7 +357,7 @@ export default function PaywallScreen() {
             variant="accent"
             block
             height={52}
-            icon={<PlayIcon size={14} color={Colors.black} />}
+            icon={<PlayIcon size={14} color={Colors.onAccent} />}
             onPress={() =>
               Alert.alert(
                 'VIP is almost here',

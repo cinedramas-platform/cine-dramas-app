@@ -130,14 +130,14 @@ export default function HomeScreen() {
                       paddingVertical: 4,
                       paddingHorizontal: 9,
                       borderRadius: 100,
-                      backgroundColor: Colors.accent,
+                      backgroundColor: Colors.accent2,
                     }}
                   >
                     <Text
                       style={{
                         fontFamily: Fonts.displayItalic,
                         fontSize: 14,
-                        color: Colors.black,
+                        color: Colors.onAccent,
                         marginRight: -1,
                       }}
                     >
@@ -148,7 +148,7 @@ export default function HomeScreen() {
                         fontFamily: Fonts.sans700,
                         fontSize: 10,
                         letterSpacing: 1.4,
-                        color: Colors.black,
+                        color: Colors.onAccent,
                       }}
                     >
                       IP
@@ -197,7 +197,7 @@ export default function HomeScreen() {
                         width: 6,
                         height: 6,
                         borderRadius: 6,
-                        backgroundColor: Colors.accent,
+                        backgroundColor: Colors.accent2,
                       }}
                     />
                     <Eyebrow color={Colors.accent}>Now Playing on the Cover</Eyebrow>
@@ -246,7 +246,7 @@ export default function HomeScreen() {
                       label="Episode 01"
                       variant="accent"
                       height={44}
-                      icon={<PlayIcon size={14} color={Colors.black} />}
+                      icon={<PlayIcon size={14} color={Colors.onAccent} />}
                       onPress={() => goToSeries(hero.id)}
                     />
                     <Button
