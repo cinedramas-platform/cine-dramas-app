@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Dimensions,
   type LayoutChangeEvent,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -237,7 +238,14 @@ const FeedItem = memo<FeedItemProps>(function FeedItem({
         videoTitle={episode.title}
         videoId={episode.id}
       />
-      {isActive && (
+      {/* Web uses the native <mux-player> control bar; the custom phone overlay
+          would double the controls and swallow clicks, so on web we render only
+          a back button. Native keeps the full TikTok-style overlay. */}
+      {isActive && Platform.OS === 'web' ? (
+        <Pressable style={styles.backButton} onPress={() => router.back()} hitSlop={10}>
+          <ChevronIcon size={16} color="#fff" direction="left" />
+        </Pressable>
+      ) : isActive ? (
         <PlayerOverlay
           title={episode.title}
           seriesName={episode.seriesName}
@@ -251,7 +259,7 @@ const FeedItem = memo<FeedItemProps>(function FeedItem({
           rate={playbackRate}
           onBack={() => router.back()}
         />
-      )}
+      ) : null}
     </View>
   );
 });

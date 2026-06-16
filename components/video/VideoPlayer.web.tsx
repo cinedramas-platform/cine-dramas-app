@@ -1,12 +1,32 @@
-// Web implementation of VideoPlayer. Same props + ref contract as the native
-// version (react-native-video has no web support). Playback = plain <video>
-// driven by hls.js (Safari plays HLS natively). Deliberately NOT mux-player:
-// its custom-element base class breaks under Metro's class-field transpilation
-// ("Cannot set property observedAttributes ... which has only a getter").
+// Web implementation of VideoPlayer. Renders the official Mux <mux-player> web
+// component — full web control bar (scrub, volume, fullscreen, PiP, keyboard) +
+// built-in HLS + Mux Data. The element is loaded at runtime from CDN in
+// lib/webShell.ts (NOT bundled), which sidesteps the class-field transpilation
+// that crashes @mux/mux-player-react under Metro. Same props/ref contract as the
+// native player.
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
 import { View } from 'react-native';
-import Hls from 'hls.js';
+import Constants from 'expo-constants';
 import type { OnLoadData, OnProgressData } from 'react-native-video';
+
+// React 19's automatic JSX runtime resolves intrinsics from React.JSX.
+declare module 'react' {
+  namespace JSX {
+    interface IntrinsicElements {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      'mux-player': any;
+    }
+  }
+}
+
+type MuxEl = HTMLElement & {
+  play: () => Promise<void> | void;
+  pause: () => void;
+  currentTime: number;
+  muted: boolean;
+  playbackRate: number;
+  duration: number;
+};
 
 export type VideoPlayerRef = {
   play: () => void;
@@ -31,6 +51,8 @@ export type VideoPlayerProps = {
   videoId?: string;
 };
 
+const muxEnvKey = (Constants.expoConfig?.extra?.muxEnvKey as string) || '';
+
 export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(function VideoPlayer(
   {
     playbackId,
@@ -43,19 +65,20 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(function
     onEnd,
     onLoad,
     onReady,
+    videoTitle,
+    videoId,
   },
   ref,
 ) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const hlsRef = useRef<Hls | null>(null);
+  const elRef = useRef<MuxEl | null>(null);
 
   useImperativeHandle(ref, () => ({
-    play: () => void videoRef.current?.play().catch(() => {}),
-    pause: () => videoRef.current?.pause(),
+    play: () => void elRef.current?.play(),
+    pause: () => elRef.current?.pause(),
     seek: (time: number) => {
-      if (videoRef.current) videoRef.current.currentTime = time;
+      if (elRef.current) elRef.current.currentTime = time;
     },
-    getCurrentPosition: () => Promise.resolve(videoRef.current?.currentTime ?? 0),
+    getCurrentPosition: () => Promise.resolve(elRef.current?.currentTime ?? 0),
   }));
 
   const src = useMemo(() => {
@@ -64,79 +87,90 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(function
     return token ? `${base}?token=${token}` : base;
   }, [streamUrl, playbackId, token]);
 
-  // Attach the HLS source. Safari plays HLS natively; everywhere else hls.js
-  // feeds MediaSource.
+  // Declarative attributes (setAttribute survives the custom-element upgrade, so
+  // this works whether or not the CDN module has loaded yet).
   useEffect(() => {
-    const video = videoRef.current;
-    if (!video || !src) return;
+    const el = elRef.current;
+    if (!el) return;
+    el.setAttribute('src', src);
+    el.setAttribute('stream-type', 'on-demand');
+    el.setAttribute('playsinline', '');
+    if (videoTitle) el.setAttribute('metadata-video-title', videoTitle);
+    if (videoId || playbackId) el.setAttribute('metadata-video-id', videoId || playbackId);
+    if (muxEnvKey) el.setAttribute('env-key', muxEnvKey);
+  }, [src, videoTitle, videoId, playbackId]);
 
-    if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      video.src = src;
-    } else if (Hls.isSupported()) {
-      const hls = new Hls();
-      hlsRef.current = hls;
-      hls.loadSource(src);
-      hls.attachMedia(video);
-    }
-
-    return () => {
-      hlsRef.current?.destroy();
-      hlsRef.current = null;
-    };
-  }, [src]);
-
-  // Browsers gate play() behind autoplay policy — fall back to muted playback;
-  // the user's first tap (play toggle) is a gesture and unblocks sound.
+  // Media events → the same callbacks the native player fires.
   useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-    if (paused) {
-      video.pause();
-    } else {
-      void video.play().catch(() => {
-        video.muted = true;
-        void video.play().catch(() => {});
+    const el = elRef.current;
+    if (!el) return;
+    const onTime = () =>
+      onProgress?.({
+        currentTime: el.currentTime,
+        playableDuration: el.duration || 0,
+        seekableDuration: el.duration || 0,
       });
-    }
+    const onMeta = () => {
+      onLoad?.({
+        currentTime: el.currentTime,
+        duration: el.duration || 0,
+        naturalSize: { width: 0, height: 0, orientation: 'portrait' },
+        audioTracks: [],
+        textTracks: [],
+      } as unknown as OnLoadData);
+      onReady?.();
+    };
+    const onEnded = () => onEnd?.();
+    el.addEventListener('timeupdate', onTime);
+    el.addEventListener('loadedmetadata', onMeta);
+    el.addEventListener('ended', onEnded);
+    return () => {
+      el.removeEventListener('timeupdate', onTime);
+      el.removeEventListener('loadedmetadata', onMeta);
+      el.removeEventListener('ended', onEnded);
+    };
+  }, [onProgress, onLoad, onReady, onEnd]);
+
+  // Drive play/pause once the element has upgraded (methods exist after the CDN
+  // module defines the custom element). Autoplay policy → retry muted.
+  useEffect(() => {
+    let cancelled = false;
+    const run = () => {
+      const el = elRef.current;
+      if (!el || cancelled) return;
+      if (paused) {
+        el.pause();
+      } else {
+        const p = el.play();
+        if (p && typeof (p as Promise<void>).catch === 'function') {
+          (p as Promise<void>).catch(() => {
+            el.muted = true;
+            void el.play();
+          });
+        }
+      }
+    };
+    const wd = (globalThis as { customElements?: CustomElementRegistry }).customElements;
+    if (wd?.whenDefined) wd.whenDefined('mux-player').then(run);
+    else run();
+    return () => {
+      cancelled = true;
+    };
   }, [paused, src]);
 
   useEffect(() => {
-    const video = videoRef.current;
-    if (video) video.muted = muted;
+    const el = elRef.current;
+    if (el) el.muted = muted;
   }, [muted]);
 
   useEffect(() => {
-    const video = videoRef.current;
-    if (video && !paused) video.playbackRate = rate;
+    const el = elRef.current;
+    if (el && !paused) el.playbackRate = rate;
   }, [rate, paused]);
 
   return (
     <View style={{ flex: 1, backgroundColor: '#000' }} pointerEvents="box-none">
-      <video
-        ref={videoRef}
-        playsInline
-        style={{ width: '100%', height: '100%', objectFit: 'contain', backgroundColor: '#000' }}
-        onTimeUpdate={(e) => {
-          const el = e.currentTarget;
-          onProgress?.({
-            currentTime: el.currentTime,
-            playableDuration: el.duration || 0,
-            seekableDuration: el.duration || 0,
-          });
-        }}
-        onLoadedMetadata={(e) => {
-          const el = e.currentTarget;
-          onLoad?.({
-            currentTime: el.currentTime,
-            duration: el.duration || 0,
-            naturalSize: { width: el.videoWidth, height: el.videoHeight, orientation: 'portrait' },
-            audioTracks: [],
-            textTracks: [],
-          } as unknown as OnLoadData);
-          onReady?.();
-        }}
-        onEnded={() => onEnd?.()}
-      />
+      <mux-player ref={elRef} style={{ width: '100%', height: '100%', display: 'block' }} />
     </View>
   );
 });

@@ -28,4 +28,27 @@ if (Platform.OS === 'web' && typeof document !== 'undefined') {
     }
   `;
   document.head.appendChild(style);
+
+  // Load the Mux web player as a native custom element from CDN. Loading it at
+  // runtime (not via Metro/bundler) sidesteps the class-field transpilation that
+  // crashes @mux/mux-player-react under Metro. <mux-player> then upgrades in
+  // place wherever VideoPlayer.web renders it, giving the full web control bar.
+  if (!document.querySelector('script[data-mux-player]')) {
+    const s = document.createElement('script');
+    s.type = 'module';
+    s.dataset.muxPlayer = '1';
+    s.src = 'https://cdn.jsdelivr.net/npm/@mux/mux-player@3';
+    document.head.appendChild(s);
+  }
+  // Brand the player chrome (accent scrubber/affordances).
+  const muxCss = document.createElement('style');
+  muxCss.textContent = `
+    mux-player {
+      --media-primary-color: #F4F5FA;
+      --media-accent-color: #7C5CFF;
+      --media-control-background: rgba(10,10,15,0.4);
+      width: 100%; height: 100%;
+    }
+  `;
+  document.head.appendChild(muxCss);
 }
