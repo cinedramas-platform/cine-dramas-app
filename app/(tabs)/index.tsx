@@ -10,7 +10,7 @@ import { CineStill } from '@/components/ui/CineStill';
 import { Button } from '@/components/ui/Button';
 import { PlayIcon, ChevronIcon } from '@/components/ui/Icon';
 import { CoinBadge } from '@/components/ui/CoinBadge';
-import { SkeletonRail } from '@/components/ui/Skeleton';
+import { Skeleton, SkeletonRail } from '@/components/ui/Skeleton';
 import { useFeatured } from '@/hooks/useCatalog';
 import { useContinueWatching } from '@/hooks/useWatchProgress';
 import { useWallet } from '@/hooks/useWallet';
@@ -43,6 +43,30 @@ export default function HomeScreen() {
   );
 
   if (isLoading) {
+    // Desktop: hero band + poster-grid shimmer (not the phone rails).
+    if (desktop) {
+      const cardW = Math.floor((Math.min(SCREEN_W, 1320) - 48 * 2 - 16 * 4) / 5);
+      return (
+        <View style={{ flex: 1, backgroundColor: Colors.bg, alignItems: 'center' }}>
+          <View style={{ width: '100%', maxWidth: 1320, paddingHorizontal: 48, paddingTop: 24 }}>
+            <Skeleton width="100%" height={Math.min(560, SCREEN_W * 0.42)} radius={Radius.xl} />
+            <View style={{ height: 28 }} />
+            <Skeleton width={220} height={26} radius={8} />
+            <View style={{ height: 18 }} />
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16 }}>
+              {Array.from({ length: 10 }).map((_, i) => (
+                <Skeleton
+                  key={i}
+                  width={cardW}
+                  height={Math.round(cardW * 1.5)}
+                  radius={Radius.lg}
+                />
+              ))}
+            </View>
+          </View>
+        </View>
+      );
+    }
     return (
       <View style={{ flex: 1, backgroundColor: Colors.bg, paddingTop: insets.top + 56 }}>
         <SkeletonRail count={3} cardWidth={SCREEN_W * 0.7} />

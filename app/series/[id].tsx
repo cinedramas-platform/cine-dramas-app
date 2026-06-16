@@ -3,7 +3,7 @@ import { View, Text, Pressable, ScrollView } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from '@/components/ui/LinearGradient';
-import { Colors, Fonts, Radius } from '@/constants/theme';
+import { Colors, Fonts, Radius, displayType } from '@/constants/theme';
 import { Eyebrow } from '@/components/ui/Eyebrow';
 import { Poster } from '@/components/ui/Poster';
 import { CineStill } from '@/components/ui/CineStill';
@@ -20,12 +20,205 @@ import { WebContent, useContentWidth, useIsDesktopWeb } from '@/lib/layout';
 const GRID_GAP = 8;
 const GRID_PAD = 20;
 
+// Hoisted to module scope (a component declared inside the screen body gets a
+// fresh type each render → React remounts the whole grid). Shared by the mobile
+// single-column layout and the desktop two-column layout.
+function EpisodeGrid({
+  episodes,
+  itemW,
+  gap,
+  isLocked,
+  onPlay,
+  onUnlock,
+}: {
+  episodes: Episode[];
+  itemW: number;
+  gap: number;
+  isLocked: (ep: Episode) => boolean;
+  onPlay: (id: string) => void;
+  onUnlock: (ep: Episode) => void;
+}) {
+  return (
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap }}>
+      {episodes.map((ep) => {
+        const isPlayable = ep.mux_playback_id && ep.mux_asset_status === 'ready';
+        const locked = isLocked(ep);
+        return (
+          <Pressable
+            key={ep.id}
+            onPress={() => (locked ? onUnlock(ep) : isPlayable && onPlay(ep.id))}
+            style={{
+              width: itemW,
+              aspectRatio: 9 / 14,
+              borderRadius: 6,
+              overflow: 'hidden',
+              position: 'relative',
+            }}
+          >
+            <Poster
+              playbackId={ep.mux_playback_id ?? undefined}
+              width={itemW}
+              height={itemW * (14 / 9)}
+              borderRadius={6}
+              showTitle={false}
+              style={{ width: '100%', height: '100%' }}
+            />
+            <View
+              style={{
+                position: 'absolute',
+                width: '100%',
+                height: '100%',
+                backgroundColor: locked ? 'rgba(0,0,0,0.55)' : 'rgba(0,0,0,0.15)',
+              }}
+            />
+            <Text
+              style={{
+                position: 'absolute',
+                top: 4,
+                left: 5,
+                fontFamily: Fonts.mono,
+                fontSize: 9,
+                fontWeight: '600',
+                color: '#fff',
+                letterSpacing: 0.4,
+              }}
+            >
+              {episodeCode(ep.order)}
+            </Text>
+            {locked && (
+              <View style={{ position: 'absolute', bottom: 6, right: 6 }}>
+                <LockIcon size={10} color={Colors.coin} />
+              </View>
+            )}
+            {!locked && isPlayable && (
+              <View
+                style={{
+                  position: 'absolute',
+                  bottom: 6,
+                  right: 6,
+                  width: 16,
+                  height: 16,
+                  borderRadius: 16,
+                  backgroundColor: Colors.accent2,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <PlayIcon size={8} color={Colors.onAccent} />
+              </View>
+            )}
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+function SlideToUnlock({ ep, onPress }: { ep: Episode; onPress: () => void }) {
+  return (
+    <Pressable onPress={onPress}>
+      <View
+        style={{
+          padding: 12,
+          borderRadius: Radius.lg,
+          borderWidth: 1,
+          borderColor: 'rgba(183,164,255,0.25)',
+          overflow: 'hidden',
+        }}
+      >
+        <LinearGradient
+          colors={['rgba(183,164,255,0.10)', 'rgba(183,164,255,0.02)']}
+          style={{ position: 'absolute', width: '100%', height: '100%', left: 0, top: 0 }}
+        />
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: 10,
+          }}
+        >
+          <View style={{ gap: 2 }}>
+            <Eyebrow color={Colors.accent}>
+              UP NEXT · EP {String(ep.order).padStart(2, '0')}
+            </Eyebrow>
+            <Text style={{ fontFamily: Fonts.sans600, fontSize: 13, color: Colors.ink }}>
+              {ep.title}
+            </Text>
+          </View>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 4,
+              paddingVertical: 4,
+              paddingHorizontal: 8,
+              borderRadius: 100,
+              backgroundColor: 'rgba(0,0,0,0.4)',
+            }}
+          >
+            <CoinIcon size={11} />
+            <Text style={{ fontFamily: Fonts.sans600, fontSize: 11, color: Colors.coin }}>
+              {ep.coin_cost}
+            </Text>
+          </View>
+        </View>
+        <View
+          style={{
+            height: 44,
+            borderRadius: 22,
+            backgroundColor: 'rgba(0,0,0,0.5)',
+            borderWidth: 1,
+            borderColor: 'rgba(183,164,255,0.20)',
+            overflow: 'hidden',
+            justifyContent: 'center',
+          }}
+        >
+          <LinearGradient
+            colors={['rgba(183,164,255,0.18)', 'rgba(183,164,255,0.0)']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0.6, y: 0 }}
+            style={{ position: 'absolute', width: '100%', height: '100%', borderRadius: 22 }}
+          />
+          <View
+            style={{
+              position: 'absolute',
+              top: 3,
+              left: 3,
+              width: 38,
+              height: 38,
+              borderRadius: 38,
+              backgroundColor: Colors.accent2,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <ChevronIcon size={16} color={Colors.onAccent} direction="right" />
+          </View>
+          <Text
+            style={{
+              fontFamily: Fonts.sans500,
+              fontSize: 12,
+              color: Colors.accent,
+              letterSpacing: 0.8,
+              textAlign: 'center',
+              paddingLeft: 24,
+            }}
+          >
+            Slide to unlock with coins
+          </Text>
+        </View>
+      </View>
+    </Pressable>
+  );
+}
+
 export default function SeriesDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const desktop = useIsDesktopWeb();
-  const SCREEN_W = useContentWidth(900);
+  const SCREEN_W = useContentWidth(1100);
   const GRID_COLS = desktop ? 6 : 4;
   const GRID_ITEM_W = (SCREEN_W - GRID_PAD * 2 - GRID_GAP * (GRID_COLS - 1)) / GRID_COLS;
   const { data: series, isLoading, error } = useSeriesDetail(id);
@@ -110,11 +303,27 @@ export default function SeriesDetailScreen() {
           backgroundColor: Colors.bg,
           justifyContent: 'center',
           alignItems: 'center',
+          paddingHorizontal: 32,
+          gap: 8,
         }}
       >
-        <Text style={{ fontFamily: Fonts.sans, fontSize: 16, color: '#ff4444' }}>
-          Failed to load series
+        <Text style={{ ...displayType(26), color: Colors.ink, textAlign: 'center' }}>
+          We couldn’t load this title
         </Text>
+        <Text
+          style={{
+            fontFamily: Fonts.sans,
+            fontSize: 13,
+            color: Colors.ink3,
+            textAlign: 'center',
+            lineHeight: 20,
+            maxWidth: 320,
+          }}
+        >
+          Check your connection and try again.
+        </Text>
+        <View style={{ height: 12 }} />
+        <Button label="Go back" variant="accent" height={46} onPress={() => router.back()} />
       </View>
     );
   }
@@ -125,10 +334,176 @@ export default function SeriesDetailScreen() {
   const totalEpisodes = seasons.reduce((sum, s) => sum + (s.episodes?.length ?? 0), 0);
   const nextLockedEp = episodes.find((e) => isLocked(e));
 
+  // Desktop web: a true two-column detail page (Netflix/ReelShort feel) — a tall
+  // poster + meta + CTA pinned left, the synopsis and episode grid right. The
+  // phone layout (single scroll column) is left untouched below.
+  if (desktop) {
+    const POSTER_W = 360;
+    const RIGHT_GAP = 12;
+    const RIGHT_COLS = 5;
+    const rightW = Math.min(SCREEN_W, 1180) - POSTER_W - 56;
+    const itemW = (rightW - RIGHT_GAP * (RIGHT_COLS - 1)) / RIGHT_COLS;
+    return (
+      <View style={{ flex: 1, backgroundColor: Colors.bg }}>
+        <ScrollView style={{ flex: 1 }}>
+          <WebContent max={1180}>
+            <View style={{ flexDirection: 'row', gap: 56, paddingTop: 36, paddingBottom: 72 }}>
+              {/* LEFT — poster, meta, CTA (sticky) */}
+              <View
+                style={
+                  {
+                    width: POSTER_W,
+                    gap: 18,
+                    position: 'sticky' as never,
+                    top: 88,
+                    alignSelf: 'flex-start',
+                  } as never
+                }
+              >
+                <View style={{ borderRadius: Radius.xl, overflow: 'hidden' }}>
+                  <CineStill
+                    imageUrl={series.poster_url ?? undefined}
+                    playbackId={series.thumbnail_playback_id ?? undefined}
+                    width={POSTER_W}
+                    height={Math.round(POSTER_W * 1.4)}
+                    borderRadius={Radius.xl}
+                    style={{ width: '100%' }}
+                  />
+                </View>
+                <Button
+                  label={ctaLabel}
+                  variant="accent"
+                  block
+                  height={52}
+                  icon={<PlayIcon size={15} color={Colors.onAccent} />}
+                  onPress={() => ctaEp && handlePlayEpisode(ctaEp.id)}
+                />
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    paddingVertical: 14,
+                    borderTopWidth: 1,
+                    borderBottomWidth: 1,
+                    borderColor: Colors.hairline,
+                  }}
+                >
+                  {[
+                    { label: 'Episodes', value: String(totalEpisodes) },
+                    { label: 'Seasons', value: String(seasons.length) },
+                    { label: 'Category', value: series.category },
+                  ].map((m) => (
+                    <View key={m.label} style={{ gap: 3 }}>
+                      <Text
+                        style={{
+                          fontFamily: Fonts.sans500,
+                          fontSize: 9,
+                          letterSpacing: 1.6,
+                          textTransform: 'uppercase',
+                          color: Colors.ink3,
+                        }}
+                      >
+                        {m.label}
+                      </Text>
+                      <Text style={{ fontFamily: Fonts.display, fontSize: 18, color: Colors.ink }}>
+                        {m.value}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+                {nextLockedEp && (
+                  <SlideToUnlock
+                    ep={nextLockedEp}
+                    onPress={() => handleUnlockEpisode(nextLockedEp)}
+                  />
+                )}
+              </View>
+
+              {/* RIGHT — title, synopsis, episode grid */}
+              <View style={{ flex: 1, gap: 4 }}>
+                <Pressable
+                  onPress={() => router.back()}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 }}
+                >
+                  <ChevronIcon size={14} color={Colors.ink3} direction="left" />
+                  <Text style={{ fontFamily: Fonts.sans500, fontSize: 12.5, color: Colors.ink3 }}>
+                    Back
+                  </Text>
+                </Pressable>
+                <Eyebrow color={Colors.accent}>
+                  {series.tags?.length
+                    ? series.tags.join(' · ').toUpperCase()
+                    : series.category?.toUpperCase()}
+                </Eyebrow>
+                <Text
+                  style={{ ...displayType(48), color: Colors.ink, letterSpacing: -1 }}
+                  numberOfLines={3}
+                >
+                  {series.title}
+                </Text>
+                {series.description && (
+                  <Text
+                    style={{
+                      fontFamily: Fonts.sans,
+                      fontSize: 15,
+                      lineHeight: 24,
+                      color: Colors.ink2,
+                      maxWidth: 620,
+                      marginTop: 10,
+                    }}
+                  >
+                    {series.description}
+                  </Text>
+                )}
+
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    justifyContent: 'space-between',
+                    alignItems: 'baseline',
+                    marginTop: 28,
+                    marginBottom: 14,
+                    borderBottomWidth: 1,
+                    borderBottomColor: Colors.hairline,
+                    paddingBottom: 12,
+                  }}
+                >
+                  <Text style={{ ...displayType(22), color: Colors.ink }}>Episodes</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
+                    <Eyebrow>
+                      Season {String(activeSeason?.number ?? 1).padStart(2, '0')} ·{' '}
+                      {episodes.length} of {totalEpisodes}
+                    </Eyebrow>
+                    {seasons.length > 1 && (
+                      <Pressable
+                        onPress={() => setSelectedSeasonIndex((i) => (i + 1) % seasons.length)}
+                      >
+                        <Eyebrow color={Colors.accent}>Seasons ▾</Eyebrow>
+                      </Pressable>
+                    )}
+                  </View>
+                </View>
+
+                <EpisodeGrid
+                  episodes={episodes}
+                  itemW={itemW}
+                  gap={RIGHT_GAP}
+                  isLocked={isLocked}
+                  onPlay={handlePlayEpisode}
+                  onUnlock={handleUnlockEpisode}
+                />
+              </View>
+            </View>
+          </WebContent>
+        </ScrollView>
+      </View>
+    );
+  }
+
   return (
     <View style={{ flex: 1, backgroundColor: Colors.bg, paddingTop: insets.top }}>
       <ScrollView style={{ flex: 1 }}>
-        <WebContent max={900}>
+        <WebContent max={1100}>
           {/* Masthead */}
           <View
             style={{
@@ -297,109 +672,9 @@ export default function SeriesDetailScreen() {
 
           {/* Slide-to-unlock prompt */}
           {nextLockedEp && (
-            <Pressable
-              onPress={() => handleUnlockEpisode(nextLockedEp)}
-              style={{ paddingHorizontal: 20, paddingTop: 14, paddingBottom: 8 }}
-            >
-              <View
-                style={{
-                  padding: 12,
-                  borderRadius: Radius.lg,
-                  borderWidth: 1,
-                  borderColor: 'rgba(183,164,255,0.25)',
-                  overflow: 'hidden',
-                }}
-              >
-                <LinearGradient
-                  colors={['rgba(183,164,255,0.10)', 'rgba(183,164,255,0.02)']}
-                  style={{ position: 'absolute', width: '100%', height: '100%', left: 0, top: 0 }}
-                />
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    marginBottom: 10,
-                  }}
-                >
-                  <View style={{ gap: 2 }}>
-                    <Eyebrow color={Colors.accent}>
-                      UP NEXT · EP {String(nextLockedEp.order).padStart(2, '0')}
-                    </Eyebrow>
-                    <Text style={{ fontFamily: Fonts.sans600, fontSize: 13, color: Colors.ink }}>
-                      {nextLockedEp.title}
-                    </Text>
-                  </View>
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      gap: 4,
-                      paddingVertical: 4,
-                      paddingHorizontal: 8,
-                      borderRadius: 100,
-                      backgroundColor: 'rgba(0,0,0,0.4)',
-                    }}
-                  >
-                    <CoinIcon size={11} />
-                    <Text style={{ fontFamily: Fonts.sans600, fontSize: 11, color: Colors.coin }}>
-                      {nextLockedEp.coin_cost}
-                    </Text>
-                  </View>
-                </View>
-                {/* Slider rail */}
-                <View
-                  style={{
-                    height: 44,
-                    borderRadius: 22,
-                    backgroundColor: 'rgba(0,0,0,0.5)',
-                    borderWidth: 1,
-                    borderColor: 'rgba(183,164,255,0.20)',
-                    overflow: 'hidden',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <LinearGradient
-                    colors={['rgba(183,164,255,0.18)', 'rgba(183,164,255,0.0)']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 0.6, y: 0 }}
-                    style={{
-                      position: 'absolute',
-                      width: '100%',
-                      height: '100%',
-                      borderRadius: 22,
-                    }}
-                  />
-                  <View
-                    style={{
-                      position: 'absolute',
-                      top: 3,
-                      left: 3,
-                      width: 38,
-                      height: 38,
-                      borderRadius: 38,
-                      backgroundColor: Colors.accent2,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <ChevronIcon size={16} color={Colors.onAccent} direction="right" />
-                  </View>
-                  <Text
-                    style={{
-                      fontFamily: Fonts.sans500,
-                      fontSize: 12,
-                      color: Colors.accent,
-                      letterSpacing: 0.8,
-                      textAlign: 'center',
-                      paddingLeft: 24,
-                    }}
-                  >
-                    Slide to unlock with coins
-                  </Text>
-                </View>
-              </View>
-            </Pressable>
+            <View style={{ paddingHorizontal: 20, paddingTop: 14, paddingBottom: 8 }}>
+              <SlideToUnlock ep={nextLockedEp} onPress={() => handleUnlockEpisode(nextLockedEp)} />
+            </View>
           )}
 
           {/* Season selector + Episode grid */}
@@ -423,80 +698,14 @@ export default function SeriesDetailScreen() {
               )}
             </View>
 
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: GRID_GAP }}>
-              {episodes.map((ep: Episode) => {
-                const isPlayable = ep.mux_playback_id && ep.mux_asset_status === 'ready';
-                const locked = isLocked(ep);
-                return (
-                  <Pressable
-                    key={ep.id}
-                    onPress={() =>
-                      locked ? handleUnlockEpisode(ep) : isPlayable && handlePlayEpisode(ep.id)
-                    }
-                    style={{
-                      width: GRID_ITEM_W,
-                      aspectRatio: 9 / 14,
-                      borderRadius: 6,
-                      overflow: 'hidden',
-                      position: 'relative',
-                    }}
-                  >
-                    <Poster
-                      playbackId={ep.mux_playback_id ?? undefined}
-                      width={GRID_ITEM_W}
-                      height={GRID_ITEM_W * (14 / 9)}
-                      borderRadius={6}
-                      showTitle={false}
-                      style={{ width: '100%', height: '100%' }}
-                    />
-                    <View
-                      style={{
-                        position: 'absolute',
-                        width: '100%',
-                        height: '100%',
-                        backgroundColor: locked ? 'rgba(0,0,0,0.55)' : 'rgba(0,0,0,0.15)',
-                      }}
-                    />
-                    <Text
-                      style={{
-                        position: 'absolute',
-                        top: 4,
-                        left: 5,
-                        fontFamily: Fonts.mono,
-                        fontSize: 9,
-                        fontWeight: '600',
-                        color: '#fff',
-                        letterSpacing: 0.4,
-                      }}
-                    >
-                      {episodeCode(ep.order)}
-                    </Text>
-                    {locked && (
-                      <View style={{ position: 'absolute', bottom: 6, right: 6 }}>
-                        <LockIcon size={10} color={Colors.coin} />
-                      </View>
-                    )}
-                    {!locked && isPlayable && (
-                      <View
-                        style={{
-                          position: 'absolute',
-                          bottom: 6,
-                          right: 6,
-                          width: 16,
-                          height: 16,
-                          borderRadius: 16,
-                          backgroundColor: Colors.accent2,
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        <PlayIcon size={8} color={Colors.onAccent} />
-                      </View>
-                    )}
-                  </Pressable>
-                );
-              })}
-            </View>
+            <EpisodeGrid
+              episodes={episodes}
+              itemW={GRID_ITEM_W}
+              gap={GRID_GAP}
+              isLocked={isLocked}
+              onPlay={handlePlayEpisode}
+              onUnlock={handleUnlockEpisode}
+            />
           </View>
 
           <View style={{ height: 40 }} />

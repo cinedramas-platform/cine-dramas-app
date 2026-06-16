@@ -14,6 +14,7 @@ import { Eyebrow } from '@/components/ui/Eyebrow';
 import { PlayIcon } from '@/components/ui/Icon';
 import { Colors, Fonts, Radius, displayType } from '@/constants/theme';
 import { CONTENT_MAX } from '@/lib/layout';
+import { useSeriesDetail } from '@/hooks/useCatalog';
 import type { Series } from '@/types/catalog';
 import type { WatchProgress } from '@/types/progress';
 
@@ -46,6 +47,20 @@ export function WebHome({ featured, categories, continueWatching }: Props) {
   const goPlayer = (episodeId: string) => router.push(`/player/${episodeId}`);
 
   const hero = featured[0];
+  // Featured payload carries no episodes (Series, not SeriesDetail), so we fetch
+  // the hero's detail to enable a real "play episode 1" deep-link. The query is
+  // cached/persisted, so opening the detail page later is instant.
+  const { data: heroDetail } = useSeriesDetail(hero?.id ?? '');
+  // Hero "Play" jumps straight into the first ready episode; falls back to the
+  // detail page until the detail query resolves (or if nothing is playable).
+  const heroPlay = () => {
+    if (!hero) return;
+    const ep = (heroDetail?.seasons ?? [])
+      .flatMap((s) => s.episodes ?? [])
+      .find((e) => e.mux_playback_id && e.mux_asset_status === 'ready');
+    if (ep) router.push({ pathname: `/player/${ep.id}`, params: { seriesId: hero.id } });
+    else goSeries(hero.id);
+  };
 
   // Full catalog, de-duped, from the category buckets (every published series).
   const allSeries = useMemo(() => {
@@ -75,10 +90,9 @@ export function WebHome({ featured, categories, continueWatching }: Props) {
       {/* Cinematic hero */}
       {hero && (
         <View style={{ width: '100%', alignItems: 'center', paddingTop: 24, paddingBottom: 40 }}>
-          <Pressable
-            onPress={() => goSeries(hero.id)}
-            style={{ width: '100%', maxWidth: CONTENT_MAX, paddingHorizontal: 48 }}
-          >
+          {/* Plain View, not a Pressable — the explicit Play / More info buttons
+              own navigation (a wrapping Pressable would bubble + override them). */}
+          <View style={{ width: '100%', maxWidth: CONTENT_MAX, paddingHorizontal: 48 }}>
             <View style={{ borderRadius: Radius.xl, overflow: 'hidden' }}>
               <CineStill
                 imageUrl={hero.poster_url ?? undefined}
@@ -137,7 +151,7 @@ export function WebHome({ featured, categories, continueWatching }: Props) {
                       variant="accent"
                       height={48}
                       icon={<PlayIcon size={15} color={Colors.onAccent} />}
-                      onPress={() => goSeries(hero.id)}
+                      onPress={heroPlay}
                     />
                     <Button
                       label="More info"
@@ -149,7 +163,7 @@ export function WebHome({ featured, categories, continueWatching }: Props) {
                 </View>
               </CineStill>
             </View>
-          </Pressable>
+          </View>
         </View>
       )}
 
@@ -234,11 +248,20 @@ export function WebHome({ featured, categories, continueWatching }: Props) {
         </ScrollView>
 
         {/* Poster grid */}
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap }}>
-          {grid.map((s) => (
-            <PosterCard key={s.id} series={s} width={cardW} onPress={() => goSeries(s.id)} />
-          ))}
-        </View>
+        {grid.length > 0 ? (
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap }}>
+            {grid.map((s) => (
+              <PosterCard key={s.id} series={s} width={cardW} onPress={() => goSeries(s.id)} />
+            ))}
+          </View>
+        ) : (
+          <View style={{ paddingVertical: 64, alignItems: 'center', gap: 6 }}>
+            <Text style={{ ...displayType(22), color: Colors.ink }}>Nothing here yet</Text>
+            <Text style={{ fontFamily: Fonts.sans, fontSize: 13, color: Colors.ink3 }}>
+              No {activeGenre.toLowerCase()} titles — try another genre.
+            </Text>
+          </View>
+        )}
       </Centered>
     </View>
   );

@@ -1,5 +1,6 @@
 // Desktop-web navigation bar. Replaces the bottom tab bar on wide viewports —
 // brand wordmark left, section links center, coin badge right.
+import { useState } from 'react';
 import { Platform, Pressable, Text, View, type ViewStyle } from 'react-native';
 import { usePathname, useRouter } from 'expo-router';
 import { Colors, Fonts } from '@/constants/theme';
@@ -14,6 +15,36 @@ const LINKS = [
   { id: 'feed', label: 'Feed', route: '/(tabs)/feed' },
   { id: 'profile', label: 'Account', route: '/(tabs)/profile' },
 ] as const;
+
+function NavLink({
+  label,
+  active,
+  onPress,
+}: {
+  label: string;
+  active: boolean;
+  onPress: () => void;
+}) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <Pressable
+      onPress={onPress}
+      onHoverIn={() => setHovered(true)}
+      onHoverOut={() => setHovered(false)}
+    >
+      <Text
+        style={{
+          fontFamily: active ? Fonts.sans600 : Fonts.sans500,
+          fontSize: 13,
+          letterSpacing: 0.3,
+          color: active ? Colors.accent : hovered ? Colors.ink : Colors.ink2,
+        }}
+      >
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
 
 export function TopNav() {
   const router = useRouter();
@@ -71,23 +102,14 @@ export function TopNav() {
         </Pressable>
 
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 28 }}>
-          {LINKS.map((link) => {
-            const active = link.id === activeId;
-            return (
-              <Pressable key={link.id} onPress={() => router.push(link.route as never)}>
-                <Text
-                  style={{
-                    fontFamily: active ? Fonts.sans600 : Fonts.sans500,
-                    fontSize: 13,
-                    letterSpacing: 0.3,
-                    color: active ? Colors.accent : Colors.ink2,
-                  }}
-                >
-                  {link.label}
-                </Text>
-              </Pressable>
-            );
-          })}
+          {LINKS.map((link) => (
+            <NavLink
+              key={link.id}
+              label={link.label}
+              active={link.id === activeId}
+              onPress={() => router.push(link.route as never)}
+            />
+          ))}
         </View>
 
         <CoinBadge total={wallet?.total ?? 0} />
