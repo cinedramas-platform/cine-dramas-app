@@ -44,6 +44,8 @@ export type VerticalFeedProps = {
    * fight the stage's aspect-driven resizing.
    */
   single?: boolean;
+  /** Fired when the active episode finishes (desktop auto-advance). */
+  onEnded?: () => void;
 };
 
 type FeedItemProps = {
@@ -51,6 +53,7 @@ type FeedItemProps = {
   isActive: boolean;
   isLoaded: boolean;
   itemHeight: number;
+  onEnded?: () => void;
 };
 
 const FeedItem = memo<FeedItemProps>(function FeedItem({
@@ -58,6 +61,7 @@ const FeedItem = memo<FeedItemProps>(function FeedItem({
   isActive,
   isLoaded,
   itemHeight,
+  onEnded,
 }) {
   const playerRef = useRef<VideoPlayerRef>(null);
   const [paused, setPaused] = useState(false);
@@ -235,6 +239,7 @@ const FeedItem = memo<FeedItemProps>(function FeedItem({
         rate={playbackRate}
         onProgress={handleProgress}
         onLoad={handleVideoLoad}
+        onEnd={onEnded}
         videoTitle={episode.title}
         videoId={episode.id}
       />
@@ -268,7 +273,12 @@ const viewabilityConfig = {
   itemVisiblePercentThreshold: 50,
 };
 
-export function VerticalFeed({ episodes, onEpisodeChange, single = false }: VerticalFeedProps) {
+export function VerticalFeed({
+  episodes,
+  onEpisodeChange,
+  single = false,
+  onEnded,
+}: VerticalFeedProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [containerHeight, setContainerHeight] = useState(SCREEN_HEIGHT);
   const onEpisodeChangeRef = useRef(onEpisodeChange);
@@ -316,7 +326,13 @@ export function VerticalFeed({ episodes, onEpisodeChange, single = false }: Vert
   if (single) {
     return (
       <View style={styles.feed} onLayout={handleLayout}>
-        <FeedItem episode={episodes[0]} isActive isLoaded itemHeight={containerHeight} />
+        <FeedItem
+          episode={episodes[0]}
+          isActive
+          isLoaded
+          itemHeight={containerHeight}
+          onEnded={onEnded}
+        />
       </View>
     );
   }
