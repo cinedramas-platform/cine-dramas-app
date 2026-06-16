@@ -47,6 +47,8 @@ if (Platform.OS === 'web' && typeof document !== 'undefined') {
       --media-primary-color: #F4F5FA;
       --media-accent-color: #7C5CFF;
       --media-control-background: rgba(10,10,15,0.4);
+      /* Never crop the frame — fit the whole video, letterbox the rest. */
+      --media-object-fit: contain;
       width: 100%; height: 100%;
     }
   `;

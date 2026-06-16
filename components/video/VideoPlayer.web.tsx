@@ -28,6 +28,23 @@ type MuxEl = HTMLElement & {
   duration: number;
 };
 
+// mux-player nests the real <video> several shadow roots deep. Walk light +
+// shadow children to find it so we can read its true dimensions (drives the
+// aspect-aware stage on desktop web).
+function findVideo(node: Element | null): HTMLVideoElement | null {
+  if (!node) return null;
+  if ((node as HTMLElement).tagName === 'VIDEO') return node as HTMLVideoElement;
+  const roots: Element[] = [];
+  const sr = (node as HTMLElement).shadowRoot;
+  if (sr) roots.push(...(Array.from(sr.children) as Element[]));
+  roots.push(...(Array.from(node.children) as Element[]));
+  for (const child of roots) {
+    const found = findVideo(child);
+    if (found) return found;
+  }
+  return null;
+}
+
 export type VideoPlayerRef = {
   play: () => void;
   pause: () => void;
@@ -110,11 +127,18 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(function
         playableDuration: el.duration || 0,
         seekableDuration: el.duration || 0,
       });
-    const onMeta = () => {
+    // Report the real frame size so the desktop stage can fit the format
+    // (landscape episodes get a wide stage instead of the portrait reel).
+    const reportLoad = () => {
+      const v = findVideo(el);
       onLoad?.({
         currentTime: el.currentTime,
         duration: el.duration || 0,
-        naturalSize: { width: 0, height: 0, orientation: 'portrait' },
+        naturalSize: {
+          width: v?.videoWidth ?? 0,
+          height: v?.videoHeight ?? 0,
+          orientation: (v?.videoWidth ?? 0) > (v?.videoHeight ?? 0) ? 'landscape' : 'portrait',
+        },
         audioTracks: [],
         textTracks: [],
       } as unknown as OnLoadData);
@@ -122,11 +146,15 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>(function
     };
     const onEnded = () => onEnd?.();
     el.addEventListener('timeupdate', onTime);
-    el.addEventListener('loadedmetadata', onMeta);
+    el.addEventListener('loadedmetadata', reportLoad);
+    // 'resize' fires when dimensions become known (often after loadedmetadata
+    // for HLS) — re-report so a late-resolved aspect still reaches the stage.
+    el.addEventListener('resize', reportLoad);
     el.addEventListener('ended', onEnded);
     return () => {
       el.removeEventListener('timeupdate', onTime);
-      el.removeEventListener('loadedmetadata', onMeta);
+      el.removeEventListener('loadedmetadata', reportLoad);
+      el.removeEventListener('resize', reportLoad);
       el.removeEventListener('ended', onEnded);
     };
   }, [onProgress, onLoad, onReady, onEnd]);
