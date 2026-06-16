@@ -66,6 +66,9 @@ export function Poster({
           source={{ uri: thumbnailUri }}
           style={{ position: 'absolute', width: '100%', height: '100%' }}
           contentFit="cover"
+          transition={220}
+          cachePolicy="memory-disk"
+          recyclingKey={thumbnailUri}
         />
       ) : (
         <LinearGradient

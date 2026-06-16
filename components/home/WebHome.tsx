@@ -23,6 +23,19 @@ type Props = {
   continueWatching?: WatchProgress[];
 };
 
+// Hoisted (NOT defined inside WebHome) — a component declared in render gets a
+// new type each render and React remounts its whole subtree (scroll reset,
+// image reflash). Module-scope keeps the tree stable.
+function Centered({ children }: { children: React.ReactNode }) {
+  return (
+    <View style={{ width: '100%', alignItems: 'center' }}>
+      <View style={{ width: '100%', maxWidth: CONTENT_MAX, paddingHorizontal: 48 }}>
+        {children}
+      </View>
+    </View>
+  );
+}
+
 export function WebHome({ featured, categories, continueWatching }: Props) {
   const router = useRouter();
   const { width: winW } = useWindowDimensions();
@@ -56,14 +69,6 @@ export function WebHome({ featured, categories, continueWatching }: Props) {
   const cols = winW >= 1600 ? 6 : winW >= 1280 ? 5 : 4;
   const gap = 16;
   const cardW = Math.floor((contentW - gap * (cols - 1)) / cols);
-
-  const Centered = ({ children }: { children: React.ReactNode }) => (
-    <View style={{ width: '100%', alignItems: 'center' }}>
-      <View style={{ width: '100%', maxWidth: CONTENT_MAX, paddingHorizontal: 48 }}>
-        {children}
-      </View>
-    </View>
-  );
 
   return (
     <View style={{ paddingBottom: 64 }}>

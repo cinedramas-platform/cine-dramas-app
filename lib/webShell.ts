@@ -22,6 +22,8 @@ if (Platform.OS === 'web' && typeof document !== 'undefined') {
     #root ::-webkit-scrollbar { width: 0; height: 0; }
     /* Brand-tinted text selection. */
     ::selection { background: rgba(124,92,255,0.40); color: #F4F5FA; }
+    /* Keyboard focus ring (mouse clicks stay clean via :focus-visible). */
+    :focus-visible { outline: 2px solid #7C5CFF; outline-offset: 2px; border-radius: 6px; }
     /* Respect reduced motion: drop hover/scale transitions. */
     @media (prefers-reduced-motion: reduce) {
       * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }

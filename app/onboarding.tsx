@@ -27,6 +27,36 @@ const MOODS = [
   { id: 'revenge', label: 'Revenge', palette: ['#10060A', '#4B0B17'] as [string, string] },
 ];
 
+/**
+ * Shared scroll shell — hoisted to module scope. (A component defined inside the
+ * screen body gets a new type each render and remounts its subtree, resetting
+ * scroll position and mood selection on every keystroke.) Content centers in
+ * COLUMN_MAX, fills tall screens so the footer pins to the bottom, and scrolls
+ * on short ones (mobile-browser address bar) instead of clipping.
+ */
+function Shell({
+  insets,
+  children,
+}: {
+  insets: { top: number; bottom: number };
+  children: React.ReactNode;
+}) {
+  return (
+    <ScrollView
+      style={{ flex: 1, backgroundColor: Colors.bg }}
+      contentContainerStyle={{
+        flexGrow: 1,
+        paddingTop: insets.top,
+        paddingBottom: insets.bottom + 16,
+        alignItems: 'center',
+      }}
+      showsVerticalScrollIndicator={false}
+    >
+      <View style={{ flex: 1, width: '100%', maxWidth: COLUMN_MAX }}>{children}</View>
+    </ScrollView>
+  );
+}
+
 /** Slim 3-segment progress bar for the taste/notifications steps. */
 function Progress({ step }: { step: number }) {
   return (
@@ -76,24 +106,6 @@ export default function OnboardingScreen() {
       return next;
     });
   }, []);
-
-  // Shared scroll shell: content centers in COLUMN_MAX, fills tall screens (so
-  // the footer pins to the bottom), and scrolls on short ones (mobile browser
-  // address bar, small windows) instead of clipping — the core a11y fix.
-  const Shell = ({ children }: { children: React.ReactNode }) => (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: Colors.bg }}
-      contentContainerStyle={{
-        flexGrow: 1,
-        paddingTop: insets.top,
-        paddingBottom: insets.bottom + 16,
-        alignItems: 'center',
-      }}
-      showsVerticalScrollIndicator={false}
-    >
-      <View style={{ flex: 1, width: '100%', maxWidth: COLUMN_MAX }}>{children}</View>
-    </ScrollView>
-  );
 
   // ---- Step 0: cinematic welcome ----
   if (step === 0) {
@@ -194,7 +206,7 @@ export default function OnboardingScreen() {
   // ---- Step 1: taste / mood grid ----
   if (step === 1) {
     return (
-      <Shell>
+      <Shell insets={insets}>
         <View
           style={{
             flexDirection: 'row',
@@ -316,7 +328,7 @@ export default function OnboardingScreen() {
 
   // ---- Step 2: notifications ----
   return (
-    <Shell>
+    <Shell insets={insets}>
       <View
         style={{
           flexDirection: 'row',
