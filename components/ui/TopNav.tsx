@@ -5,7 +5,7 @@ import { Platform, Pressable, Text, View, type ViewStyle } from 'react-native';
 import { usePathname, useRouter } from 'expo-router';
 import { Colors, Fonts } from '@/constants/theme';
 import { CoinBadge } from '@/components/ui/CoinBadge';
-import { CONTENT_MAX } from '@/lib/layout';
+import { CONTENT_MAX, useWebGutter, useIsWideWeb } from '@/lib/layout';
 import { APP_NAME } from '@/lib/brand';
 import { useWallet } from '@/hooks/useWallet';
 
@@ -31,17 +31,33 @@ function NavLink({
       onPress={onPress}
       onHoverIn={() => setHovered(true)}
       onHoverOut={() => setHovered(false)}
+      style={{ alignItems: 'center', gap: 6, paddingVertical: 4 }}
     >
       <Text
         style={{
           fontFamily: active ? Fonts.sans600 : Fonts.sans500,
           fontSize: 13,
           letterSpacing: 0.3,
-          color: active ? Colors.accent : hovered ? Colors.ink : Colors.ink2,
+          color: active ? Colors.ink : hovered ? Colors.ink : Colors.ink2,
+          ...(Platform.OS === 'web'
+            ? ({ transition: 'color 160ms ease' } as unknown as object)
+            : null),
         }}
       >
         {label}
       </Text>
+      {/* Active/hover underline — the classic web-nav affordance. */}
+      <View
+        style={{
+          height: 2,
+          width: active ? 18 : hovered ? 12 : 0,
+          borderRadius: 2,
+          backgroundColor: active ? Colors.accent : Colors.ink3,
+          ...(Platform.OS === 'web'
+            ? ({ transition: 'width 180ms ease' } as unknown as object)
+            : null),
+        }}
+      />
     </Pressable>
   );
 }
@@ -50,6 +66,8 @@ export function TopNav() {
   const router = useRouter();
   const pathname = usePathname();
   const { data: wallet } = useWallet();
+  const gutter = useWebGutter();
+  const wide = useIsWideWeb();
 
   const activeId =
     LINKS.find((l) => (l.id === 'index' ? pathname === '/' : pathname.includes(l.id)))?.id ??
@@ -84,7 +102,7 @@ export function TopNav() {
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
-          paddingHorizontal: 24,
+          paddingHorizontal: gutter,
           height: 64,
         }}
       >
@@ -101,7 +119,7 @@ export function TopNav() {
           </Text>
         </Pressable>
 
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 28 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: wide ? 28 : 20 }}>
           {LINKS.map((link) => (
             <NavLink
               key={link.id}

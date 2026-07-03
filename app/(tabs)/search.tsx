@@ -11,7 +11,7 @@ import { CineStill } from '@/components/ui/CineStill';
 import { SearchIcon, ChevronIcon, CloseIcon } from '@/components/ui/Icon';
 import { useSearch, useFeatured } from '@/hooks/useCatalog';
 import type { Series } from '@/types/catalog';
-import { WebContent, useContentWidth, useIsDesktopWeb } from '@/lib/layout';
+import { WebContent, useContentWidth, useIsDesktopWeb, useGridColumns } from '@/lib/layout';
 
 const MOOD_GAP = 10;
 
@@ -65,6 +65,7 @@ export default function SearchScreen() {
   const insets = useSafeAreaInsets();
   const desktop = useIsDesktopWeb();
   const SCREEN_W = useContentWidth();
+  const resultCols = useGridColumns(180);
   const moodCols = desktop ? 3 : 2;
   const MOOD_W = (SCREEN_W - 40 - MOOD_GAP * (moodCols - 1)) / moodCols;
   const [query, setQuery] = useState('');
@@ -128,7 +129,7 @@ export default function SearchScreen() {
                       <PosterCard
                         key={s.id}
                         series={s}
-                        width={Math.floor((SCREEN_W - 40 - 16 * 4) / 5)}
+                        width={Math.floor((SCREEN_W - 40 - 16 * (resultCols - 1)) / resultCols)}
                         onPress={() => router.push(`/series/${s.id}`)}
                       />
                     ))}

@@ -15,7 +15,7 @@ import { useSeriesDetail } from '@/hooks/useCatalog';
 import { useWallet } from '@/hooks/useWallet';
 import { useContinueWatching } from '@/hooks/useWatchProgress';
 import type { Episode } from '@/types/catalog';
-import { WebContent, useContentWidth, useIsDesktopWeb } from '@/lib/layout';
+import { WebContent, useContentWidth, useIsDesktopWeb, useIsWideWeb, useWebGutter } from '@/lib/layout';
 
 const GRID_GAP = 8;
 const GRID_PAD = 20;
@@ -218,6 +218,8 @@ export default function SeriesDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const desktop = useIsDesktopWeb();
+  const wide = useIsWideWeb();
+  const gutter = useWebGutter();
   const SCREEN_W = useContentWidth(1100);
   const GRID_COLS = desktop ? 6 : 4;
   const GRID_ITEM_W = (SCREEN_W - GRID_PAD * 2 - GRID_GAP * (GRID_COLS - 1)) / GRID_COLS;
@@ -338,16 +340,25 @@ export default function SeriesDetailScreen() {
   // poster + meta + CTA pinned left, the synopsis and episode grid right. The
   // phone layout (single scroll column) is left untouched below.
   if (desktop) {
-    const POSTER_W = 360;
+    const POSTER_W = wide ? 360 : 300;
+    const COL_GAP = wide ? 56 : 36;
     const RIGHT_GAP = 12;
-    const RIGHT_COLS = 5;
-    const rightW = Math.min(SCREEN_W, 1180) - POSTER_W - 56;
+    const RIGHT_COLS = wide ? 5 : 4;
+    const rightW = SCREEN_W - POSTER_W - COL_GAP;
     const itemW = (rightW - RIGHT_GAP * (RIGHT_COLS - 1)) / RIGHT_COLS;
     return (
       <View style={{ flex: 1, backgroundColor: Colors.bg }}>
         <ScrollView style={{ flex: 1 }}>
           <WebContent max={1180}>
-            <View style={{ flexDirection: 'row', gap: 56, paddingTop: 36, paddingBottom: 72 }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                gap: COL_GAP,
+                paddingHorizontal: gutter,
+                paddingTop: 36,
+                paddingBottom: 72,
+              }}
+            >
               {/* LEFT — poster, meta, CTA (sticky) */}
               <View
                 style={

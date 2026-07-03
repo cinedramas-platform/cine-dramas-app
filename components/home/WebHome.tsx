@@ -13,7 +13,8 @@ import { Button } from '@/components/ui/Button';
 import { Eyebrow } from '@/components/ui/Eyebrow';
 import { PlayIcon } from '@/components/ui/Icon';
 import { Colors, Fonts, Radius, displayType } from '@/constants/theme';
-import { CONTENT_MAX } from '@/lib/layout';
+import { CONTENT_MAX, useWebGutter } from '@/lib/layout';
+import { WebFooter } from '@/components/ui/WebFooter';
 import { useSeriesDetail } from '@/hooks/useCatalog';
 import type { Series } from '@/types/catalog';
 import type { WatchProgress } from '@/types/progress';
@@ -28,9 +29,10 @@ type Props = {
 // new type each render and React remounts its whole subtree (scroll reset,
 // image reflash). Module-scope keeps the tree stable.
 function Centered({ children }: { children: React.ReactNode }) {
+  const gutter = useWebGutter();
   return (
     <View style={{ width: '100%', alignItems: 'center' }}>
-      <View style={{ width: '100%', maxWidth: CONTENT_MAX, paddingHorizontal: 48 }}>
+      <View style={{ width: '100%', maxWidth: CONTENT_MAX, paddingHorizontal: gutter }}>
         {children}
       </View>
     </View>
@@ -40,9 +42,10 @@ function Centered({ children }: { children: React.ReactNode }) {
 export function WebHome({ featured, categories, continueWatching }: Props) {
   const router = useRouter();
   const { width: winW } = useWindowDimensions();
+  const gutter = useWebGutter();
   const [activeGenre, setActiveGenre] = useState<string>('All');
 
-  const contentW = Math.min(winW - 96, CONTENT_MAX);
+  const contentW = Math.min(winW - 2 * gutter, CONTENT_MAX);
   const goSeries = (id: string) => router.push(`/series/${id}`);
   const goPlayer = (episodeId: string) => router.push(`/player/${episodeId}`);
 
@@ -80,8 +83,8 @@ export function WebHome({ featured, categories, continueWatching }: Props) {
   const genres = useMemo(() => ['All', ...Object.keys(categories)], [categories]);
   const grid = activeGenre === 'All' ? allSeries : (categories[activeGenre] ?? []);
 
-  // Netflix-portal density: up to 6 columns on wide screens.
-  const cols = winW >= 1600 ? 6 : winW >= 1280 ? 5 : 4;
+  // Netflix-portal density: 3 columns on tablet up to 6 on the widest screens.
+  const cols = winW >= 1600 ? 6 : winW >= 1280 ? 5 : winW >= 1024 ? 4 : 3;
   const gap = 16;
   const cardW = Math.floor((contentW - gap * (cols - 1)) / cols);
 
@@ -92,7 +95,7 @@ export function WebHome({ featured, categories, continueWatching }: Props) {
         <View style={{ width: '100%', alignItems: 'center', paddingTop: 24, paddingBottom: 40 }}>
           {/* Plain View, not a Pressable — the explicit Play / More info buttons
               own navigation (a wrapping Pressable would bubble + override them). */}
-          <View style={{ width: '100%', maxWidth: CONTENT_MAX, paddingHorizontal: 48 }}>
+          <View style={{ width: '100%', maxWidth: CONTENT_MAX, paddingHorizontal: gutter }}>
             <View style={{ borderRadius: Radius.xl, overflow: 'hidden' }}>
               <CineStill
                 imageUrl={hero.poster_url ?? undefined}
@@ -117,8 +120,8 @@ export function WebHome({ featured, categories, continueWatching }: Props) {
                 <View
                   style={{
                     position: 'absolute',
-                    left: 48,
-                    right: 48,
+                    left: gutter,
+                    right: gutter,
                     bottom: 44,
                     maxWidth: 600,
                     gap: 16,
@@ -263,6 +266,8 @@ export function WebHome({ featured, categories, continueWatching }: Props) {
           </View>
         )}
       </Centered>
+
+      <WebFooter />
     </View>
   );
 }
