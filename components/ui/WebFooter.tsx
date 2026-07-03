@@ -92,7 +92,15 @@ export function WebFooter() {
           </View>
 
           {/* Link columns */}
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: wide ? 56 : 32, flex: 1, justifyContent: wide ? 'flex-end' : 'flex-start' }}>
+          <View
+            style={{
+              flexDirection: 'row',
+              flexWrap: 'wrap',
+              gap: wide ? 56 : 32,
+              flex: 1,
+              justifyContent: wide ? 'flex-end' : 'flex-start',
+            }}
+          >
             {COLUMNS.map((col) => (
               <View key={col.heading} style={{ gap: 12, minWidth: 110 }}>
                 <Text

@@ -15,7 +15,13 @@ import { useSeriesDetail } from '@/hooks/useCatalog';
 import { useWallet } from '@/hooks/useWallet';
 import { useContinueWatching } from '@/hooks/useWatchProgress';
 import type { Episode } from '@/types/catalog';
-import { WebContent, useContentWidth, useIsDesktopWeb, useIsWideWeb, useWebGutter } from '@/lib/layout';
+import {
+  WebContent,
+  useContentWidth,
+  useIsDesktopWeb,
+  useIsWideWeb,
+  useWebGutter,
+} from '@/lib/layout';
 
 const GRID_GAP = 8;
 const GRID_PAD = 20;

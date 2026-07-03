@@ -15,7 +15,13 @@ import { useFeatured } from '@/hooks/useCatalog';
 import { useContinueWatching } from '@/hooks/useWatchProgress';
 import { useWallet } from '@/hooks/useWallet';
 import { APP_NAME } from '@/lib/brand';
-import { WebContent, useContentWidth, useIsDesktopWeb, useGridColumns, useWebGutter } from '@/lib/layout';
+import {
+  WebContent,
+  useContentWidth,
+  useIsDesktopWeb,
+  useGridColumns,
+  useWebGutter,
+} from '@/lib/layout';
 import { WebHome } from '@/components/home/WebHome';
 import type { Series } from '@/types/catalog';
 import type { WatchProgress } from '@/types/progress';
@@ -50,7 +56,9 @@ export default function HomeScreen() {
       const cardW = Math.floor((SCREEN_W - 16 * (gridCols - 1)) / gridCols);
       return (
         <View style={{ flex: 1, backgroundColor: Colors.bg, alignItems: 'center' }}>
-          <View style={{ width: '100%', maxWidth: 1320, paddingHorizontal: gutter, paddingTop: 24 }}>
+          <View
+            style={{ width: '100%', maxWidth: 1320, paddingHorizontal: gutter, paddingTop: 24 }}
+          >
             <Skeleton width="100%" height={Math.min(560, SCREEN_W * 0.42)} radius={Radius.xl} />
             <View style={{ height: 28 }} />
             <Skeleton width={220} height={26} radius={8} />
