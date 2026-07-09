@@ -21,6 +21,29 @@ export default function EditEpisodeModal({
   const [coinCost, setCoinCost] = useState(episode.coin_cost);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  // Episodes that never went live (failed or stuck uploads) can be removed;
+  // anything 'ready' may have been purchased and stays.
+  const deletable =
+    episode.mux_asset_status === 'pending' || episode.mux_asset_status === 'errored';
+
+  async function onDelete() {
+    if (!confirmDelete) {
+      setConfirmDelete(true);
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    try {
+      await catalogAdmin({ action: 'delete-episode', episodeId: episode.id });
+      onSaved();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Delete failed.');
+      setBusy(false);
+      setConfirmDelete(false);
+    }
+  }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -102,6 +125,20 @@ export default function EditEpisodeModal({
           </div>
         )}
         <div className="flex justify-end gap-3 pt-2">
+          {deletable && (
+            <button
+              type="button"
+              onClick={onDelete}
+              disabled={busy}
+              className={`mr-auto rounded-md px-4 py-2 text-sm disabled:opacity-40 ${
+                confirmDelete
+                  ? 'bg-red-900 text-white'
+                  : 'border border-red-900/60 text-red-400 hover:bg-red-950/40'
+              }`}
+            >
+              {confirmDelete ? 'Confirm delete' : 'Delete draft'}
+            </button>
+          )}
           <button
             type="button"
             onClick={onClose}

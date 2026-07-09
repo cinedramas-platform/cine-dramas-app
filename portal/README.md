@@ -15,9 +15,11 @@ bundle. It shares only the backend (Supabase + RLS + edge functions + Mux).
   draft episode, uploads straight from the browser to Mux, and the episode goes
   live in the consumer app automatically when Mux finishes encoding
   (`webhooks-mux` handles `video.asset.created` → `video.asset.ready`).
-- **Analytics** — catalog counts plus audience metrics (views and watch time,
-  overall and per episode) proxied from the Mux Data API by the
-  `mux-analytics` edge function.
+- **Analytics** — catalog counts, audience metrics (views and watch time,
+  overall and per episode) proxied from the Mux Data API, and coin revenue
+  (unlocks and coins earned per episode from `episode_unlocks`) — all served
+  by the `mux-analytics` edge function; the two sources degrade
+  independently.
 - **New series** — create a draft series (with Season 1) from the Content
   page, so an empty client catalog can be onboarded entirely from the portal:
   create series → upload episodes → publish.
@@ -56,10 +58,19 @@ subscribed to `video.asset.created`, `video.asset.ready`, and
 `video.asset.errored`.
 
 **Access model:** any authenticated user of the tenant can *view* the portal
-(reads go through the same RLS as the apps), but uploads are rejected
-server-side unless the account email is in `PORTAL_PRODUCER_EMAILS` (fails
-closed if unset). A proper `role` column on `users` is the planned replacement
-— coordinate as a migration.
+(reads go through the same RLS as the apps), but all writes and analytics are
+producer-gated server-side (`_shared/producer.ts`). The gate prefers
+`users.role` (`producer`/`admin`, added by migration
+`20260709150000_add_user_role.sql` — apply from `dev`) and falls back to the
+`PORTAL_PRODUCER_EMAILS` allowlist; with neither configured it fails closed.
+Promote an account with:
+
+```sql
+UPDATE public.users SET role = 'producer' WHERE email = 'producer@cineself.com';
+```
+
+Episodes that never went live (`pending`/`errored`) can be deleted from the
+edit modal; `ready` episodes can't — they may have been purchased.
 
 ## Deploying the portal
 
