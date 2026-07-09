@@ -21,7 +21,8 @@ export interface NewSeriesFields {
 type AdminAction =
   | { action: 'update-episode'; episodeId: string; fields: EpisodeFields }
   | { action: 'update-series'; seriesId: string; fields: SeriesFields }
-  | { action: 'create-series'; fields: NewSeriesFields };
+  | { action: 'create-series'; fields: NewSeriesFields }
+  | { action: 'delete-episode'; episodeId: string };
 
 /** Calls the producer-gated catalog-admin edge function. Throws with a
  *  human-readable message on failure. */
@@ -46,10 +47,23 @@ export interface AnalyticsRow {
   watchTimeMs: number;
 }
 
+export interface CoinRow {
+  title: string;
+  unlocks: number;
+  coins: number;
+}
+
 export interface AnalyticsReport {
   days: number;
-  totals: { views: number | null; watchTimeMs: number | null };
-  rows: AnalyticsRow[];
+  mux: {
+    totals: { views: number | null; watchTimeMs: number | null };
+    rows: AnalyticsRow[];
+  } | null;
+  muxError: string | null;
+  coins: {
+    totals: { unlocks: number; coins: number };
+    rows: CoinRow[];
+  };
 }
 
 /** Fetches audience metrics from the mux-analytics edge function. */

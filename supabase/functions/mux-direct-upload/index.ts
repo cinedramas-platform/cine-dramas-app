@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { handleCorsPreflightRequest } from '../_shared/cors.ts';
 import { jsonResponse, errorResponse } from '../_shared/response.ts';
 import { serve } from '../_shared/logger.ts';
+import { isProducer } from '../_shared/producer.ts';
 
 // POST /mux-direct-upload  body: { seasonId, title, description?, isFree?, coinCost? }
 //
@@ -43,13 +44,13 @@ serve('mux-direct-upload', async (req, log) => {
     return errorResponse('No tenant associated with this account', 403);
   }
 
-  // Producer gate. Viewers can hold valid sessions; only allowlisted producer
-  // accounts may create content. Fails closed when the allowlist is unset.
-  const allowlist = (Deno.env.get('PORTAL_PRODUCER_EMAILS') ?? '')
-    .split(',')
-    .map((e) => e.trim().toLowerCase())
-    .filter(Boolean);
-  if (!user.email || !allowlist.includes(user.email.toLowerCase())) {
+  const service = createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+  );
+
+  // Producer gate: users.role, with the env allowlist as fallback.
+  if (!(await isProducer(user, service))) {
     log.warn('upload rejected: not a producer account');
     return errorResponse('This account does not have producer access', 403);
   }
@@ -102,11 +103,6 @@ serve('mux-direct-upload', async (req, log) => {
   if (!season) {
     return errorResponse('Season not found', 404);
   }
-
-  const service = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-  );
 
   const { data: lastEpisode } = await service
     .from('episodes')

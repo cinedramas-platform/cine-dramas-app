@@ -2,12 +2,16 @@ import { createClient } from '@supabase/supabase-js';
 import { handleCorsPreflightRequest } from '../_shared/cors.ts';
 import { jsonResponse, errorResponse } from '../_shared/response.ts';
 import { serve } from '../_shared/logger.ts';
+import { isProducer } from '../_shared/producer.ts';
 
 // POST /catalog-admin
 //   { action: 'update-episode', episodeId, fields: { title?, description?, is_free?, coin_cost? } }
 //   { action: 'update-series',  seriesId,  fields: { status?, is_featured? } }
 //   { action: 'create-series',  fields: { title, category, description? } }
 //     → creates a draft series plus Season 1, returns { seriesId, seasonId }
+//   { action: 'delete-episode', episodeId }
+//     → only for episodes that never went live (pending/errored), so failed
+//       uploads can be cleaned up without touching purchased content
 //
 // Producer-only catalog writes for the portal. Producers are allowlisted via
 // PORTAL_PRODUCER_EMAILS (fails closed if unset) — same gate as
@@ -46,11 +50,13 @@ serve('catalog-admin', async (req, log) => {
     return errorResponse('No tenant associated with this account', 403);
   }
 
-  const allowlist = (Deno.env.get('PORTAL_PRODUCER_EMAILS') ?? '')
-    .split(',')
-    .map((e) => e.trim().toLowerCase())
-    .filter(Boolean);
-  if (!user.email || !allowlist.includes(user.email.toLowerCase())) {
+  const service = createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+  );
+
+  // Producer gate: users.role, with the env allowlist as fallback.
+  if (!(await isProducer(user, service))) {
     log.warn('catalog write rejected: not a producer account');
     return errorResponse('This account does not have producer access', 403);
   }
@@ -67,15 +73,43 @@ serve('catalog-admin', async (req, log) => {
     return errorResponse('Invalid JSON body');
   }
 
+  if (body.action === 'delete-episode') {
+    if (typeof body.episodeId !== 'string' || !body.episodeId) {
+      return errorResponse('episodeId is required');
+    }
+    const { data: episode, error: fetchError } = await service
+      .from('episodes')
+      .select('id, mux_asset_status')
+      .eq('id', body.episodeId)
+      .eq('tenant_id', tenantId)
+      .maybeSingle();
+    if (fetchError) {
+      log.error('episode fetch failed', { error: fetchError.message });
+      return errorResponse('Delete failed', 500);
+    }
+    if (!episode) {
+      return errorResponse('Episode not found', 404);
+    }
+    if (episode.mux_asset_status !== 'pending' && episode.mux_asset_status !== 'errored') {
+      return errorResponse('Only episodes that never went live can be deleted', 409);
+    }
+    const { error: deleteError } = await service
+      .from('episodes')
+      .delete()
+      .eq('id', body.episodeId)
+      .eq('tenant_id', tenantId);
+    if (deleteError) {
+      log.error('episode delete failed', { error: deleteError.message });
+      return errorResponse('Delete failed', 500);
+    }
+    log.info('episode deleted', { episode_id: body.episodeId });
+    return jsonResponse({ ok: true });
+  }
+
   const fields = body.fields;
   if (!fields || typeof fields !== 'object') {
     return errorResponse('fields is required');
   }
-
-  const service = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-  );
 
   if (body.action === 'update-episode') {
     if (typeof body.episodeId !== 'string' || !body.episodeId) {
