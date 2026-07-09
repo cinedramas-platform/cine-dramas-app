@@ -4,6 +4,7 @@ import { catalogAdmin } from '../lib/adminApi';
 import type { Episode, Series } from '../lib/types';
 import PreviewModal from '../components/PreviewModal';
 import EditEpisodeModal from '../components/EditEpisodeModal';
+import NewSeriesModal from '../components/NewSeriesModal';
 
 const STATUS_STYLES: Record<string, string> = {
   ready: 'bg-emerald-950 text-emerald-400',
@@ -42,6 +43,7 @@ export default function Catalog() {
   const [filter, setFilter] = useState<StatusFilter>('all');
   const [previewEp, setPreviewEp] = useState<Episode | null>(null);
   const [editEp, setEditEp] = useState<Episode | null>(null);
+  const [newSeriesOpen, setNewSeriesOpen] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
 
   const load = useCallback(() => {
@@ -101,9 +103,18 @@ export default function Catalog() {
     <div className="p-8 max-w-5xl">
       <div className="flex items-baseline justify-between mb-4">
         <h2 className="text-xl font-semibold">Content</h2>
-        <span className="text-sm text-neutral-500">
-          {visible.length} series · {episodeCount} episodes
-        </span>
+        <div className="flex items-center gap-4">
+          <span className="text-sm text-neutral-500">
+            {visible.length} series · {episodeCount} episodes
+          </span>
+          <button
+            onClick={() => setNewSeriesOpen(true)}
+            className="rounded-md px-3 py-1.5 text-sm font-medium text-white"
+            style={{ backgroundColor: 'var(--accent)' }}
+          >
+            + New series
+          </button>
+        </div>
       </div>
 
       <div className="flex items-center gap-3 mb-6">
@@ -269,6 +280,17 @@ export default function Catalog() {
       </div>
 
       {previewEp && <PreviewModal episode={previewEp} onClose={() => setPreviewEp(null)} />}
+      {newSeriesOpen && (
+        <NewSeriesModal
+          categories={[...new Set(series.map((s) => s.category))].sort()}
+          onClose={() => setNewSeriesOpen(false)}
+          onSaved={() => {
+            setNewSeriesOpen(false);
+            setNotice(null);
+            load();
+          }}
+        />
+      )}
       {editEp && (
         <EditEpisodeModal
           episode={editEp}

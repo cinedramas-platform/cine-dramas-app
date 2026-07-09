@@ -6,6 +6,8 @@ import { serve } from '../_shared/logger.ts';
 // POST /catalog-admin
 //   { action: 'update-episode', episodeId, fields: { title?, description?, is_free?, coin_cost? } }
 //   { action: 'update-series',  seriesId,  fields: { status?, is_featured? } }
+//   { action: 'create-series',  fields: { title, category, description? } }
+//     → creates a draft series plus Season 1, returns { seriesId, seasonId }
 //
 // Producer-only catalog writes for the portal. Producers are allowlisted via
 // PORTAL_PRODUCER_EMAILS (fails closed if unset) — same gate as
@@ -153,6 +155,47 @@ serve('catalog-admin', async (req, log) => {
     }
     log.info('series updated', { series_id: body.seriesId, fields: Object.keys(update) });
     return jsonResponse({ ok: true });
+  }
+
+  if (body.action === 'create-series') {
+    if (typeof fields.title !== 'string' || !fields.title.trim()) {
+      return errorResponse('title is required');
+    }
+    if (typeof fields.category !== 'string' || !fields.category.trim()) {
+      return errorResponse('category is required');
+    }
+    const description = typeof fields.description === 'string' ? fields.description : null;
+
+    const { data: created, error: seriesError } = await service
+      .from('series')
+      .insert({
+        tenant_id: tenantId,
+        title: fields.title.trim(),
+        description,
+        category: fields.category.trim().toLowerCase(),
+        status: 'draft',
+      })
+      .select('id')
+      .single();
+    if (seriesError || !created) {
+      log.error('series insert failed', { error: seriesError?.message });
+      return errorResponse('Could not create series', 500);
+    }
+
+    const { data: season, error: seasonError } = await service
+      .from('seasons')
+      .insert({ tenant_id: tenantId, series_id: created.id, number: 1 })
+      .select('id')
+      .single();
+    if (seasonError || !season) {
+      // Keep the catalog consistent: no series without a season to upload into.
+      await service.from('series').delete().eq('id', created.id);
+      log.error('season insert failed', { error: seasonError?.message });
+      return errorResponse('Could not create series', 500);
+    }
+
+    log.info('series created', { series_id: created.id });
+    return jsonResponse({ ok: true, seriesId: created.id, seasonId: season.id });
   }
 
   return errorResponse('Unknown action');
