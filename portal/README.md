@@ -1,9 +1,8 @@
 # Producer Portal
 
-The standalone back-office CRM for producers — served at **cinedramas.com/admin**
-(the `/admin/` base path is baked in via `vite.config.ts`). Completely separate
-from the consumer apps: no portal code ships in any app bundle. It shares only
-the backend (Supabase + RLS + edge functions + Mux).
+The standalone back-office web CRM for producers, served from its own URL.
+Completely separate from the consumer apps: no portal code ships in any app
+bundle. It shares only the backend (Supabase + RLS + edge functions + Mux).
 
 ## What it does (MVP)
 
@@ -23,7 +22,7 @@ edge function the apps use) and brands itself — tenant name + accent color.
 ```bash
 cd portal
 npm install
-npm run dev        # http://localhost:5173/admin/
+npm run dev        # http://localhost:5173/
 ```
 
 By default it points at the `cinedramas-dev` Supabase project (anon keys are
@@ -54,7 +53,7 @@ closed if unset). A proper `role` column on `users` is the planned replacement
 
 ## Deploying the portal
 
-`npm run build` produces static files in `portal/dist/` with all URLs under
-`/admin/`. Host them anywhere static (Vercel, Netlify, Cloudflare Pages, EAS
-Hosting) and route `cinedramas.com/admin/*` to it via a rewrite/proxy on
-whatever serves the apex domain.
+`npm run build` produces static files in `portal/dist/`. Host them anywhere
+static (Vercel, Netlify, Cloudflare Pages, EAS Hosting) on their own domain or
+subdomain. If it ever needs to live under a sub-path (e.g. `example.com/admin`),
+build with `PORTAL_BASE=/admin/`.
