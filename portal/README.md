@@ -6,8 +6,11 @@ bundle. It shares only the backend (Supabase + RLS + edge functions + Mux).
 
 ## What it does (MVP)
 
-- **Content** — the tenant's catalog: series, seasons, episodes with Mux asset
-  status, duration, and coin pricing. Read-only for now.
+- **Content** — the tenant's catalog: series, seasons, episodes with
+  thumbnails, Mux asset status, duration, and coin pricing. Search and status
+  filters; click an episode to watch it in-portal (public playback id via
+  hls.js). Edit episode metadata/pricing and publish/feature series through
+  the `catalog-admin` edge function.
 - **Upload** — drag-and-drop episode upload via Mux Direct Upload. Creates a
   draft episode, uploads straight from the browser to Mux, and the episode goes
   live in the consumer app automatically when Mux finishes encoding
@@ -38,6 +41,7 @@ secrets set on the Supabase project:
 supabase secrets set MUX_TOKEN_ID=... MUX_TOKEN_SECRET=...       # Mux API access token
 supabase secrets set PORTAL_PRODUCER_EMAILS=you@example.com      # comma-separated allowlist
 supabase functions deploy mux-direct-upload
+supabase functions deploy catalog-admin                          # portal edit/publish actions
 supabase functions deploy webhooks-mux                           # picks up video.asset.created
 ```
 
