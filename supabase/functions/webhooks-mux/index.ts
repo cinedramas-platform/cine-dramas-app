@@ -56,6 +56,46 @@ serve('webhooks-mux', async (req, log) => {
     return jsonResponse({ status: 'already_processed' });
   }
 
+  // Portal direct uploads: the asset's passthrough carries the episode id the
+  // upload was created for. Attach the asset here so the ready/errored events
+  // below can find the episode by mux_asset_id.
+  if (eventType === 'video.asset.created') {
+    const passthrough = typeof event.data?.passthrough === 'string' ? event.data.passthrough : null;
+    let tenantId = 'unknown';
+    let errorMessage: string | null = null;
+
+    if (passthrough) {
+      const { data: episode, error: updateError } = await supabase
+        .from('episodes')
+        .update({
+          mux_asset_id: event.data.id,
+          mux_asset_status: 'preparing',
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', passthrough)
+        .select('tenant_id')
+        .maybeSingle();
+      if (updateError) {
+        errorMessage = updateError.message;
+      } else if (episode) {
+        tenantId = episode.tenant_id as string;
+      }
+      // No matching episode is fine — assets can be created outside the portal.
+    }
+
+    await insertWebhookEvent(supabase, {
+      tenant_id: tenantId,
+      source: 'mux',
+      event_type: eventType,
+      payload: event,
+      idempotency_key: eventId,
+      processed_at: new Date().toISOString(),
+      error_message: errorMessage,
+    });
+    log.info('mux asset created', { attached: tenantId !== 'unknown' });
+    return jsonResponse({ status: errorMessage ? 'error' : 'processed' });
+  }
+
   const supportedEvents = ['video.asset.ready', 'video.asset.errored'];
   if (!supportedEvents.includes(eventType)) {
     await insertWebhookEvent(supabase, {

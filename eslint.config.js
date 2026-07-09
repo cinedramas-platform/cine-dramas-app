@@ -39,6 +39,7 @@ module.exports = defineConfig([
       '.claude/',
       '.github/skills/',
       'tools/',
+      'portal/',
     ],
   },
 ]);
