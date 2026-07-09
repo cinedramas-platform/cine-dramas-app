@@ -15,7 +15,12 @@ bundle. It shares only the backend (Supabase + RLS + edge functions + Mux).
   draft episode, uploads straight from the browser to Mux, and the episode goes
   live in the consumer app automatically when Mux finishes encoding
   (`webhooks-mux` handles `video.asset.created` → `video.asset.ready`).
-- **Analytics** — catalog counts today; Mux Data API metrics are the next step.
+- **Analytics** — catalog counts plus audience metrics (views and watch time,
+  overall and per episode) proxied from the Mux Data API by the
+  `mux-analytics` edge function.
+- **New series** — create a draft series (with Season 1) from the Content
+  page, so an empty client catalog can be onboarded entirely from the portal:
+  create series → upload episodes → publish.
 
 White-label: after login the portal fetches the tenant's config (same `config`
 edge function the apps use) and brands itself — tenant name + accent color.
@@ -41,7 +46,8 @@ secrets set on the Supabase project:
 supabase secrets set MUX_TOKEN_ID=... MUX_TOKEN_SECRET=...       # Mux API access token
 supabase secrets set PORTAL_PRODUCER_EMAILS=you@example.com      # comma-separated allowlist
 supabase functions deploy mux-direct-upload
-supabase functions deploy catalog-admin                          # portal edit/publish actions
+supabase functions deploy catalog-admin                          # portal edit/publish/create actions
+supabase functions deploy mux-analytics                          # audience metrics (Mux Data)
 supabase functions deploy webhooks-mux                           # picks up video.asset.created
 ```
 
