@@ -116,13 +116,33 @@ serve('webhooks-mux', async (req, log) => {
 
   // Multiple episodes can legitimately share a Mux asset (the demo catalog
   // reuses assets across series), so this must not assume a single row.
-  const { data: episodes, error: episodeError } = await supabase
+  let { data: episodes, error: episodeError } = await supabase
     .from('episodes')
     .select('id, tenant_id')
     .eq('mux_asset_id', assetId);
 
   if (episodeError) {
     return errorResponse('Internal error', 500);
+  }
+
+  // Mux does not guarantee event ordering: ready can arrive before the
+  // asset.created handler above has attached mux_asset_id. The asset's
+  // passthrough carries the episode id (portal uploads), so recover through
+  // it — otherwise this event would be marked processed and never retried,
+  // leaving the episode stuck in 'pending'.
+  if ((!episodes || episodes.length === 0) && typeof event.data?.passthrough === 'string') {
+    const { data: byPassthrough } = await supabase
+      .from('episodes')
+      .select('id, tenant_id')
+      .eq('id', event.data.passthrough)
+      .maybeSingle();
+    if (byPassthrough) {
+      await supabase
+        .from('episodes')
+        .update({ mux_asset_id: assetId, updated_at: new Date().toISOString() })
+        .eq('id', byPassthrough.id);
+      episodes = [byPassthrough];
+    }
   }
 
   const tenantId = episodes?.[0]?.tenant_id ?? 'unknown';

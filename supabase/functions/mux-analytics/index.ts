@@ -118,21 +118,31 @@ serve('mux-analytics', async (req, log) => {
   if (!muxTokenId || !muxTokenSecret) {
     muxError = 'Mux API token not configured';
   } else {
+    // The Mux token is env-wide, and today multiple tenants can share one Mux
+    // env — so breakdown rows MUST be intersected with this tenant's episode
+    // titles or producers would see other tenants' audience data. Totals are
+    // summed from the intersected rows for the same reason (the /overall
+    // endpoint is env-wide). Title collisions across tenants remain a known
+    // limitation until each Silhouette client gets its own Mux env.
+    const { data: ownEpisodes, error: titlesError } = await service
+      .from('episodes')
+      .select('title')
+      .eq('tenant_id', tenantId);
+    if (titlesError) {
+      log.error('episode title lookup failed', { error: titlesError.message });
+      return errorResponse('Could not load analytics', 500);
+    }
+    const ownTitles = new Set((ownEpisodes ?? []).map((e) => e.title as string));
     try {
       const muxHeaders = {
         Authorization: `Basic ${btoa(`${muxTokenId}:${muxTokenSecret}`)}`,
       };
       const timeframe = `timeframe[]=${days}:days`;
 
-      const [breakdownRes, overallRes] = await Promise.all([
-        fetch(
-          `https://api.mux.com/data/v1/metrics/watch_time/breakdown?group_by=video_title&${timeframe}&order_by=views&order_direction=desc&limit=25`,
-          { headers: muxHeaders },
-        ),
-        fetch(`https://api.mux.com/data/v1/metrics/watch_time/overall?${timeframe}`, {
-          headers: muxHeaders,
-        }),
-      ]);
+      const breakdownRes = await fetch(
+        `https://api.mux.com/data/v1/metrics/watch_time/breakdown?group_by=video_title&${timeframe}&order_by=views&order_direction=desc&limit=100`,
+        { headers: muxHeaders },
+      );
 
       if (!breakdownRes.ok) {
         const detail = await breakdownRes.text();
@@ -142,28 +152,20 @@ serve('mux-analytics', async (req, log) => {
         const breakdown = (await breakdownRes.json()) as {
           data?: { field?: string; views?: number; total_watch_time?: number }[];
         };
-        let totals: { views: number | null; watchTimeMs: number | null } = {
-          views: null,
-          watchTimeMs: null,
-        };
-        if (overallRes.ok) {
-          const overall = (await overallRes.json()) as {
-            data?: { total_views?: number; total_watch_time?: number };
-          };
-          totals = {
-            views: overall.data?.total_views ?? null,
-            watchTimeMs: overall.data?.total_watch_time ?? null,
-          };
-        }
+        const rows = (breakdown.data ?? [])
+          .filter((r) => r.field && ownTitles.has(r.field))
+          .map((r) => ({
+            title: r.field as string,
+            views: r.views ?? 0,
+            watchTimeMs: r.total_watch_time ?? 0,
+          }))
+          .slice(0, 25);
         mux = {
-          totals,
-          rows: (breakdown.data ?? [])
-            .filter((r) => r.field)
-            .map((r) => ({
-              title: r.field as string,
-              views: r.views ?? 0,
-              watchTimeMs: r.total_watch_time ?? 0,
-            })),
+          totals: {
+            views: rows.reduce((n, r) => n + r.views, 0),
+            watchTimeMs: rows.reduce((n, r) => n + r.watchTimeMs, 0),
+          },
+          rows,
         };
       }
     } catch (err) {

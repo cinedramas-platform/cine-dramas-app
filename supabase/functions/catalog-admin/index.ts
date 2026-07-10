@@ -163,11 +163,15 @@ serve('catalog-admin', async (req, log) => {
     if (typeof fields.is_free === 'boolean') {
       update.is_free = fields.is_free;
     }
-    if (
-      typeof fields.coin_cost === 'number' &&
-      Number.isInteger(fields.coin_cost) &&
-      fields.coin_cost >= 0
-    ) {
+    if (fields.coin_cost !== undefined) {
+      if (
+        typeof fields.coin_cost !== 'number' ||
+        !Number.isInteger(fields.coin_cost) ||
+        fields.coin_cost < 0
+      ) {
+        // Reject instead of silently keeping the old price.
+        return errorResponse('coin_cost must be a non-negative whole number');
+      }
       update.coin_cost = fields.coin_cost;
     }
     if (Object.keys(update).length === 0) {
