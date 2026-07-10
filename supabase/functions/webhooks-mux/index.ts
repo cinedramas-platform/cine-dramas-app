@@ -60,10 +60,16 @@ serve('webhooks-mux', async (req, log) => {
   // upload was created for. Attach the asset here so the ready/errored events
   // below can find the episode by mux_asset_id.
   if (eventType === 'video.asset.created') {
-    const passthrough = typeof event.data?.passthrough === 'string' ? event.data.passthrough : null;
+    // Non-UUID passthroughs (assets created outside the portal) must be
+    // ignored, not queried — a cast error against episodes.id would 500 and
+    // put Mux into a deterministic retry loop.
+    const passthrough = extractEpisodePassthrough(event);
     let tenantId = 'unknown';
 
     if (passthrough) {
+      // Only pending/preparing rows: if ready already arrived (ordering is
+      // not guaranteed) its passthrough fallback attached the asset and set
+      // 'ready' — this late event must not downgrade it.
       const { data: episode, error: updateError } = await supabase
         .from('episodes')
         .update({
@@ -72,6 +78,7 @@ serve('webhooks-mux', async (req, log) => {
           updated_at: new Date().toISOString(),
         })
         .eq('id', passthrough)
+        .in('mux_asset_status', ['pending', 'preparing'])
         .select('tenant_id')
         .maybeSingle();
       if (updateError) {
@@ -132,11 +139,12 @@ serve('webhooks-mux', async (req, log) => {
   // passthrough carries the episode id (portal uploads), so recover through
   // it — otherwise this event would be marked processed and never retried,
   // leaving the episode stuck in 'pending'.
-  if ((!episodes || episodes.length === 0) && typeof event.data?.passthrough === 'string') {
+  const fallbackPassthrough = !episodes || episodes.length === 0 ? extractEpisodePassthrough(event) : null;
+  if (fallbackPassthrough) {
     const { data: byPassthrough } = await supabase
       .from('episodes')
       .select('id, tenant_id')
-      .eq('id', event.data.passthrough)
+      .eq('id', fallbackPassthrough)
       .maybeSingle();
     if (byPassthrough) {
       const { error: attachError } = await supabase
@@ -193,6 +201,16 @@ serve('webhooks-mux', async (req, log) => {
   return jsonResponse({ status: errorMessage ? 'error' : 'processed' });
 });
 
+// --- Helpers ---
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Portal uploads set passthrough to the episode UUID; anything else is not ours. */
+function extractEpisodePassthrough(event: MuxWebhookEvent): string | null {
+  const p = event.data?.passthrough;
+  return typeof p === 'string' && UUID_RE.test(p) ? p : null;
+}
+
 // --- Types ---
 
 interface MuxWebhookEvent {
@@ -202,6 +220,7 @@ interface MuxWebhookEvent {
   data: {
     id: string;
     status: string;
+    passthrough?: unknown;
     playback_ids?: { id: string; policy: string }[];
     duration?: number;
     errors?: { type: string; message: string }[];

@@ -136,6 +136,11 @@ serve('catalog-admin', async (req, log) => {
       .select('id')
       .single();
     if (seasonError || !season) {
+      // Concurrent create (double-click, second tab) loses the race on
+      // UNIQUE(tenant_id, series_id, number) — the season exists, so say so.
+      if (seasonError?.code === '23505') {
+        return errorResponse('That season was just created — refresh to see it', 409);
+      }
       log.error('season insert failed', { error: seasonError?.message });
       return errorResponse('Could not create season', 500);
     }

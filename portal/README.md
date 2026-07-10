@@ -72,6 +72,18 @@ UPDATE public.users SET role = 'producer' WHERE email = 'producer@cineself.com';
 Episodes that never went live (`pending`/`errored`) can be deleted from the
 edit modal; `ready` episodes can't — they may have been purchased.
 
+## Known limitations
+
+- **Episode order race:** `episodes` has no UNIQUE constraint on
+  `(season_id, "order")`, so two truly concurrent uploads to one season can
+  get the same order number (sorting then falls back to insertion order).
+  Fix belongs in a coordinated migration.
+- **Mux metrics are title-keyed:** the consumer apps report `video_title` to
+  Mux Data, so renaming an episode orphans its historical views in Analytics,
+  and tenant scoping intersects by title (collisions possible across tenants
+  sharing the Mux env). Proper fix: report the episode id as Mux `video_id`
+  in the apps and give each Silhouette client their own Mux environment.
+
 ## Deploying the portal
 
 `npm run build` produces static files in `portal/dist/`. Host them anywhere

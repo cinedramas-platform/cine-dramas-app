@@ -46,6 +46,7 @@ export default function Catalog() {
   const [editEp, setEditEp] = useState<Episode | null>(null);
   const [newSeriesOpen, setNewSeriesOpen] = useState(false);
   const [editSeries, setEditSeries] = useState<Series | null>(null);
+  const [seasonBusy, setSeasonBusy] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
   const load = useCallback(() => {
@@ -79,11 +80,15 @@ export default function Catalog() {
   }
 
   async function addSeason(s: Series) {
+    if (seasonBusy) return;
+    setSeasonBusy(s.id);
     try {
       await catalogAdmin({ action: 'create-season', seriesId: s.id });
       load();
     } catch (err) {
       setNotice(err instanceof Error ? err.message : 'Save failed.');
+    } finally {
+      setSeasonBusy(null);
     }
   }
 
@@ -102,11 +107,18 @@ export default function Catalog() {
             matchesFilter(ep, filter) && (seriesMatches || ep.title.toLowerCase().includes(q)),
         ),
       }));
-      return { ...s, seasons };
+      return { ...s, seasons, seriesMatches };
     })
-    // With no active filters, keep episode-less series visible — a freshly
-    // created one must show up so the producer can continue to Upload.
-    .filter((s) => !filtering || s.seasons.some((season) => season.episodes.length > 0));
+    // Episode-less series stay visible when nothing filters them out: always
+    // with no active filters (a freshly created series must show up so the
+    // producer can continue to Upload), and under search when the series
+    // title itself matches and no status filter applies.
+    .filter(
+      (s) =>
+        s.seasons.some((season) => season.episodes.length > 0) ||
+        !filtering ||
+        (s.seriesMatches && filter === 'all'),
+    );
 
   const episodeCount = visible.reduce(
     (n, s) => n + s.seasons.reduce((m, se) => m + se.episodes.length, 0),
@@ -201,10 +213,11 @@ export default function Catalog() {
                 </button>
                 <button
                   onClick={() => addSeason(s)}
+                  disabled={seasonBusy !== null}
                   title="Add the next season"
-                  className="text-xs px-2.5 py-1.5 rounded-md border border-neutral-800 text-neutral-400 hover:bg-neutral-900 hover:text-neutral-200"
+                  className="text-xs px-2.5 py-1.5 rounded-md border border-neutral-800 text-neutral-400 hover:bg-neutral-900 hover:text-neutral-200 disabled:opacity-40"
                 >
-                  + Season
+                  {seasonBusy === s.id ? 'Adding…' : '+ Season'}
                 </button>
                 <button
                   onClick={() => toggleSeries(s, { is_featured: !s.is_featured })}
