@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import { supabase } from '../lib/supabase';
+import { invokeEdgeFn } from '../lib/adminApi';
 
 interface SeriesOption {
   id: string;
@@ -11,9 +12,16 @@ interface SeriesOption {
 type Phase =
   | { step: 'form' }
   | { step: 'uploading'; percent: number }
-  | { step: 'processing'; episodeId: string }
+  | { step: 'processing' }
   | { step: 'done' }
   | { step: 'error'; message: string };
+
+const VIDEO_EXTENSIONS = /\.(mp4|mov|m4v|webm|mkv|avi|ts)$/i;
+const SIZE_WARN_BYTES = 2 * 1024 * 1024 * 1024; // 2 GB
+const POLL_INTERVAL_MS = 5000;
+// Mux normally encodes a short episode in well under a minute; if nothing has
+// happened after 15 minutes the webhook is almost certainly not wired up.
+const MAX_POLLS = (15 * 60 * 1000) / POLL_INTERVAL_MS;
 
 const inputCls =
   'w-full rounded-md bg-neutral-900 border border-neutral-800 px-3 py-2 text-sm focus:outline-none focus:border-neutral-600';
@@ -27,9 +35,30 @@ export default function Upload({ onDone }: { onDone: () => void }) {
   const [isFree, setIsFree] = useState(false);
   const [coinCost, setCoinCost] = useState(80);
   const [file, setFile] = useState<File | null>(null);
+  const [fileNote, setFileNote] = useState<string | null>(null);
   const [phase, setPhase] = useState<Phase>({ step: 'form' });
   const [dragOver, setDragOver] = useState(false);
   const pollTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  function pickFile(candidate: File | null) {
+    setFileNote(null);
+    if (!candidate) {
+      setFile(null);
+      return;
+    }
+    const looksLikeVideo =
+      candidate.type.startsWith('video/') ||
+      (candidate.type === '' && VIDEO_EXTENSIONS.test(candidate.name));
+    if (!looksLikeVideo) {
+      setFile(null);
+      setFileNote(`“${candidate.name}” doesn't look like a video file.`);
+      return;
+    }
+    if (candidate.size > SIZE_WARN_BYTES) {
+      setFileNote('Large file — the upload may take a while. Keep this tab open until it finishes.');
+    }
+    setFile(candidate);
+  }
 
   useEffect(() => {
     supabase
@@ -52,7 +81,8 @@ export default function Upload({ onDone }: { onDone: () => void }) {
   const seasons = seriesOptions.find((s) => s.id === seriesId)?.seasons ?? [];
 
   function pollUntilReady(episodeId: string) {
-    setPhase({ step: 'processing', episodeId });
+    setPhase({ step: 'processing' });
+    let polls = 0;
     pollTimer.current = setInterval(async () => {
       const { data } = await supabase
         .from('episodes')
@@ -65,8 +95,15 @@ export default function Upload({ onDone }: { onDone: () => void }) {
       } else if (data?.mux_asset_status === 'errored') {
         if (pollTimer.current) clearInterval(pollTimer.current);
         setPhase({ step: 'error', message: 'Mux failed to process the video.' });
+      } else if (++polls >= MAX_POLLS) {
+        if (pollTimer.current) clearInterval(pollTimer.current);
+        setPhase({
+          step: 'error',
+          message:
+            'The video uploaded but is still processing after 15 minutes. Check the catalog later — and verify the Mux webhook is subscribed to video.asset.created/ready.',
+        });
       }
-    }, 5000);
+    }, POLL_INTERVAL_MS);
   }
 
   function putFile(uploadUrl: string, episodeId: string, body: File) {
@@ -90,23 +127,20 @@ export default function Upload({ onDone }: { onDone: () => void }) {
     if (!file || !seasonId || !title.trim()) return;
     setPhase({ step: 'uploading', percent: 0 });
 
-    const { data, error } = await supabase.functions.invoke('mux-direct-upload', {
-      body: {
+    let data: { uploadUrl: string; episodeId: string };
+    try {
+      data = await invokeEdgeFn<{ uploadUrl: string; episodeId: string }>('mux-direct-upload', {
         seasonId,
         title: title.trim(),
         description: description.trim() || null,
         isFree,
         coinCost,
-      },
-    });
-
-    if (error || !data?.uploadUrl || !data?.episodeId) {
-      const message =
-        error?.message === 'Failed to send a request to the Edge Function' ||
-        (error && 'status' in error && (error as { status?: number }).status === 404)
-          ? 'Upload service is not deployed yet (supabase functions deploy mux-direct-upload).'
-          : (data?.error ?? error?.message ?? 'Could not create upload.');
-      setPhase({ step: 'error', message });
+      });
+    } catch (err) {
+      setPhase({
+        step: 'error',
+        message: err instanceof Error ? err.message : 'Could not create upload.',
+      });
       return;
     }
 
@@ -222,8 +256,7 @@ export default function Upload({ onDone }: { onDone: () => void }) {
           onDrop={(e) => {
             e.preventDefault();
             setDragOver(false);
-            const dropped = e.dataTransfer.files[0];
-            if (dropped) setFile(dropped);
+            pickFile(e.dataTransfer.files[0] ?? null);
           }}
           className={`rounded-lg border-2 border-dashed p-8 text-center text-sm transition-colors ${
             dragOver ? 'border-neutral-400 bg-neutral-900' : 'border-neutral-800'
@@ -246,11 +279,17 @@ export default function Upload({ onDone }: { onDone: () => void }) {
                 type="file"
                 accept="video/*"
                 className="hidden"
-                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                onChange={(e) => pickFile(e.target.files?.[0] ?? null)}
               />
             </label>
           </div>
         </div>
+
+        {fileNote && (
+          <div className="rounded-md border border-amber-900 bg-amber-950/40 px-4 py-3 text-sm text-amber-300">
+            {fileNote}
+          </div>
+        )}
 
         {phase.step === 'error' && (
           <div className="rounded-md border border-red-900 bg-red-950/40 px-4 py-3 text-sm text-red-300">

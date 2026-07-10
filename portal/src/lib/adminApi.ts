@@ -8,6 +8,9 @@ export interface EpisodeFields {
 }
 
 export interface SeriesFields {
+  title?: string;
+  description?: string | null;
+  category?: string;
   status?: 'draft' | 'published' | 'archived';
   is_featured?: boolean;
 }
@@ -22,23 +25,44 @@ type AdminAction =
   | { action: 'update-episode'; episodeId: string; fields: EpisodeFields }
   | { action: 'update-series'; seriesId: string; fields: SeriesFields }
   | { action: 'create-series'; fields: NewSeriesFields }
+  | { action: 'create-season'; seriesId: string }
   | { action: 'delete-episode'; episodeId: string };
 
-/** Calls the producer-gated catalog-admin edge function. Throws with a
- *  human-readable message on failure. */
-export async function catalogAdmin(payload: AdminAction): Promise<void> {
-  const { data, error } = await supabase.functions.invoke('catalog-admin', {
-    body: payload,
-  });
-  if (error) {
-    const status = 'status' in error ? (error as { status?: number }).status : undefined;
-    if (status === 404 || error.message === 'Failed to send a request to the Edge Function') {
-      throw new Error(
-        'Editing service is not deployed yet (supabase functions deploy catalog-admin).',
-      );
+/**
+ * Invokes a portal edge function and normalizes every failure into an Error
+ * with a human-readable message.
+ *
+ * supabase-js does NOT put non-2xx response bodies in `data` — they are only
+ * reachable through `error.context` (the raw Response), so the server's
+ * `{ error: "..." }` message has to be extracted from there.
+ */
+export async function invokeEdgeFn<T>(name: string, body: Record<string, unknown>): Promise<T> {
+  const { data, error } = await supabase.functions.invoke(name, { body });
+  if (!error) return data as T;
+
+  const context = (error as { context?: unknown }).context;
+  if (context instanceof Response) {
+    if (context.status === 404) {
+      throw new Error(`This feature is not deployed yet (supabase functions deploy ${name}).`);
     }
-    throw new Error(data?.error ?? error.message ?? 'Save failed.');
+    let serverMessage: string | null = null;
+    try {
+      const payload = await context.json();
+      if (typeof payload?.error === 'string') serverMessage = payload.error;
+    } catch {
+      // Non-JSON body — fall through to the generic message.
+    }
+    if (serverMessage) throw new Error(serverMessage);
+    throw new Error(`Request failed (HTTP ${context.status}).`);
   }
+
+  // No Response context → the function was never reached (network/DNS/not deployed).
+  throw new Error(`Could not reach ${name} — is it deployed? (supabase functions deploy ${name})`);
+}
+
+/** Calls the producer-gated catalog-admin edge function. */
+export async function catalogAdmin(payload: AdminAction): Promise<void> {
+  await invokeEdgeFn('catalog-admin', payload);
 }
 
 export interface AnalyticsRow {
@@ -66,19 +90,7 @@ export interface AnalyticsReport {
   };
 }
 
-/** Fetches audience metrics from the mux-analytics edge function. */
+/** Fetches audience + coin metrics from the mux-analytics edge function. */
 export async function fetchAnalytics(days = 30): Promise<AnalyticsReport> {
-  const { data, error } = await supabase.functions.invoke('mux-analytics', {
-    body: { days },
-  });
-  if (error) {
-    const status = 'status' in error ? (error as { status?: number }).status : undefined;
-    if (status === 404 || error.message === 'Failed to send a request to the Edge Function') {
-      throw new Error(
-        'Analytics service is not deployed yet (supabase functions deploy mux-analytics).',
-      );
-    }
-    throw new Error(data?.error ?? error.message ?? 'Could not load analytics.');
-  }
-  return data as AnalyticsReport;
+  return invokeEdgeFn<AnalyticsReport>('mux-analytics', { days });
 }

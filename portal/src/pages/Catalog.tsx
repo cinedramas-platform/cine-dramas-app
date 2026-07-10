@@ -5,6 +5,7 @@ import type { Episode, Series } from '../lib/types';
 import PreviewModal from '../components/PreviewModal';
 import EditEpisodeModal from '../components/EditEpisodeModal';
 import NewSeriesModal from '../components/NewSeriesModal';
+import EditSeriesModal from '../components/EditSeriesModal';
 
 const STATUS_STYLES: Record<string, string> = {
   ready: 'bg-emerald-950 text-emerald-400',
@@ -44,6 +45,7 @@ export default function Catalog() {
   const [previewEp, setPreviewEp] = useState<Episode | null>(null);
   const [editEp, setEditEp] = useState<Episode | null>(null);
   const [newSeriesOpen, setNewSeriesOpen] = useState(false);
+  const [editSeries, setEditSeries] = useState<Series | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
   const load = useCallback(() => {
@@ -76,10 +78,20 @@ export default function Catalog() {
     }
   }
 
+  async function addSeason(s: Series) {
+    try {
+      await catalogAdmin({ action: 'create-season', seriesId: s.id });
+      load();
+    } catch (err) {
+      setNotice(err instanceof Error ? err.message : 'Save failed.');
+    }
+  }
+
   if (error) return <div className="p-8 text-red-400 text-sm">Failed to load catalog: {error}</div>;
   if (!series) return <div className="p-8 text-neutral-500 text-sm">Loading catalog…</div>;
 
   const q = search.trim().toLowerCase();
+  const filtering = q !== '' || filter !== 'all';
   const visible = series
     .map((s) => {
       const seriesMatches = !q || s.title.toLowerCase().includes(q);
@@ -92,12 +104,15 @@ export default function Catalog() {
       }));
       return { ...s, seasons };
     })
-    .filter((s) => s.seasons.some((season) => season.episodes.length > 0));
+    // With no active filters, keep episode-less series visible — a freshly
+    // created one must show up so the producer can continue to Upload.
+    .filter((s) => !filtering || s.seasons.some((season) => season.episodes.length > 0));
 
   const episodeCount = visible.reduce(
     (n, s) => n + s.seasons.reduce((m, se) => m + se.episodes.length, 0),
     0,
   );
+  const categories = [...new Set(series.map((s) => s.category))].sort();
 
   return (
     <div className="p-8 max-w-5xl">
@@ -179,6 +194,19 @@ export default function Catalog() {
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <button
+                  onClick={() => setEditSeries(s)}
+                  className="text-xs px-2.5 py-1.5 rounded-md border border-neutral-800 text-neutral-400 hover:bg-neutral-900 hover:text-neutral-200"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => addSeason(s)}
+                  title="Add the next season"
+                  className="text-xs px-2.5 py-1.5 rounded-md border border-neutral-800 text-neutral-400 hover:bg-neutral-900 hover:text-neutral-200"
+                >
+                  + Season
+                </button>
+                <button
                   onClick={() => toggleSeries(s, { is_featured: !s.is_featured })}
                   title={s.is_featured ? 'Remove from featured' : 'Add to featured'}
                   className={`text-sm px-2 py-1 rounded-md border border-neutral-800 hover:bg-neutral-900 ${
@@ -199,11 +227,23 @@ export default function Catalog() {
                 </button>
               </div>
             </div>
+            {s.seasons.every((se) => se.episodes.length === 0) && (
+              <div className="px-5 py-4 text-sm text-neutral-500 border-t border-neutral-800/60">
+                No episodes yet — upload the first one from the Upload tab.
+              </div>
+            )}
             {s.seasons
               .slice()
               .sort((a, b) => a.number - b.number)
               .map((season) => (
-                <table key={season.id} className="w-full text-sm">
+                <div key={season.id}>
+                  {s.seasons.length > 1 && (
+                    <div className="px-5 pt-3 pb-1 text-xs font-medium text-neutral-500 border-t border-neutral-800/60">
+                      {season.title ?? `Season ${season.number}`}
+                      {season.episodes.length === 0 && ' — no episodes yet'}
+                    </div>
+                  )}
+                  <table className="w-full text-sm">
                   <tbody>
                     {season.episodes
                       .slice()
@@ -272,17 +312,30 @@ export default function Catalog() {
                           </tr>
                         );
                       })}
-                  </tbody>
-                </table>
+                    </tbody>
+                  </table>
+                </div>
               ))}
           </div>
         ))}
       </div>
 
       {previewEp && <PreviewModal episode={previewEp} onClose={() => setPreviewEp(null)} />}
+      {editSeries && (
+        <EditSeriesModal
+          series={editSeries}
+          categories={categories}
+          onClose={() => setEditSeries(null)}
+          onSaved={() => {
+            setEditSeries(null);
+            setNotice(null);
+            load();
+          }}
+        />
+      )}
       {newSeriesOpen && (
         <NewSeriesModal
-          categories={[...new Set(series.map((s) => s.category))].sort()}
+          categories={categories}
           onClose={() => setNewSeriesOpen(false)}
           onSaved={() => {
             setNewSeriesOpen(false);
