@@ -87,7 +87,24 @@ export interface AnalyticsReport {
   coins: {
     totals: { unlocks: number; coins: number };
     rows: CoinRow[];
+    /** Gap-filled per-day series (UTC), oldest first. */
+    daily?: { date: string; unlocks: number; coins: number }[];
   };
+}
+
+/** Client-side CSV download of tabular rows. */
+export function exportCsv(filename: string, headers: string[], rows: (string | number)[][]) {
+  const escape = (v: string | number) => {
+    const s = String(v);
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const csv = [headers, ...rows].map((r) => r.map(escape).join(',')).join('\n');
+  const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 /** Fetches audience + coin metrics from the mux-analytics edge function. */

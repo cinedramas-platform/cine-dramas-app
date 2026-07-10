@@ -62,7 +62,6 @@ serve('webhooks-mux', async (req, log) => {
   if (eventType === 'video.asset.created') {
     const passthrough = typeof event.data?.passthrough === 'string' ? event.data.passthrough : null;
     let tenantId = 'unknown';
-    let errorMessage: string | null = null;
 
     if (passthrough) {
       const { data: episode, error: updateError } = await supabase
@@ -76,8 +75,12 @@ serve('webhooks-mux', async (req, log) => {
         .select('tenant_id')
         .maybeSingle();
       if (updateError) {
-        errorMessage = updateError.message;
-      } else if (episode) {
+        // Return 500 WITHOUT recording the event: recording it would trip the
+        // idempotency check on redelivery and Mux would never retry.
+        log.error('mux asset attach failed', { error: updateError.message });
+        return errorResponse('Internal error', 500);
+      }
+      if (episode) {
         tenantId = episode.tenant_id as string;
       }
       // No matching episode is fine — assets can be created outside the portal.
@@ -90,10 +93,9 @@ serve('webhooks-mux', async (req, log) => {
       payload: event,
       idempotency_key: eventId,
       processed_at: new Date().toISOString(),
-      error_message: errorMessage,
     });
     log.info('mux asset created', { attached: tenantId !== 'unknown' });
-    return jsonResponse({ status: errorMessage ? 'error' : 'processed' });
+    return jsonResponse({ status: 'processed' });
   }
 
   const supportedEvents = ['video.asset.ready', 'video.asset.errored'];
@@ -137,10 +139,15 @@ serve('webhooks-mux', async (req, log) => {
       .eq('id', event.data.passthrough)
       .maybeSingle();
     if (byPassthrough) {
-      await supabase
+      const { error: attachError } = await supabase
         .from('episodes')
         .update({ mux_asset_id: assetId, updated_at: new Date().toISOString() })
         .eq('id', byPassthrough.id);
+      if (attachError) {
+        // 500 without recording the event, so Mux retries the delivery.
+        log.error('mux asset attach failed on ready fallback', { error: attachError.message });
+        return errorResponse('Internal error', 500);
+      }
       episodes = [byPassthrough];
     }
   }

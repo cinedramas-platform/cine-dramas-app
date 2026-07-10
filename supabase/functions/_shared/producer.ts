@@ -12,13 +12,18 @@ type ServiceClient = any;
 export async function isProducer(
   user: { id: string; email?: string | null },
   service: ServiceClient,
+  log?: { warn: (msg: string, extra?: Record<string, unknown>) => void },
 ): Promise<boolean> {
-  const { data } = await service
+  const { data, error } = await service
     .from('users')
     .select('role')
     .eq('auth_id', user.id)
     .maybeSingle();
-  // Errors (e.g. role column not migrated yet) leave data null → fallback.
+  if (error) {
+    // Still fail closed, but make an availability problem distinguishable
+    // from a genuine non-producer in the logs.
+    log?.warn('producer role lookup failed — denying via fallback', { error: error.message });
+  }
   if (data?.role === 'producer' || data?.role === 'admin') {
     return true;
   }
