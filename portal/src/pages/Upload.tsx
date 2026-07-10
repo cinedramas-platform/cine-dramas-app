@@ -240,8 +240,9 @@ export default function Upload({ onDone }: { onDone: () => void }) {
               <input
                 type="number"
                 min={0}
+                step={1}
                 value={coinCost}
-                onChange={(e) => setCoinCost(Number(e.target.value))}
+                onChange={(e) => setCoinCost(Math.max(0, Math.floor(Number(e.target.value) || 0)))}
                 className="w-24 rounded-md bg-neutral-900 border border-neutral-800 px-2 py-1 text-sm"
               />
             </label>

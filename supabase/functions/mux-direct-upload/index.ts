@@ -84,10 +84,19 @@ serve('mux-direct-upload', async (req, log) => {
   }
   const description = typeof body.description === 'string' ? body.description : null;
   const isFree = body.isFree === true;
-  const coinCost =
-    typeof body.coinCost === 'number' && Number.isInteger(body.coinCost) && body.coinCost >= 0
-      ? body.coinCost
-      : 80;
+  // Reject bad prices instead of silently substituting the default — a
+  // producer must never discover their typed price was discarded.
+  let coinCost = 80;
+  if (body.coinCost !== undefined) {
+    if (
+      typeof body.coinCost !== 'number' ||
+      !Number.isInteger(body.coinCost) ||
+      body.coinCost < 0
+    ) {
+      return errorResponse('coinCost must be a non-negative whole number');
+    }
+    coinCost = body.coinCost;
+  }
 
   // Season lookup through the RLS-scoped client: cross-tenant ids come back
   // as not-found, so tenant isolation is enforced by the database.
