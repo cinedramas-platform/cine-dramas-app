@@ -1,5 +1,4 @@
 import { useEffect, useRef } from 'react';
-import Hls from 'hls.js';
 import type { Episode } from '../lib/types';
 
 export default function PreviewModal({
@@ -16,17 +15,25 @@ export default function PreviewModal({
     if (!video || !episode.mux_playback_id) return;
     const src = `https://stream.mux.com/${episode.mux_playback_id}.m3u8`;
 
-    // Safari plays HLS natively; everyone else goes through hls.js.
+    // Safari plays HLS natively; everyone else gets hls.js, loaded lazily so
+    // its ~500kB never lands in the initial portal bundle.
     if (video.canPlayType('application/vnd.apple.mpegurl')) {
       video.src = src;
       return;
     }
-    if (Hls.isSupported()) {
+    let cancelled = false;
+    let destroy: (() => void) | null = null;
+    import('hls.js').then(({ default: Hls }) => {
+      if (cancelled || !Hls.isSupported()) return;
       const hls = new Hls();
       hls.loadSource(src);
       hls.attachMedia(video);
-      return () => hls.destroy();
-    }
+      destroy = () => hls.destroy();
+    });
+    return () => {
+      cancelled = true;
+      destroy?.();
+    };
   }, [episode.mux_playback_id]);
 
   useEffect(() => {

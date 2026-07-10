@@ -6,7 +6,9 @@ import { isProducer } from '../_shared/producer.ts';
 
 // POST /catalog-admin
 //   { action: 'update-episode', episodeId, fields: { title?, description?, is_free?, coin_cost? } }
-//   { action: 'update-series',  seriesId,  fields: { status?, is_featured? } }
+//   { action: 'update-series',  seriesId,  fields: { title?, description?, category?, status?, is_featured? } }
+//   { action: 'create-season',  seriesId }
+//     → appends the next season number, returns { seasonId, number }
 //   { action: 'create-series',  fields: { title, category, description? } }
 //     → creates a draft series plus Season 1, returns { seriesId, seasonId }
 //   { action: 'delete-episode', episodeId }
@@ -106,6 +108,41 @@ serve('catalog-admin', async (req, log) => {
     return jsonResponse({ ok: true });
   }
 
+  if (body.action === 'create-season') {
+    if (typeof body.seriesId !== 'string' || !body.seriesId) {
+      return errorResponse('seriesId is required');
+    }
+    const { data: lastSeason, error: seasonLookupError } = await service
+      .from('seasons')
+      .select('number')
+      .eq('series_id', body.seriesId)
+      .eq('tenant_id', tenantId)
+      .order('number', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (seasonLookupError) {
+      log.error('season lookup failed', { error: seasonLookupError.message });
+      return errorResponse('Could not create season', 500);
+    }
+    // No existing season means the series id is wrong or cross-tenant
+    // (create-series always seeds Season 1).
+    if (!lastSeason) {
+      return errorResponse('Series not found', 404);
+    }
+    const number = (lastSeason.number as number) + 1;
+    const { data: season, error: seasonError } = await service
+      .from('seasons')
+      .insert({ tenant_id: tenantId, series_id: body.seriesId, number })
+      .select('id')
+      .single();
+    if (seasonError || !season) {
+      log.error('season insert failed', { error: seasonError?.message });
+      return errorResponse('Could not create season', 500);
+    }
+    log.info('season created', { series_id: body.seriesId, number });
+    return jsonResponse({ ok: true, seasonId: season.id, number });
+  }
+
   const fields = body.fields;
   if (!fields || typeof fields !== 'object') {
     return errorResponse('fields is required');
@@ -162,6 +199,15 @@ serve('catalog-admin', async (req, log) => {
     }
 
     const update: Record<string, unknown> = {};
+    if (typeof fields.title === 'string' && fields.title.trim()) {
+      update.title = fields.title.trim();
+    }
+    if (typeof fields.description === 'string' || fields.description === null) {
+      update.description = fields.description;
+    }
+    if (typeof fields.category === 'string' && fields.category.trim()) {
+      update.category = fields.category.trim().toLowerCase();
+    }
     if (typeof fields.status === 'string' && SERIES_STATUSES.includes(fields.status)) {
       update.status = fields.status;
     }
