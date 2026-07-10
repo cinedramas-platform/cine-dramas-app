@@ -1,0 +1,36 @@
+# NOTE: parked as .pending — the token used from this session lacks the
+# 'workflow' scope GitHub requires to push files under .github/workflows/.
+# To activate: git mv .github/portal-ci.yml.pending .github/workflows/portal-ci.yml
+# and push from an account/token with workflow scope.
+name: Portal CI
+
+# The portal is its own project (portal/), excluded from the root app CI —
+# this gate covers it on the same PRs.
+
+on:
+  pull_request:
+    paths:
+      - 'portal/**'
+      - '.github/workflows/portal-ci.yml'
+  push:
+    branches: [dev, main]
+    paths:
+      - 'portal/**'
+
+jobs:
+  build:
+    name: Typecheck & Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: portal
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: portal/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run build
