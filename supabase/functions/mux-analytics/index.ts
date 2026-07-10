@@ -54,7 +54,7 @@ serve('mux-analytics', async (req, log) => {
   );
 
   // Producer gate: users.role, with the env allowlist as fallback.
-  if (!(await isProducer(user, service))) {
+  if (!(await isProducer(user, service, log))) {
     log.warn('analytics rejected: not a producer account');
     return errorResponse('This account does not have producer access', 403);
   }
@@ -71,10 +71,11 @@ serve('mux-analytics', async (req, log) => {
 
   // --- Coin revenue (Supabase) ---
 
-  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+  const DAY_MS = 24 * 60 * 60 * 1000;
+  const since = new Date(Date.now() - days * DAY_MS).toISOString();
   const { data: unlocks, error: unlockError } = await service
     .from('episode_unlocks')
-    .select('coins_spent, bonus_spent, episodes(title)')
+    .select('coins_spent, bonus_spent, created_at, episodes(title)')
     .eq('tenant_id', tenantId)
     .gte('created_at', since);
 
@@ -84,6 +85,7 @@ serve('mux-analytics', async (req, log) => {
   }
 
   const byTitle = new Map<string, { unlocks: number; coins: number }>();
+  const byDay = new Map<string, { unlocks: number; coins: number }>();
   let totalUnlocks = 0;
   let totalCoins = 0;
   for (const u of unlocks ?? []) {
@@ -94,15 +96,31 @@ serve('mux-analytics', async (req, log) => {
     entry.unlocks += 1;
     entry.coins += coins;
     byTitle.set(title, entry);
+    const day = (u.created_at as string).slice(0, 10);
+    const dayEntry = byDay.get(day) ?? { unlocks: 0, coins: 0 };
+    dayEntry.unlocks += 1;
+    dayEntry.coins += coins;
+    byDay.set(day, dayEntry);
     totalUnlocks += 1;
     totalCoins += coins;
   }
+
+  // Gap-filled daily series (UTC days) so the portal can chart it directly.
+  const daily: { date: string; unlocks: number; coins: number }[] = [];
+  const todayMs = Date.now();
+  for (let i = days - 1; i >= 0; i--) {
+    const date = new Date(todayMs - i * DAY_MS).toISOString().slice(0, 10);
+    const v = byDay.get(date) ?? { unlocks: 0, coins: 0 };
+    daily.push({ date, ...v });
+  }
+
   const coins = {
     totals: { unlocks: totalUnlocks, coins: totalCoins },
     rows: [...byTitle.entries()]
       .map(([title, v]) => ({ title, ...v }))
       .sort((a, b) => b.unlocks - a.unlocks)
       .slice(0, 25),
+    daily,
   };
 
   // --- Audience metrics (Mux Data) ---
@@ -152,20 +170,22 @@ serve('mux-analytics', async (req, log) => {
         const breakdown = (await breakdownRes.json()) as {
           data?: { field?: string; views?: number; total_watch_time?: number }[];
         };
-        const rows = (breakdown.data ?? [])
+        // Totals sum over ALL of the tenant's rows; only the display list is
+        // truncated. (The env-wide breakdown itself is capped at 100 rows —
+        // a documented limitation until each client has its own Mux env.)
+        const allRows = (breakdown.data ?? [])
           .filter((r) => r.field && ownTitles.has(r.field))
           .map((r) => ({
             title: r.field as string,
             views: r.views ?? 0,
             watchTimeMs: r.total_watch_time ?? 0,
-          }))
-          .slice(0, 25);
+          }));
         mux = {
           totals: {
-            views: rows.reduce((n, r) => n + r.views, 0),
-            watchTimeMs: rows.reduce((n, r) => n + r.watchTimeMs, 0),
+            views: allRows.reduce((n, r) => n + r.views, 0),
+            watchTimeMs: allRows.reduce((n, r) => n + r.watchTimeMs, 0),
           },
-          rows,
+          rows: allRows.slice(0, 25),
         };
       }
     } catch (err) {

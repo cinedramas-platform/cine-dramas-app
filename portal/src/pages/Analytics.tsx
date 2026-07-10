@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { fetchAnalytics } from '../lib/adminApi';
+import { fetchAnalytics, exportCsv } from '../lib/adminApi';
 import type { AnalyticsReport } from '../lib/adminApi';
+import TrendChart from '../components/TrendChart';
 
 interface CatalogStats {
   series: number;
   episodes: number;
   ready: number;
 }
+
+const RANGES = [7, 30, 90] as const;
 
 function formatWatchTime(ms: number | null): string {
   if (ms == null) return '—';
@@ -16,11 +19,7 @@ function formatWatchTime(ms: number | null): string {
   return `${(minutes / 60).toFixed(1)} h`;
 }
 
-function BarList({
-  rows,
-}: {
-  rows: { title: string; value: number; label: string }[];
-}) {
+function BarList({ rows }: { rows: { title: string; value: number; label: string }[] }) {
   const max = rows.length ? Math.max(...rows.map((r) => r.value)) : 0;
   return (
     <div className="rounded-lg border border-neutral-800 divide-y divide-neutral-800/60">
@@ -46,6 +45,28 @@ function BarList({
   );
 }
 
+function SectionHeader({
+  title,
+  onExport,
+}: {
+  title: string;
+  onExport?: () => void;
+}) {
+  return (
+    <div className="flex items-center justify-between mb-3">
+      <h3 className="text-sm font-medium text-neutral-300">{title}</h3>
+      {onExport && (
+        <button
+          onClick={onExport}
+          className="text-xs px-2.5 py-1 rounded-md border border-neutral-800 text-neutral-400 hover:bg-neutral-900 hover:text-neutral-200"
+        >
+          Export CSV
+        </button>
+      )}
+    </div>
+  );
+}
+
 function EmptyNote({ children }: { children: string }) {
   return (
     <div className="rounded-lg border border-dashed border-neutral-800 p-8 text-center text-sm text-neutral-500">
@@ -54,8 +75,13 @@ function EmptyNote({ children }: { children: string }) {
   );
 }
 
+function Skeleton({ className }: { className: string }) {
+  return <div className={`animate-pulse rounded-lg bg-neutral-900 ${className}`} />;
+}
+
 export default function Analytics() {
   const [stats, setStats] = useState<CatalogStats | null>(null);
+  const [days, setDays] = useState<number>(30);
   const [report, setReport] = useState<AnalyticsReport | null>(null);
   const [reportError, setReportError] = useState<string | null>(null);
 
@@ -74,17 +100,45 @@ export default function Analytics() {
         ready: ready.count ?? 0,
       });
     });
-
-    fetchAnalytics(30)
-      .then(setReport)
-      .catch((err) => setReportError(err instanceof Error ? err.message : 'Failed to load.'));
   }, []);
 
-  const days = report?.days ?? 30;
+  useEffect(() => {
+    let stale = false;
+    setReport(null);
+    setReportError(null);
+    fetchAnalytics(days)
+      .then((r) => {
+        if (!stale) setReport(r);
+      })
+      .catch((err) => {
+        if (!stale) setReportError(err instanceof Error ? err.message : 'Failed to load.');
+      });
+    return () => {
+      stale = true;
+    };
+  }, [days]);
+
+  const loading = !report && !reportError;
+  const daily = report?.coins.daily ?? [];
 
   return (
     <div className="p-8 max-w-5xl">
-      <h2 className="text-xl font-semibold mb-6">Analytics</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-semibold">Analytics</h2>
+        <div className="flex gap-1">
+          {RANGES.map((r) => (
+            <button
+              key={r}
+              onClick={() => setDays(r)}
+              className={`px-3 py-1.5 rounded-md text-xs transition-colors ${
+                days === r ? 'bg-neutral-800 text-white' : 'text-neutral-400 hover:bg-neutral-900'
+              }`}
+            >
+              {r}d
+            </button>
+          ))}
+        </div>
+      </div>
 
       <div className="grid grid-cols-4 gap-4 mb-10">
         {(
@@ -92,14 +146,20 @@ export default function Analytics() {
             ['Series', stats?.series],
             ['Episodes', stats?.episodes],
             ['Live episodes', stats?.ready],
-            [`Views · ${days}d`, report?.mux?.totals.views],
+            [`Views · ${days}d`, report?.mux?.totals.views?.toLocaleString()],
             [`Watch time · ${days}d`, formatWatchTime(report?.mux?.totals.watchTimeMs ?? null)],
-            [`Unlocks · ${days}d`, report?.coins.totals.unlocks],
+            [`Unlocks · ${days}d`, report?.coins.totals.unlocks?.toLocaleString()],
             [`Coins earned · ${days}d`, report?.coins.totals.coins?.toLocaleString()],
           ] as const
         ).map(([label, value]) => (
           <div key={label} className="rounded-lg border border-neutral-800 p-5">
-            <div className="text-2xl font-semibold text-neutral-100">{value ?? '—'}</div>
+            <div className="text-2xl font-semibold text-neutral-100">
+              {loading && value == null ? (
+                <span className="inline-block w-12 h-6 rounded bg-neutral-900 animate-pulse" />
+              ) : (
+                (value ?? '—')
+              )}
+            </div>
             <div className="text-xs text-neutral-500 mt-1">{label}</div>
           </div>
         ))}
@@ -111,12 +171,57 @@ export default function Analytics() {
         </div>
       )}
 
+      {loading && (
+        <div className="space-y-10">
+          <Skeleton className="h-40" />
+          <Skeleton className="h-64" />
+        </div>
+      )}
+
       {report && (
         <>
+          {daily.length > 0 && (
+            <section className="mb-10">
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <SectionHeader
+                    title={`Unlocks per day — last ${report.days} days`}
+                    onExport={() =>
+                      exportCsv(
+                        `unlocks-daily-${report.days}d.csv`,
+                        ['date', 'unlocks', 'coins'],
+                        daily.map((d) => [d.date, d.unlocks, d.coins]),
+                      )
+                    }
+                  />
+                  <TrendChart points={daily.map((d) => ({ date: d.date, value: d.unlocks }))} />
+                </div>
+                <div>
+                  <SectionHeader title={`Coins earned per day — last ${report.days} days`} />
+                  <TrendChart points={daily.map((d) => ({ date: d.date, value: d.coins }))} />
+                </div>
+              </div>
+            </section>
+          )}
+
           <section className="mb-10">
-            <h3 className="text-sm font-medium text-neutral-300 mb-3">
-              Top episodes by views — last {days} days
-            </h3>
+            <SectionHeader
+              title={`Top episodes by views — last ${report.days} days`}
+              onExport={
+                report.mux && report.mux.rows.length > 0
+                  ? () =>
+                      exportCsv(
+                        `views-by-episode-${report.days}d.csv`,
+                        ['episode', 'views', 'watch_time_minutes'],
+                        report.mux!.rows.map((r) => [
+                          r.title,
+                          r.views,
+                          Math.round(r.watchTimeMs / 60000),
+                        ]),
+                      )
+                  : undefined
+              }
+            />
             {report.muxError && (
               <div className="rounded-md border border-amber-900 bg-amber-950/40 px-4 py-3 text-sm text-amber-300">
                 Audience metrics unavailable: {report.muxError}
@@ -140,9 +245,19 @@ export default function Analytics() {
           </section>
 
           <section>
-            <h3 className="text-sm font-medium text-neutral-300 mb-3">
-              Top earners by unlocks — last {days} days
-            </h3>
+            <SectionHeader
+              title={`Top earners by unlocks — last ${report.days} days`}
+              onExport={
+                report.coins.rows.length > 0
+                  ? () =>
+                      exportCsv(
+                        `earnings-by-episode-${report.days}d.csv`,
+                        ['episode', 'unlocks', 'coins'],
+                        report.coins.rows.map((r) => [r.title, r.unlocks, r.coins]),
+                      )
+                  : undefined
+              }
+            />
             {report.coins.rows.length === 0 ? (
               <EmptyNote>
                 No episodes unlocked in this window yet. This fills in as viewers spend coins.

@@ -50,7 +50,7 @@ serve('mux-direct-upload', async (req, log) => {
   );
 
   // Producer gate: users.role, with the env allowlist as fallback.
-  if (!(await isProducer(user, service))) {
+  if (!(await isProducer(user, service, log))) {
     log.warn('upload rejected: not a producer account');
     return errorResponse('This account does not have producer access', 403);
   }
