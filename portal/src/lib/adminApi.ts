@@ -92,14 +92,20 @@ export interface AnalyticsReport {
   };
 }
 
-/** Client-side CSV download of tabular rows. */
-export function exportCsv(filename: string, headers: string[], rows: (string | number)[][]) {
+/** Builds RFC-4180-style CSV text (quotes fields containing , " or newline). */
+export function buildCsv(headers: string[], rows: (string | number)[][]): string {
   const escape = (v: string | number) => {
     const s = String(v);
     return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
-  const csv = [headers, ...rows].map((r) => r.map(escape).join(',')).join('\n');
-  const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  return [headers, ...rows].map((r) => r.map(escape).join(',')).join('\n');
+}
+
+/** Client-side CSV download of tabular rows. */
+export function exportCsv(filename: string, headers: string[], rows: (string | number)[][]) {
+  const url = URL.createObjectURL(
+    new Blob([buildCsv(headers, rows)], { type: 'text/csv;charset=utf-8' }),
+  );
   const a = document.createElement('a');
   a.href = url;
   a.download = filename;
