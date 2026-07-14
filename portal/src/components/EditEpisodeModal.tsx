@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
+import Modal from './Modal';
 import { catalogAdmin } from '../lib/adminApi';
+import { inputCls } from '../lib/ui';
 import type { Episode } from '../lib/types';
-
-const inputCls =
-  'w-full rounded-md bg-neutral-900 border border-neutral-800 px-3 py-2 text-sm focus:outline-none focus:border-neutral-600';
 
 export default function EditEpisodeModal({
   episode,
@@ -69,15 +68,8 @@ export default function EditEpisodeModal({
   }
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6"
-      onClick={onClose}
-    >
-      <form
-        onSubmit={onSubmit}
-        onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md rounded-lg border border-neutral-800 bg-neutral-950 p-6 space-y-4"
-      >
+    <Modal onClose={onClose}>
+      <form onSubmit={onSubmit} className="space-y-4">
         <h3 className="text-lg font-medium">Edit episode</h3>
         <label className="block text-sm">
           <span className="text-neutral-400">Title</span>
@@ -157,6 +149,6 @@ export default function EditEpisodeModal({
           </button>
         </div>
       </form>
-    </div>
+    </Modal>
   );
 }

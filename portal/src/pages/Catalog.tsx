@@ -2,10 +2,11 @@ import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { catalogAdmin } from '../lib/adminApi';
 import type { Episode, Series } from '../lib/types';
+import { filterCatalog } from '../lib/catalogFilter';
+import type { StatusFilter } from '../lib/catalogFilter';
 import PreviewModal from '../components/PreviewModal';
 import EditEpisodeModal from '../components/EditEpisodeModal';
-import NewSeriesModal from '../components/NewSeriesModal';
-import EditSeriesModal from '../components/EditSeriesModal';
+import SeriesFormModal from '../components/SeriesFormModal';
 
 const STATUS_STYLES: Record<string, string> = {
   ready: 'bg-emerald-950 text-emerald-400',
@@ -14,21 +15,12 @@ const STATUS_STYLES: Record<string, string> = {
   errored: 'bg-red-950 text-red-400',
 };
 
-type StatusFilter = 'all' | 'ready' | 'processing' | 'errored';
-
 const FILTERS: { key: StatusFilter; label: string }[] = [
   { key: 'all', label: 'All' },
   { key: 'ready', label: 'Live' },
   { key: 'processing', label: 'Processing' },
   { key: 'errored', label: 'Errored' },
 ];
-
-function matchesFilter(ep: Episode, filter: StatusFilter): boolean {
-  if (filter === 'all') return true;
-  if (filter === 'processing')
-    return ep.mux_asset_status === 'pending' || ep.mux_asset_status === 'preparing';
-  return ep.mux_asset_status === filter;
-}
 
 function formatDuration(seconds: number | null): string {
   if (seconds == null) return '—';
@@ -95,30 +87,7 @@ export default function Catalog() {
   if (error) return <div className="p-8 text-red-400 text-sm">Failed to load catalog: {error}</div>;
   if (!series) return <div className="p-8 text-neutral-500 text-sm">Loading catalog…</div>;
 
-  const q = search.trim().toLowerCase();
-  const filtering = q !== '' || filter !== 'all';
-  const visible = series
-    .map((s) => {
-      const seriesMatches = !q || s.title.toLowerCase().includes(q);
-      const seasons = s.seasons.map((season) => ({
-        ...season,
-        episodes: season.episodes.filter(
-          (ep) =>
-            matchesFilter(ep, filter) && (seriesMatches || ep.title.toLowerCase().includes(q)),
-        ),
-      }));
-      return { ...s, seasons, seriesMatches };
-    })
-    // Episode-less series stay visible when nothing filters them out: always
-    // with no active filters (a freshly created series must show up so the
-    // producer can continue to Upload), and under search when the series
-    // title itself matches and no status filter applies.
-    .filter(
-      (s) =>
-        s.seasons.some((season) => season.episodes.length > 0) ||
-        !filtering ||
-        (s.seriesMatches && filter === 'all'),
-    );
+  const visible = filterCatalog(series, search, filter);
 
   const episodeCount = visible.reduce(
     (n, s) => n + s.seasons.reduce((m, se) => m + se.episodes.length, 0),
@@ -335,7 +304,7 @@ export default function Catalog() {
 
       {previewEp && <PreviewModal episode={previewEp} onClose={() => setPreviewEp(null)} />}
       {editSeries && (
-        <EditSeriesModal
+        <SeriesFormModal
           series={editSeries}
           categories={categories}
           onClose={() => setEditSeries(null)}
@@ -347,7 +316,7 @@ export default function Catalog() {
         />
       )}
       {newSeriesOpen && (
-        <NewSeriesModal
+        <SeriesFormModal
           categories={categories}
           onClose={() => setNewSeriesOpen(false)}
           onSaved={() => {

@@ -1,8 +1,6 @@
-import { createClient } from '@supabase/supabase-js';
-import { handleCorsPreflightRequest } from '../_shared/cors.ts';
 import { jsonResponse, errorResponse } from '../_shared/response.ts';
 import { serve } from '../_shared/logger.ts';
-import { isProducer } from '../_shared/producer.ts';
+import { requireProducer } from '../_shared/producer.ts';
 
 // POST /catalog-admin
 //   { action: 'update-episode', episodeId, fields: { title?, description?, is_free?, coin_cost? } }
@@ -23,45 +21,9 @@ import { isProducer } from '../_shared/producer.ts';
 const SERIES_STATUSES = ['draft', 'published', 'archived'];
 
 serve('catalog-admin', async (req, log) => {
-  const corsResponse = handleCorsPreflightRequest(req);
-  if (corsResponse) return corsResponse;
-
-  if (req.method !== 'POST') {
-    return errorResponse('Method not allowed', 405);
-  }
-
-  const authHeader = req.headers.get('Authorization');
-  if (!authHeader) {
-    return errorResponse('Missing authorization header', 401);
-  }
-
-  const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
-    global: { headers: { Authorization: authHeader } },
-  });
-
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-  if (authError || !user) {
-    return errorResponse('Invalid or expired token', 401);
-  }
-  const tenantId = (user.app_metadata?.tenant_id as string) ?? null;
-  log.setUser(user.id, tenantId);
-  if (!tenantId) {
-    return errorResponse('No tenant associated with this account', 403);
-  }
-
-  const service = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-  );
-
-  // Producer gate: users.role, with the env allowlist as fallback.
-  if (!(await isProducer(user, service, log))) {
-    log.warn('catalog write rejected: not a producer account');
-    return errorResponse('This account does not have producer access', 403);
-  }
+  const gate = await requireProducer(req, log);
+  if (!gate.ok) return gate.response;
+  const { tenantId, service } = gate;
 
   let body: {
     action?: unknown;
