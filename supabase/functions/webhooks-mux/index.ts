@@ -56,6 +56,55 @@ serve('webhooks-mux', async (req, log) => {
     return jsonResponse({ status: 'already_processed' });
   }
 
+  // Portal direct uploads: the asset's passthrough carries the episode id the
+  // upload was created for. Attach the asset here so the ready/errored events
+  // below can find the episode by mux_asset_id.
+  if (eventType === 'video.asset.created') {
+    // Non-UUID passthroughs (assets created outside the portal) must be
+    // ignored, not queried — a cast error against episodes.id would 500 and
+    // put Mux into a deterministic retry loop.
+    const passthrough = extractEpisodePassthrough(event);
+    let tenantId = 'unknown';
+
+    if (passthrough) {
+      // Only pending/preparing rows: if ready already arrived (ordering is
+      // not guaranteed) its passthrough fallback attached the asset and set
+      // 'ready' — this late event must not downgrade it.
+      const { data: episode, error: updateError } = await supabase
+        .from('episodes')
+        .update({
+          mux_asset_id: event.data.id,
+          mux_asset_status: 'preparing',
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', passthrough)
+        .in('mux_asset_status', ['pending', 'preparing'])
+        .select('tenant_id')
+        .maybeSingle();
+      if (updateError) {
+        // Return 500 WITHOUT recording the event: recording it would trip the
+        // idempotency check on redelivery and Mux would never retry.
+        log.error('mux asset attach failed', { error: updateError.message });
+        return errorResponse('Internal error', 500);
+      }
+      if (episode) {
+        tenantId = episode.tenant_id as string;
+      }
+      // No matching episode is fine — assets can be created outside the portal.
+    }
+
+    await insertWebhookEvent(supabase, {
+      tenant_id: tenantId,
+      source: 'mux',
+      event_type: eventType,
+      payload: event,
+      idempotency_key: eventId,
+      processed_at: new Date().toISOString(),
+    });
+    log.info('mux asset created', { attached: tenantId !== 'unknown' });
+    return jsonResponse({ status: 'processed' });
+  }
+
   const supportedEvents = ['video.asset.ready', 'video.asset.errored'];
   if (!supportedEvents.includes(eventType)) {
     await insertWebhookEvent(supabase, {
@@ -76,13 +125,39 @@ serve('webhooks-mux', async (req, log) => {
 
   // Multiple episodes can legitimately share a Mux asset (the demo catalog
   // reuses assets across series), so this must not assume a single row.
-  const { data: episodes, error: episodeError } = await supabase
+  let { data: episodes, error: episodeError } = await supabase
     .from('episodes')
     .select('id, tenant_id')
     .eq('mux_asset_id', assetId);
 
   if (episodeError) {
     return errorResponse('Internal error', 500);
+  }
+
+  // Mux does not guarantee event ordering: ready can arrive before the
+  // asset.created handler above has attached mux_asset_id. The asset's
+  // passthrough carries the episode id (portal uploads), so recover through
+  // it — otherwise this event would be marked processed and never retried,
+  // leaving the episode stuck in 'pending'.
+  const fallbackPassthrough = !episodes || episodes.length === 0 ? extractEpisodePassthrough(event) : null;
+  if (fallbackPassthrough) {
+    const { data: byPassthrough } = await supabase
+      .from('episodes')
+      .select('id, tenant_id')
+      .eq('id', fallbackPassthrough)
+      .maybeSingle();
+    if (byPassthrough) {
+      const { error: attachError } = await supabase
+        .from('episodes')
+        .update({ mux_asset_id: assetId, updated_at: new Date().toISOString() })
+        .eq('id', byPassthrough.id);
+      if (attachError) {
+        // 500 without recording the event, so Mux retries the delivery.
+        log.error('mux asset attach failed on ready fallback', { error: attachError.message });
+        return errorResponse('Internal error', 500);
+      }
+      episodes = [byPassthrough];
+    }
   }
 
   const tenantId = episodes?.[0]?.tenant_id ?? 'unknown';
@@ -126,6 +201,16 @@ serve('webhooks-mux', async (req, log) => {
   return jsonResponse({ status: errorMessage ? 'error' : 'processed' });
 });
 
+// --- Helpers ---
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** Portal uploads set passthrough to the episode UUID; anything else is not ours. */
+function extractEpisodePassthrough(event: MuxWebhookEvent): string | null {
+  const p = event.data?.passthrough;
+  return typeof p === 'string' && UUID_RE.test(p) ? p : null;
+}
+
 // --- Types ---
 
 interface MuxWebhookEvent {
@@ -135,6 +220,7 @@ interface MuxWebhookEvent {
   data: {
     id: string;
     status: string;
+    passthrough?: unknown;
     playback_ids?: { id: string; policy: string }[];
     duration?: number;
     errors?: { type: string; message: string }[];
