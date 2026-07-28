@@ -57,6 +57,26 @@ tank with no gauge, and every car off the line is painted the same color.
 
 Must be done before a single real coin/dollar moves.
 
+> **Added 2026-07-28 — #0, found by probing the live dev project.** RLS has no
+> column granularity, so the `tenant_select_own` policy let **any authenticated
+> user** read the whole `tenants` row via `GET /rest/v1/tenants?select=*` —
+> including `mux_signing_private_key` (returned in full, 1588 chars). With that
+> key plus `mux_signing_key_id` anyone can mint Mux playback JWTs
+> (`_shared/mux-jwt.ts`) for any playback id and stream every locked episode
+> without spending a coin — a complete bypass of the playback-token gate this
+> document lists under "genuinely solid". `auth-register` (issue #4) lets a
+> stranger self-register into a tenant first, so no insider access is needed.
+> `revenuecat_webhook_secret` sits in the same row and would have allowed forged
+> billing webhooks once populated.
+>
+> Fixed by migration `20260728160000_restrict_tenant_secret_columns.sql`
+> (table-level SELECT replaced with a column-level grant that omits the
+> secrets; every server reader uses service_role and is unaffected).
+> **The exposed key must be rotated** — assume it is compromised, since the
+> demo account's credentials are committed in `MVP-PLAN.md`. Use
+> `scripts/install-mux-signing-key.mjs` to install a fresh key, then revoke the
+> old one (`SBi56wAj…`) in the Mux dashboard.
+
 | # | Issue | Evidence | Fix |
 |---|-------|----------|-----|
 | 1 | **Free-money RPC.** `grant_coins` is `SECURITY DEFINER` **and** `GRANT EXECUTE … TO authenticated`. Any user calls `supabase.rpc('grant_coins',{p_amount:999999})` directly, bypassing the `coins-grant` edge fn whitelist → unlimited coins. | `supabase/migrations/20260602000000_create_coin_economy.sql` (grant at end) | `REVOKE EXECUTE ON FUNCTION grant_coins FROM authenticated, anon`. Credits only via service-role inside a verified webhook. |

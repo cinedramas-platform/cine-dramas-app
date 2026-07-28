@@ -13,6 +13,9 @@ android/
 *.p8
 *.p12
 *.key
+*.pem
+mux-signing-key-*
+*-rotate.sql
 *.mobileprovision
 *.orig.*
 
