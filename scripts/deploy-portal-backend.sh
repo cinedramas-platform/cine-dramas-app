@@ -34,14 +34,39 @@ secrets=(
 if [[ -n "${PORTAL_PRODUCER_EMAILS:-}" ]]; then
   secrets+=("PORTAL_PRODUCER_EMAILS=${PORTAL_PRODUCER_EMAILS}")
 fi
+if [[ -n "${MUX_WEBHOOK_SECRET:-}" ]]; then
+  secrets+=("MUX_WEBHOOK_SECRET=${MUX_WEBHOOK_SECRET}")
+else
+  echo "    ! MUX_WEBHOOK_SECRET not provided — webhooks-mux will answer 500"
+  echo "      until it is set (Mux dashboard → Settings → Webhooks → signing secret)."
+fi
 supabase secrets set "${secrets[@]}" --project-ref "$PROJECT_REF"
 
-echo "==> Deploying portal edge functions"
-for fn in mux-direct-upload catalog-admin mux-analytics webhooks-mux; do
+echo "==> Deploying producer-gated portal functions"
+for fn in mux-direct-upload catalog-admin mux-analytics; do
   supabase functions deploy "$fn" --project-ref "$PROJECT_REF"
 done
 
+# Mux cannot send a Supabase JWT, so the gateway check must be off for this one
+# (see [functions.webhooks-mux] in supabase/config.toml). Without the flag the
+# gateway answers 401 before the handler runs and no upload ever goes live.
+echo "==> Deploying webhooks-mux (JWT verification disabled — HMAC-verified inside)"
+supabase functions deploy webhooks-mux --project-ref "$PROJECT_REF" --no-verify-jwt
+
+echo "==> Verifying webhook endpoint is reachable without a JWT"
+code=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
+  "https://${PROJECT_REF}.supabase.co/functions/v1/webhooks-mux" \
+  -H "Content-Type: application/json" -d '{}')
+case "$code" in
+  401) echo "    FAIL: still 401 — the gateway is rejecting Mux. Check --no-verify-jwt." ;;
+  500) echo "    Reachable, but MUX_WEBHOOK_SECRET is unset (500)." ;;
+  *)   echo "    Reachable (HTTP $code — signature rejection is expected for this probe)." ;;
+esac
+
 echo "==> Done. Remaining manual steps:"
-echo "    - Subscribe Mux webhook to video.asset.created"
+echo "    - Mux dashboard → Settings → Webhooks → create a webhook pointing at:"
+echo "      https://${PROJECT_REF}.supabase.co/functions/v1/webhooks-mux"
+echo "      (Mux sends ALL event types; the handler filters. Copy its signing"
+echo "       secret into MUX_WEBHOOK_SECRET and re-run this script.)"
 echo "    - supabase db push (role migration), then promote producer accounts:"
 echo "      UPDATE public.users SET role = 'producer' WHERE email = '…';"

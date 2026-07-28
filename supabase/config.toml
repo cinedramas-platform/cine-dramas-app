@@ -394,3 +394,10 @@ s3_secret_key = "env(S3_SECRET_KEY)"
 # declarative_schema_path = "./declarative"
 # JSON string passed through to pg-delta SQL formatting.
 # format_options = "{\"keywordCase\":\"upper\",\"indent\":2,\"maxWidth\":80,\"commaStyle\":\"trailing\"}"
+
+# Mux calls this endpoint with its own `mux-signature` header and cannot send a
+# Supabase JWT, so the gateway's JWT check must be off — otherwise every
+# delivery is rejected with 401 before the handler runs. Authenticity is
+# enforced inside the function by HMAC-SHA256 signature verification.
+[functions.webhooks-mux]
+verify_jwt = false

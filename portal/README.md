@@ -53,9 +53,29 @@ supabase functions deploy mux-analytics                          # audience metr
 supabase functions deploy webhooks-mux                           # picks up video.asset.created
 ```
 
-Also make sure the Mux webhook (Mux dashboard → Settings → Webhooks) is
-subscribed to `video.asset.created`, `video.asset.ready`, and
-`video.asset.errored`.
+### The Mux webhook (verified 2026-07-09: not yet configured)
+
+Inspecting the live Mux environment (`Vitoshatech` → `Cinedramas`, env
+`o7pj7ihc`) showed **no webhook exists at all**, and the deployed
+`webhooks-mux` function answers `401 UNAUTHORIZED_NO_AUTH_HEADER` to
+unauthenticated callers. Mux only sends its own `mux-signature` header, so the
+upload → live pipeline could never have completed. Three things are needed:
+
+1. **Deploy with JWT verification off** — handled by
+   `[functions.webhooks-mux] verify_jwt = false` in `supabase/config.toml` and
+   the `--no-verify-jwt` flag in `scripts/deploy-portal-backend.sh`.
+   Authenticity is still enforced: the handler verifies the HMAC-SHA256
+   signature and rejects anything unsigned.
+2. **Create the webhook** in Mux dashboard → Settings → Webhooks, pointing at
+   `https://<project-ref>.supabase.co/functions/v1/webhooks-mux`. The dialog
+   asks only for a URL — Mux delivers *every* event type and the handler
+   filters (`video.asset.created` / `ready` / `errored`; others are recorded
+   and ignored).
+3. **Set `MUX_WEBHOOK_SECRET`** to that webhook's signing secret, or the
+   function returns 500 on every delivery.
+
+Until all three are done, uploaded episodes stay `pending` forever — the
+portal's upload poller gives up after 15 minutes and says so.
 
 **Access model:** any authenticated user of the tenant can *view* the portal
 (reads go through the same RLS as the apps), but all writes and analytics are
