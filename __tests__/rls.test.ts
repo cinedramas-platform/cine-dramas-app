@@ -4,7 +4,8 @@
 // Two users in two tenants are impersonated by setting the `authenticated` role +
 // `request.jwt.claims`, exactly how PostgREST runs queries for a logged-in user.
 // Asserts tenant/user isolation on the payment tables (wallets, coin_transactions,
-// episode_unlocks) plus entitlements, watch_progress, and series.
+// episode_unlocks) plus entitlements, watch_progress, and series, and that tenant
+// secrets (the Mux signing key) are never readable by a client role.
 //
 // Requires the local stack running. If the DB is unreachable the suite SKIPS (so
 // `npm test` stays green in environments without a DB). CI that wants to enforce
@@ -13,7 +14,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { randomUUID } from 'node:crypto';
 import { Client } from 'pg';
 
-const DB_URL = 'postgresql://postgres:postgres@127.0.0.1:54322/postgres';
+const DB_URL = process.env.RLS_DB_URL ?? 'postgresql://postgres:postgres@127.0.0.1:54322/postgres';
 
 // A seeded episode (dev-tenant) used to satisfy FK on episode_unlocks / watch_progress.
 const SEED_EPISODE_ID = 'c1111111-0001-0001-0001-000000000001';
@@ -57,6 +58,17 @@ async function countAs(u: typeof A, sql: string, params: unknown[]): Promise<num
   });
 }
 
+/** Run `fn` as an unauthenticated client (anon role, no claims) inside a rolled-back tx. */
+async function asAnon<T>(fn: () => Promise<T>): Promise<T> {
+  await client.query('BEGIN');
+  try {
+    await client.query('SET LOCAL ROLE anon');
+    return await fn();
+  } finally {
+    await client.query('ROLLBACK');
+  }
+}
+
 /** Like `it`, but skips when the local DB isn't available. */
 const dbit = (name: string, fn: () => Promise<void>) =>
   it(name, async (ctx) => {
@@ -79,8 +91,9 @@ beforeAll(async () => {
   // Fixtures (as superuser — bypasses RLS).
   for (const t of [A, B]) {
     await client.query(
-      `INSERT INTO tenants (id, name, mode, status, mux_env_key, revenuecat_api_key)
-       VALUES ($1, $2, 'silo', 'active', 'test', 'test')
+      `INSERT INTO tenants (id, name, mode, status, mux_env_key, revenuecat_api_key,
+                            mux_signing_key_id, mux_signing_private_key, revenuecat_webhook_secret)
+       VALUES ($1, $2, 'silo', 'active', 'test', 'test', 'test-key-id', 'test-private-key', 'test-rc-secret')
        ON CONFLICT (id) DO NOTHING`,
       [t.tenant, t.tenant],
     );
@@ -197,5 +210,39 @@ describe('RLS: writes are blocked', () => {
         ),
       ),
     ).rejects.toThrow();
+  });
+});
+
+// 20260728160000: RLS grants the tenant *row*; column grants keep its secrets out.
+// Before that migration any user's `GET /rest/v1/tenants?select=*` returned the
+// Mux signing key, enough to mint playback tokens for every locked episode.
+describe('RLS: tenant secrets are not client-readable', () => {
+  dbit('User A reads own tenant public columns, not tenant B', async () => {
+    expect(await countAs(A, `SELECT count(name) FROM tenants WHERE id = $1`, [A.tenant])).toBe(1);
+    expect(await countAs(A, `SELECT count(name) FROM tenants WHERE id = $1`, [B.tenant])).toBe(0);
+  });
+
+  for (const column of [
+    'mux_signing_private_key',
+    'mux_signing_key_id',
+    'revenuecat_webhook_secret',
+  ]) {
+    dbit(`User A cannot read ${column} of own tenant`, async () => {
+      await expect(
+        asUser(A, () => client.query(`SELECT ${column} FROM tenants WHERE id = $1`, [A.tenant])),
+      ).rejects.toThrow(/permission denied/);
+    });
+
+    dbit(`anon cannot read ${column}`, async () => {
+      await expect(
+        asAnon(() => client.query(`SELECT ${column} FROM tenants WHERE id = $1`, [A.tenant])),
+      ).rejects.toThrow(/permission denied/);
+    });
+  }
+
+  dbit('User A cannot select * from tenants (the request shape of the leak)', async () => {
+    await expect(asUser(A, () => client.query(`SELECT * FROM tenants`))).rejects.toThrow(
+      /permission denied/,
+    );
   });
 });

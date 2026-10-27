@@ -76,6 +76,13 @@ Must be done before a single real coin/dollar moves.
 > demo account's credentials are committed in `MVP-PLAN.md`. Use
 > `scripts/install-mux-signing-key.mjs` to install a fresh key, then revoke the
 > old one (`SBi56wAj…`) in the Mux dashboard.
+>
+> **Status 2026-10-27: still open on the live project.** The migration was never
+> applied, and re-probing with the demo account still returned the full key.
+> `__tests__/rls.test.ts` now covers it (they fail with the table-level grant
+> restored and pass with the migration). The replacement key `3RApFQKV…` is
+> confirmed accepted by Mux. Applying the migration, rotating, and revoking need
+> someone with access to the Supabase project.
 
 | # | Issue | Evidence | Fix |
 |---|-------|----------|-----|

@@ -39,7 +39,11 @@ if (!pemPath || !tenant) {
   process.exit(1);
 }
 
-const keyId = flag('key-id') ?? basename(pemPath).replace(/^mux-signing-key-/, '').replace(/\.pem$/, '');
+const keyId =
+  flag('key-id') ??
+  basename(pemPath)
+    .replace(/^mux-signing-key-/, '')
+    .replace(/\.pem$/, '');
 if (!keyId || keyId === basename(pemPath)) {
   console.error('Could not derive the key id from the filename — pass --key-id explicitly.');
   process.exit(1);
@@ -47,7 +51,9 @@ if (!keyId || keyId === basename(pemPath)) {
 
 const pem = readFileSync(pemPath, 'utf8');
 if (!/-----BEGIN RSA PRIVATE KEY-----/.test(pem)) {
-  console.error('Not a PKCS#1 PEM ("BEGIN RSA PRIVATE KEY"). Mux signing keys download in this format.');
+  console.error(
+    'Not a PKCS#1 PEM ("BEGIN RSA PRIVATE KEY"). Mux signing keys download in this format.',
+  );
   process.exit(1);
 }
 
@@ -82,5 +88,7 @@ if (process.env.SUPABASE_DB_URL && !outPath) {
 } else {
   const target = outPath ?? 'mux-signing-key-rotate.sql';
   writeFileSync(target, sql, { mode: 0o600 });
-  console.log(`Wrote SQL to ${target} (chmod 600) — run it in the Supabase SQL editor, then delete it.`);
+  console.log(
+    `Wrote SQL to ${target} (chmod 600) — run it in the Supabase SQL editor, then delete it.`,
+  );
 }
