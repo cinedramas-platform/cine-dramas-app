@@ -1,7 +1,3 @@
-# NOTE: parked as .pending — the token used from this session lacks the
-# 'workflow' scope GitHub requires to push files under .github/workflows/.
-# To activate: git mv .github/portal-ci.yml.pending .github/workflows/portal-ci.yml
-# and push from an account/token with workflow scope.
 name: Portal CI
 
 # The portal is its own project (portal/), excluded from the root app CI —
