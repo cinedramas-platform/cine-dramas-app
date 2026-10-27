@@ -139,7 +139,8 @@ serve('webhooks-mux', async (req, log) => {
   // passthrough carries the episode id (portal uploads), so recover through
   // it — otherwise this event would be marked processed and never retried,
   // leaving the episode stuck in 'pending'.
-  const fallbackPassthrough = !episodes || episodes.length === 0 ? extractEpisodePassthrough(event) : null;
+  const fallbackPassthrough =
+    !episodes || episodes.length === 0 ? extractEpisodePassthrough(event) : null;
   if (fallbackPassthrough) {
     const { data: byPassthrough } = await supabase
       .from('episodes')
