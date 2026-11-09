@@ -16,16 +16,17 @@ export default function PreviewModal({
     if (!video || !episode.mux_playback_id) return;
     const src = `https://stream.mux.com/${episode.mux_playback_id}.m3u8`;
 
-    // Safari plays HLS natively; everyone else gets hls.js, loaded lazily so
-    // its ~500kB never lands in the initial portal bundle.
-    if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      video.src = src;
-      return;
-    }
+    // hls.js wherever MSE exists, loaded lazily so its ~500kB never lands in
+    // the initial portal bundle. Native HLS only as the fallback (iOS Safari):
+    // some Chromium builds answer canPlayType 'maybe' and then fail to play.
     let cancelled = false;
     let destroy: (() => void) | null = null;
     import('hls.js').then(({ default: Hls }) => {
-      if (cancelled || !Hls.isSupported()) return;
+      if (cancelled) return;
+      if (!Hls.isSupported()) {
+        video.src = src;
+        return;
+      }
       const hls = new Hls();
       hls.loadSource(src);
       hls.attachMedia(video);
