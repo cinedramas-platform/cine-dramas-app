@@ -175,7 +175,11 @@ npx eas-cli deploy --export-dir dist            # preview deploy (EAS Hosting)
 npx eas-cli deploy --export-dir dist --prod     # production
 ```
 
-Live: https://cinedramas-dev.expo.app
+Web hosting lives under the `cineself` Expo account, while native builds still
+use the project in `brands/*/manifest.json`. Export and deploy the web build with
+`EAS_OWNER=cineself EAS_PROJECT_ID=76a507c4-f45e-43e3-81fd-bc5742ad3cae` set.
+
+Live: https://cineself-cinedramas-dev.expo.app
 
 ## Client demo builds (EAS internal distribution)
 

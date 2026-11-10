@@ -42,7 +42,7 @@ module.exports = ({ config }) => ({
     favicon: './assets/favicon.png',
   },
   extra: {
-    eas: { projectId: brand.easProjectId },
+    eas: { projectId: process.env.EAS_PROJECT_ID ?? brand.easProjectId },
     supabaseUrl: brand.supabaseUrl,
     supabaseAnonKey: brand.supabaseAnonKey,
     muxEnvKey: brand.muxEnvKey,
