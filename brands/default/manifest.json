@@ -3,7 +3,7 @@
   "slug": "cinedramas-dev",
   "tenantId": "dev-tenant",
   "ios": {
-    "bundleId": "com.cinedramas.dev"
+    "bundleId": "com.cineself.cinedramas"
   },
   "android": {
     "packageName": "com.cinedramas.dev"
