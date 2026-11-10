@@ -120,7 +120,7 @@ serve('mux-analytics', async (req, log) => {
       const timeframe = `timeframe[]=${days}:days`;
 
       const breakdownRes = await fetch(
-        `https://api.mux.com/data/v1/metrics/watch_time/breakdown?group_by=video_title&${timeframe}&order_by=views&order_direction=desc&limit=100`,
+        `https://api.mux.com/data/v1/metrics/views/breakdown?group_by=video_title&${timeframe}&order_by=views&order_direction=desc&limit=100`,
         { headers: muxHeaders },
       );
 
