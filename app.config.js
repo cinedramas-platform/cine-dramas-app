@@ -13,6 +13,8 @@ module.exports = ({ config }) => ({
   icon: brand.iconPath || './assets/icon.png',
   userInterfaceStyle: 'dark',
   newArchEnabled: true,
+  runtimeVersion: { policy: 'appVersion' },
+  updates: { url: `https://u.expo.dev/${brand.easProjectId}` },
   scheme: brand.slug,
   splash: {
     image: brand.splashPath || './assets/splash-icon.png',
