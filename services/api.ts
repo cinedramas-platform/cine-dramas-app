@@ -9,16 +9,13 @@ async function getHeaders(): Promise<Record<string, string>> {
     data: { session },
   } = await supabase.auth.getSession();
 
-  const headers: Record<string, string> = {
+  // Signed out, the anon key stands in as the bearer (as supabase-js does), so
+  // the functions gateway's JWT check passes for public endpoints like config.
+  return {
     apikey: supabaseAnonKey,
+    Authorization: `Bearer ${session?.access_token ?? supabaseAnonKey}`,
     'Content-Type': 'application/json',
   };
-
-  if (session?.access_token) {
-    headers['Authorization'] = `Bearer ${session.access_token}`;
-  }
-
-  return headers;
 }
 
 export async function invokeFunction<T>(
