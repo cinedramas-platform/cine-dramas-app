@@ -83,6 +83,11 @@ Must be done before a single real coin/dollar moves.
 > restored and pass with the migration). The replacement key `3RApFQKV…` is
 > confirmed accepted by Mux. Applying the migration, rotating, and revoking need
 > someone with access to the Supabase project.
+>
+> **Resolved 2026-11-10.** The backend was rebuilt in a new project with this
+> migration from the start; anon and authenticated reads of the secret columns
+> return permission denied there. `3RApFQ…` is the only signing key left in Mux;
+> `SBi56…` and `rWqZ…` are deleted.
 
 | # | Issue | Evidence | Fix |
 |---|-------|----------|-----|
@@ -103,7 +108,7 @@ Must be done before the first client's app is live for their users.
 | 6 | **OTA updates dead.** `expo-updates` not in `package.json` despite every `eas.json` channel + ADR 0002 naming EAS Update the "deployment spine." JS hotfix to a shipped app = full store rebuild. | `package.json` (absent), `eas.json` channels, `docs/adr/0002` | `npx expo install expo-updates` + `eas update:configure`; verify channel wiring. |
 | 7 | **Sentry off everywhere.** All brand `sentryDsn: ""`, no Sentry org, `SENTRY_DISABLE_AUTO_UPLOAD=true` in all base profiles. Zero crash visibility. | `brands/*/manifest.json:15`, `lib/sentry.ts:12-17`, `eas.json:13,21,29` | Create Sentry org/project, set DSN per brand + `SENTRY_ORG`/`SENTRY_AUTH_TOKEN` EAS secrets, re-enable source-map upload. |
 | 8 | **No alerting/uptime monitoring.** Keepalive fails silently; nothing pages anyone if config 500s, Supabase dies, or webhooks back up. | `.github/workflows/keepalive.yml:12-24` | Uptime monitor on config/health endpoint + Supabase; alert channel (email/Slack/PagerDuty). |
-| 9 | **Personal-account SPOF + click-ops infra.** EAS project under `vassil_iliev`; Supabase auth hook & providers configured by hand (unreproducible); Cloudflare CDN/WAF is doc-fiction (no config in repo). | `INFRASTRUCTURE-STATUS.md:11-13,108`; grep: no wrangler/CF config | Move to org-owned EAS/Supabase; script/IaC the Supabase setup (auth hook registration, providers); add Cloudflare config if the CDN/WAF claim is real. |
+| 9 | **Personal-account SPOF + click-ops infra.** EAS project under `vassil_iliev` (moved to the `cineself` account 2026-11-10 after that account lapsed); Supabase auth hook & providers configured by hand (unreproducible); Cloudflare CDN/WAF is doc-fiction (no config in repo). | `INFRASTRUCTURE-STATUS.md:11-13,108`; grep: no wrangler/CF config | Move to org-owned EAS/Supabase; script/IaC the Supabase setup (auth hook registration, providers); add Cloudflare config if the CDN/WAF claim is real. |
 | 10 | **release.yml submit not registry-driven.** Submit step is copy-pasted per profile; `eas.json` submit profiles are empty `{}` (no ASC/Play credentials). Forget a line = client never submitted; `eas submit` fails without creds. | `.github/workflows/release.yml:63-66`, `eas.json:54-57` | Drive submit from `brands/index.js`; fill submit profiles with per-brand store credentials. |
 
 ---

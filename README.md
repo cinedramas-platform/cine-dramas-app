@@ -175,7 +175,11 @@ npx eas-cli deploy --export-dir dist            # preview deploy (EAS Hosting)
 npx eas-cli deploy --export-dir dist --prod     # production
 ```
 
-Live: https://cinedramas-dev.expo.app
+Web and native builds both live under the `cineself` Expo account; each brand's
+EAS project ID is in `brands/*/manifest.json`. The web deploy goes to the default
+brand's project.
+
+Live: https://cineself-cinedramas-dev.expo.app
 
 ## Client demo builds (EAS internal distribution)
 

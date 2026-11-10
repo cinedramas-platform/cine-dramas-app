@@ -1,4 +1,4 @@
-const FUNCTION_URL = 'https://kkjjbjrebeoekindsihw.supabase.co/functions/v1/config';
+const FUNCTION_URL = 'https://qbwrqfajnpgfesmndskt.supabase.co/functions/v1/config';
 
 async function sendRequest(params = {}) {
   const url = new URL(FUNCTION_URL);

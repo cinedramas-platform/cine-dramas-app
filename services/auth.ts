@@ -21,6 +21,7 @@ export async function signUp(email: string, password: string) {
     method: 'POST',
     headers: {
       apikey: supabaseAnonKey,
+      Authorization: `Bearer ${supabaseAnonKey}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({ email, password, tenant_id: tenantId }),

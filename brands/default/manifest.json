@@ -3,18 +3,18 @@
   "slug": "cinedramas-dev",
   "tenantId": "dev-tenant",
   "ios": {
-    "bundleId": "com.cinedramas.dev"
+    "bundleId": "com.cineself.cinedramas"
   },
   "android": {
     "packageName": "com.cinedramas.dev"
   },
-  "supabaseUrl": "https://kkjjbjrebeoekindsihw.supabase.co",
-  "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtrampianJlYmVvZWtpbmRzaWh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwNjg4NDAsImV4cCI6MjA5MDY0NDg0MH0.i6s9I8IULUc6jLlTXLmGSmWMDBkDN0CsmMt5uG5I_2s",
+  "supabaseUrl": "https://qbwrqfajnpgfesmndskt.supabase.co",
+  "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFid3JxZmFqbnBnZmVzbW5kc2t0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQyNDM2MzgsImV4cCI6MjEwOTgxOTYzOH0.-Vvp33pxE4X7nzy_Df4QxxEB3DeMrXYBNXzdh4RxRxU",
   "muxEnvKey": "o7pj7ihce49bfrjldm0geeiri",
   "revenuecatApiKey": "",
   "sentryDsn": "",
   "sentryProject": "cinedramas-dev",
-  "easProjectId": "8be3485f-b42f-413e-98a4-99a9304db436",
+  "easProjectId": "76a507c4-f45e-43e3-81fd-bc5742ad3cae",
   "splashBackgroundColor": "#000000",
   "tagline": "the way short stories should be"
 }

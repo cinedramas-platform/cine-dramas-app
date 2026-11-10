@@ -127,7 +127,8 @@ All P0–P3 items executed on `dev` (commits `683e58a..`):
 - **Infra:** Supabase project was found **INACTIVE** (free-tier pause) — restored;
   daily keep-alive workflow added (`.github/workflows/keepalive.yml`).
 - **CI:** lint/format scoped to first-party code; all gates green.
-- **Demo account:** `demo@cineself.com` / `CineDemo2026!` (tenant `dev-tenant`).
+- **Demo account:** `demo@cineself.com` existed only on the old Supabase project and
+  is gone with it (2026-11-10, see §9). Don't publish shared passwords here again.
 
 Remaining before a client demo: install the EAS preview build on a device and run
 the loop once by hand (feed → play → resume → locked → unlock → check-in).
@@ -166,3 +167,25 @@ build/deploy commands.
   to see live (no code change).
 - **Deferred**: not an SEO/marketing site (auth-gated SPA, `output: 'single'`).
   A public landing/catalog page would be a separate small build if ever wanted.
+
+## 9. Backend migration (2026-11-10)
+
+The original Supabase project (`kkjjbjrebeoekindsihw`) was in an account nobody
+on the team can reach, and kept pausing on the free tier. It was rebuilt from
+the repo in a new project, `qbwrqfajnpgfesmndskt` (CineDramas, Vitoshatech org,
+Pro, eu-central-1): all migrations including the tenant-secret column grants,
+`seed.sql` + `demo-content.sql`, the access-token hook, and every function.
+
+- **Not carried over:** old users, wallets and unlocks (test data), and the four
+  original series posters in Storage; those series now use Mux thumbnails.
+- **Mux:** new signing key `3RApFQ…` installed; the leaked `SBi56…` and the unused
+  `rWqZ…` were deleted. The webhook points at the new project.
+- **Expo:** everything moved to the `cineself` account after `vassil_iliev`'s
+  lapsed: `@cineself/cinedramas-dev` (default brand + web) and
+  `@cineself/northlight` (clientA). Web: https://cineself-cinedramas-dev.expo.app.
+  The old https://cinedramas-dev.expo.app went with Vassil's account. Builds from
+  the new projects carry a new Android signing key, so testers uninstall the old
+  APK before installing a new one.
+- **Deploying functions:** `npx supabase@2 functions deploy --use-api --import-map
+  supabase/functions/deno.json`. CLI v3 rejects this repo's `config.toml`.
+

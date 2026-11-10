@@ -5,7 +5,7 @@ const brand = clientConfigs[variant] || clientConfigs['default'];
 
 module.exports = ({ config }) => ({
   ...config,
-  owner: process.env.EAS_OWNER || 'vassil_iliev',
+  owner: process.env.EAS_OWNER || 'cineself',
   name: brand.appName,
   slug: brand.slug,
   version: '1.0.0',
@@ -13,6 +13,8 @@ module.exports = ({ config }) => ({
   icon: brand.iconPath || './assets/icon.png',
   userInterfaceStyle: 'dark',
   newArchEnabled: true,
+  runtimeVersion: { policy: 'appVersion' },
+  updates: { url: `https://u.expo.dev/${brand.easProjectId}` },
   scheme: brand.slug,
   splash: {
     image: brand.splashPath || './assets/splash-icon.png',
