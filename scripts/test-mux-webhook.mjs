@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 
-const FUNCTION_URL = 'https://kkjjbjrebeoekindsihw.supabase.co/functions/v1/webhooks-mux';
+const FUNCTION_URL = 'https://qbwrqfajnpgfesmndskt.supabase.co/functions/v1/webhooks-mux';
 const WEBHOOK_SECRET = 'test_webhook_secret_for_cd34';
 const TEST_ASSET_ID = 'test-asset-webhook-cd34';
 

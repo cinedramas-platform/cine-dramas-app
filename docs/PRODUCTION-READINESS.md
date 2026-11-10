@@ -83,6 +83,11 @@ Must be done before a single real coin/dollar moves.
 > restored and pass with the migration). The replacement key `3RApFQKV…` is
 > confirmed accepted by Mux. Applying the migration, rotating, and revoking need
 > someone with access to the Supabase project.
+>
+> **Resolved 2026-11-10.** The backend was rebuilt in a new project with this
+> migration from the start; anon and authenticated reads of the secret columns
+> return permission denied there. `3RApFQ…` is the only signing key left in Mux;
+> `SBi56…` and `rWqZ…` are deleted.
 
 | # | Issue | Evidence | Fix |
 |---|-------|----------|-----|

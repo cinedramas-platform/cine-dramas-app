@@ -10,7 +10,7 @@
 # Optional env:
 #   PORTAL_PRODUCER_EMAILS  fallback producer allowlist (comma-separated);
 #                           prefer UPDATE public.users SET role='producer'
-#   PROJECT_REF             Supabase project ref (default: cinedramas-dev)
+#   PROJECT_REF             Supabase project ref (default: CineDramas, Vitoshatech org)
 #
 # Manual follow-ups this script cannot do:
 #   1. Mux Dashboard → Settings → Webhooks: subscribe the existing endpoint to
@@ -20,7 +20,7 @@
 
 set -euo pipefail
 
-PROJECT_REF="${PROJECT_REF:-kkjjbjrebeoekindsihw}"
+PROJECT_REF="${PROJECT_REF:-qbwrqfajnpgfesmndskt}"
 
 : "${SUPABASE_ACCESS_TOKEN:?Set SUPABASE_ACCESS_TOKEN (sbp_…)}"
 : "${MUX_TOKEN_ID:?Set MUX_TOKEN_ID}"
@@ -44,14 +44,15 @@ supabase secrets set "${secrets[@]}" --project-ref "$PROJECT_REF"
 
 echo "==> Deploying producer-gated portal functions"
 for fn in mux-direct-upload catalog-admin mux-analytics; do
-  supabase functions deploy "$fn" --project-ref "$PROJECT_REF"
+  supabase functions deploy "$fn" --project-ref "$PROJECT_REF" --import-map supabase/functions/deno.json
 done
 
 # Mux cannot send a Supabase JWT, so the gateway check must be off for this one
 # (see [functions.webhooks-mux] in supabase/config.toml). Without the flag the
 # gateway answers 401 before the handler runs and no upload ever goes live.
 echo "==> Deploying webhooks-mux (JWT verification disabled — HMAC-verified inside)"
-supabase functions deploy webhooks-mux --project-ref "$PROJECT_REF" --no-verify-jwt
+supabase functions deploy webhooks-mux --project-ref "$PROJECT_REF" --no-verify-jwt \
+  --import-map supabase/functions/deno.json
 
 echo "==> Verifying webhook endpoint is reachable without a JWT"
 code=$(curl -s -o /dev/null -w "%{http_code}" -X POST \

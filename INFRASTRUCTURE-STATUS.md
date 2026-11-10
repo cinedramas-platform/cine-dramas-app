@@ -14,8 +14,13 @@
 > - EAS profiles set `SENTRY_DISABLE_AUTO_UPLOAD=true`; without it the release
 >   gradle build fails in the Sentry source-map upload task (no SENTRY_ORG/token
 >   configured). Re-enable via EAS secrets when Sentry org is set up.
-> - Supabase free tier auto-pauses after ~1 week idle (project was found INACTIVE
->   2026-06-11). `.github/workflows/keepalive.yml` pings daily to prevent this.
+> - Supabase moved 2026-11-10 to project `qbwrqfajnpgfesmndskt` (CineDramas,
+>   Vitoshatech org, Pro plan, eu-central-1). The old free-tier project
+>   `kkjjbjrebeoekindsihw` sits in an account nobody can reach and was paused;
+>   Pro projects don't pause, so the keepalive workflow is gone.
+> - The web app is hosted under the `cineself` Expo account
+>   (https://cineself-cinedramas-dev.expo.app); native EAS builds still use
+>   `vassil_iliev/cinedramas-dev`. See README for the env overrides.
 
 Last updated: 2026-04-03
 
