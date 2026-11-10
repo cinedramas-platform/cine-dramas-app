@@ -18,9 +18,11 @@
 >   Vitoshatech org, Pro plan, eu-central-1). The old free-tier project
 >   `kkjjbjrebeoekindsihw` sits in an account nobody can reach and was paused;
 >   Pro projects don't pause, so the keepalive workflow is gone.
-> - The web app is hosted under the `cineself` Expo account
->   (https://cineself-cinedramas-dev.expo.app); native EAS builds still use
->   `vassil_iliev/cinedramas-dev`. See README for the env overrides.
+> - Expo moved 2026-11-10 to the `cineself` account, web and native alike:
+>   `@cineself/cinedramas-dev` (default brand, `76a507c4-…`, also hosts
+>   https://cineself-cinedramas-dev.expo.app) and `@cineself/northlight`
+>   (clientA, `583e2ef6-…`). The `vassil_iliev` projects lapsed with that
+>   account; the first EAS line above is historical.
 
 Last updated: 2026-04-03
 

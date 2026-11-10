@@ -5,7 +5,7 @@ const brand = clientConfigs[variant] || clientConfigs['default'];
 
 module.exports = ({ config }) => ({
   ...config,
-  owner: process.env.EAS_OWNER || 'vassil_iliev',
+  owner: process.env.EAS_OWNER || 'cineself',
   name: brand.appName,
   slug: brand.slug,
   version: '1.0.0',
@@ -42,7 +42,7 @@ module.exports = ({ config }) => ({
     favicon: './assets/favicon.png',
   },
   extra: {
-    eas: { projectId: process.env.EAS_PROJECT_ID ?? brand.easProjectId },
+    eas: { projectId: brand.easProjectId },
     supabaseUrl: brand.supabaseUrl,
     supabaseAnonKey: brand.supabaseAnonKey,
     muxEnvKey: brand.muxEnvKey,

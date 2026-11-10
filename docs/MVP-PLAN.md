@@ -180,9 +180,12 @@ Pro, eu-central-1): all migrations including the tenant-secret column grants,
   original series posters in Storage; those series now use Mux thumbnails.
 - **Mux:** new signing key `3RApFQ…` installed; the leaked `SBi56…` and the unused
   `rWqZ…` were deleted. The webhook points at the new project.
-- **Web:** https://cineself-cinedramas-dev.expo.app (Expo account `cineself`). The
-  old https://cinedramas-dev.expo.app belongs to `vassil_iliev` and still points
-  at the dead backend.
+- **Expo:** everything moved to the `cineself` account after `vassil_iliev`'s
+  lapsed: `@cineself/cinedramas-dev` (default brand + web) and
+  `@cineself/northlight` (clientA). Web: https://cineself-cinedramas-dev.expo.app.
+  The old https://cinedramas-dev.expo.app went with Vassil's account. Builds from
+  the new projects carry a new Android signing key, so testers uninstall the old
+  APK before installing a new one.
 - **Deploying functions:** `npx supabase@2 functions deploy --use-api --import-map
   supabase/functions/deno.json`. CLI v3 rejects this repo's `config.toml`.
 
